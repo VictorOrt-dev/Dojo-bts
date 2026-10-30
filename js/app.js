@@ -39,12 +39,13 @@ function renderErreur(err) {
   definirTitre('Oups');
   const fichierLocal = location.protocol === 'file:';
   vue.innerHTML = `
-    <section class="carte">
-      <p class="alerte">Impossible d'afficher cette page.</p>
-      <p class="discret">${esc(err.message)}</p>
-      ${fichierLocal ? '<p>Le fichier a été ouvert directement. Lance un petit serveur : <code>python3 -m http.server</code>, puis ouvre <code>http://localhost:8000</code>.</p>' : ''}
-      <button class="btn" type="button" onclick="location.reload()">Réessayer</button>
-    </section>`;
+    <header class="frontispice">
+      <p class="surtitre">Erreur</p>
+      <h2 class="titre-chapitre">Page <em>illisible</em></h2>
+    </header>
+    <p class="note-marge">${esc(err.message)}</p>
+    ${fichierLocal ? '<p class="espace">Le fichier a été ouvert directement. Lance un petit serveur : <code>python3 -m http.server</code>, puis ouvre <code>http://localhost:8000</code>.</p>' : ''}
+    <div class="actions"><button class="btn principal" type="button" onclick="location.reload()">Réessayer</button></div>`;
   console.error(err);
 }
 

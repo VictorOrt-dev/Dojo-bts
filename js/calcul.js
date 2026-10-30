@@ -5,6 +5,7 @@ import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
 import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './dojo.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
+import { typo } from './mise-en-page.js';
 
 export const DUREE = 30;        // secondes par calcul
 export const TOLERANCE = 0.02;  // ±2 %
@@ -210,15 +211,15 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
     vue.innerHTML = `
       ${enteteSession(session.index + 1, session.score)}
       <div class="chrono">
-        <div class="bargraphe"><div class="bargraphe-remplissage chrono-barre"></div></div>
+        <div class="chrono-piste"><div class="chrono-barre"></div></div>
         <span class="chrono-valeur"><span id="secondes">${DUREE}</span><small>s</small></span>
       </div>
-      <section class="carte exercice">
-        <p class="exercice-type">${esc(ex.generateur.titre)}</p>
-        <p class="enonce">${esc(ex.enonce)}</p>
-        ${ex.aide ? `<p class="aide">${esc(ex.aide)}</p>` : ''}
+      <section class="exercice">
+        <p class="surtitre">${esc(ex.generateur.titre)}</p>
+        <p class="enonce">${esc(typo(ex.enonce))}</p>
+        ${ex.aide ? `<p class="aide">${esc(typo(ex.aide))}</p>` : ''}
         ${ex.choix
-          ? `<div class="choix choix-2">${ex.choix.map(c => `<button class="choix-btn" type="button" data-valeur="${esc(c)}">${esc(c)}</button>`).join('')}</div>`
+          ? `<div class="choix choix-2">${ex.choix.map((c, i) => `<button class="choix-btn" type="button" data-valeur="${esc(c)}"><span class="choix-touche">${'AB'[i]}</span><span>${esc(c)}</span></button>`).join('')}</div>`
           : `<form id="saisie" class="saisie" autocomplete="off">
                <div class="afficheur">
                  <input id="reponse" type="text" inputmode="decimal" enterkeyhint="done" placeholder="0,00" aria-label="Ta réponse en ${esc(ex.unite)}">
@@ -291,19 +292,20 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
 
     const attendu = ex.choix ? ex.reponse : `${nb(ex.reponse)} ${ex.unite}`;
     let verdict;
-    if (juste) verdict = `<p class="verdict"><span class="led led-vert"></span>Conforme<span class="gain">+${gain} XP${rapide ? ' · rapide' : ''}</span></p>`;
-    else if (valeur === null) verdict = `<p class="verdict"><span class="led led-rouge"></span>Temps dépassé</p>
-      <p class="attendu">Attendu : <strong class="mono">${esc(attendu)}</strong></p>`;
-    else verdict = `<p class="verdict"><span class="led led-rouge"></span>Non conforme</p>
-      <p class="attendu">Ta réponse : <strong class="mono">${esc(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`)}</strong> · attendu : <strong class="mono">${esc(attendu)}</strong></p>`;
+    if (juste) verdict = `<p class="verdict"><span class="tampon">Juste</span><span class="gain">+${gain} XP${rapide ? ' · rapide' : ''}</span></p>`;
+    else if (valeur === null) verdict = `<p class="verdict"><span class="tampon">Temps dépassé</span></p>
+      <p class="attendu">Il fallait trouver <strong class="mono">${esc(attendu)}</strong>.</p>`;
+    else verdict = `<p class="verdict"><span class="tampon">Faux</span></p>
+      <p class="attendu">Ta réponse : <strong class="mono">${esc(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`)}</strong> — il fallait <strong class="mono">${esc(attendu)}</strong>.</p>`;
 
     const derniere = session.index === session.exercices.length - 1;
     const zone = vue.querySelector('#correction');
     zone.innerHTML = `
-      <section class="carte explication ${juste ? 'est-juste' : 'est-faux'}">
+      <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${verdict}
+        <p class="surtitre">Développement</p>
         <p class="solution">${esc(ex.solution)}</p>
-        <button id="suivant" class="btn principal plein" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button>
+        <div class="actions"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

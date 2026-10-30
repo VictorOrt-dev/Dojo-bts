@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#0A0D14"/>
-  <rect x="40" y="40" width="432" height="432" rx="64" fill="none" stroke="#232B39" stroke-width="8"/>
-  <path d="M292 76 136 290h104l-22 146 158-222H272z" fill="#FFC21A"/>
+  <rect width="512" height="512" fill="#EEE8DC"/>
+  <rect x="56" y="56" width="400" height="400" fill="none" stroke="#1B1915" stroke-width="6"/>
+  <text x="246" y="372" text-anchor="middle" font-family="'Cormorant Garamond', Georgia, serif" font-weight="600" font-size="330" fill="#1B1915">D</text>
+  <rect x="380" y="92" width="36" height="36" fill="#B33A1C"/>
 </svg>

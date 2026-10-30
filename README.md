@@ -23,7 +23,7 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 ```
 index.html              coquille : barre du haut, zone #vue, onglets
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
-css/style.css           tout le style ; jetons de couleur Nuit / Plein jour en tête de fichier
+css/style.css           tout le style ; jetons Papier / Encre en tête de fichier
 js/app.js               routeur par hash : #/cours, #/fiche/<id>, #/dojo, #/dojo/reco, #/dojo/calcul, #/profil
 js/storage.js           SEUL fichier qui touche localStorage (clé "dojo:v1")
 js/cours.js             liste + détail des fiches
@@ -33,9 +33,10 @@ js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance visuelle (QCM sur image)
 js/calcul.js            mode Calculs Flash (générateurs, chrono 30 s, tolérance ±2 %)
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
-js/theme.js             affichage Nuit (défaut) / Plein jour, mémorisé dans les préférences
-js/icones.js            icônes SVG au trait (pas d'emoji)
-fonts/                  polices auto-hébergées (Barlow, Barlow Condensed, JetBrains Mono — licence OFL)
+js/theme.js             ambiance Papier (défaut) / Encre, mémorisée dans les préférences
+js/mise-en-page.js      frontispice, titres de section, lignes d'état, typographie française (typo)
+js/icones.js            plus utilisé depuis la charte « Carnet d'atelier » (à supprimer à l'étape 3)
+fonts/                  polices auto-hébergées (Cormorant Garamond, Source Serif 4, JetBrains Mono — licence OFL)
 js/util.js              esc(), normaliser(), plurielS()
 data/fiches.json        CONTENU des fiches (aucun code)
 data/reconnaissance.json CONTENU des questions de reconnaissance
@@ -54,15 +55,20 @@ img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg =
 - **Cache GitHub Pages (10 min).** Juste après une mise en ligne, le téléphone peut mélanger anciens et nouveaux fichiers JS. Pour une nouvelle fonction partagée, préférer un nouveau fichier plutôt qu'ajouter un export à un fichier existant.
 - **Une fonctionnalité par demande à l'IA, un commit Git dès que ça marche.**
 
-## Charte graphique (supervision industrielle)
+## Charte graphique « Carnet d'atelier » (éditorial brut)
 
-- **Principe ISA-101** : surfaces neutres (acier), la couleur signale un état et rien d'autre.
-  Jaune `--jaune` = attention, score, action principale · Vert `--vert` = conforme, XP, valider · Rouge `--rouge` = défaut, chrono < 10 s.
-  Pas de couleur décorative, pas d'emoji : icônes SVG de `js/icones.js`, repères en monospace (`ELT`, `AUT`, `RES`, `SEC`).
-- **Polices** : Barlow (texte), Barlow Condensed en capitales (titres, étiquettes, boutons), JetBrains Mono (chiffres, unités, formules).
-- **Composants** : `.carte` (panneau métal brossé), `.panneau-titre`, `.btn` (poussoir : `.principal` jaune, `.valider` vert, `.danger`), `.led` (`.led-vert/jaune/rouge`), `.bargraphe`, `.tag`, `.selecteur`, `.bandeau-danger` (rubalise).
-- **Contrastes** vérifiés WCAG : AA minimum partout, AAA pour le texte principal, dans les deux modes.
-- **Performances** : pas de flou ni d'ombre animée ; animations ≤ 160 ms sur `transform`/`opacity` ; `prefers-reduced-motion` respecté.
+- **Zéro carte** : aucun coin arrondi, aucune ombre douce, aucun dégradé. La structure vient des filets de 1 px
+  (`--filet` fin, `--encre` pour les ruptures fortes), de la gouttière numérotée (`--gouttiere`) et des grands blancs.
+- **Encre & matière** : fond `--fond` papier minéral (`#EEE8DC`) ou encre (`#121110`) ; texte `--encre`.
+  **Une seule couleur d'accent**, le vermillon `--accent`, posé comme un tampon : réponse fausse, chrono critique,
+  note « à vérifier », numéros de pièges, onglet actif. Jamais décoratif.
+- **Typographie** : Cormorant Garamond (titres de chapitre, italique pour l'emphase) · Source Serif 4 (texte des fiches) ·
+  JetBrains Mono (chiffres, unités, XP, étiquettes en capitales espacées). Passer tout texte de contenu par `typo()`
+  (espaces insécables français).
+- **Composants** : `frontispice()`, `titreSection()`, `.ligne` (sommaire numéroté), `.btn` (bloc rectangulaire, `.principal` plein encre,
+  `.danger` vermillon), `.tampon`, `.note-marge`, `.regle` (règle graduée), `.planche` (papier millimétré pour les symboles), `.selecteur`.
+- **Retour tactile** : inversion instantanée encre/papier au toucher, sans animation.
+- **Contrastes** vérifiés WCAG : AAA pour le texte, AA pour le vermillon, dans les deux ambiances.
 
 ## Format d'une fiche (`data/fiches.json`)
 

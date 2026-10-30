@@ -3,12 +3,13 @@
 
 import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
 import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './dojo.js';
+import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
 
 const LEGENDES = {
-  symbole: 'SYMBOLE · IEC 60617',
-  materiel: 'MATÉRIEL · ARMOIRE'
+  symbole: 'Symbole · IEC 60617',
+  materiel: "Matériel · armoire électrique"
 };
 const TOUCHES = ['A', 'B', 'C', 'D'];
 
@@ -45,27 +46,27 @@ export async function renderReco({ vue, definirTitre }) {
     vue.innerHTML = `
       ${enteteSession(session.index + 1, session.score)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
-        <img src="${esc(q.image)}" alt="Image à identifier">
-        <figcaption class="reco-legende">${LEGENDES[q.type] ?? ''}</figcaption>
+        <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
+        <figcaption class="reco-legende">Planche ${deuxChiffres(session.index + 1)} — ${LEGENDES[q.type] ?? ''}</figcaption>
       </figure>
       <h2 class="question">${esc(q.question)}</h2>
       <div class="choix">
-        ${choix.map((c, i) => `<button class="choix-btn" type="button"><span class="choix-touche">${TOUCHES[i]}</span><span>${esc(c)}</span></button>`).join('')}
+        ${choix.map((c, i) => `<button class="choix-btn" type="button"><span class="choix-touche">${TOUCHES[i]}</span><span>${esc(typo(c))}</span></button>`).join('')}
       </div>
       <div id="explication"></div>`;
 
     vue.querySelectorAll('.choix-btn').forEach((bouton, i) =>
-      bouton.addEventListener('click', () => repondre(q, choix[i], bouton)));
+      bouton.addEventListener('click', () => repondre(q, choix, i)));
     window.scrollTo(0, 0);
   };
 
-  const repondre = (q, choisi, boutonChoisi) => {
-    const juste = choisi === q.nom;
-    vue.querySelectorAll('.choix-btn').forEach(b => {
+  const repondre = (q, choix, iChoisi) => {
+    const juste = choix[iChoisi] === q.nom;
+    vue.querySelectorAll('.choix-btn').forEach((b, i) => {
       b.disabled = true;
-      if (b.lastElementChild.textContent === q.nom) b.classList.add('juste');
+      if (choix[i] === q.nom) b.classList.add('juste');
+      else if (i === iChoisi) b.classList.add('faux');
     });
-    if (!juste) boutonChoisi.classList.add('faux');
 
     noterReponse('reco', q.id, juste);
     let gain = 0;
@@ -79,17 +80,17 @@ export async function renderReco({ vue, definirTitre }) {
     const derniere = session.index === session.questions.length - 1;
     const zone = vue.querySelector('#explication');
     zone.innerHTML = `
-      <section class="carte explication ${juste ? 'est-juste' : 'est-faux'}">
+      <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${juste
-          ? `<p class="verdict"><span class="led led-vert"></span>Conforme<span class="gain">+${gain} XP</span></p>`
-          : `<p class="verdict"><span class="led led-rouge"></span>Non conforme</p>
-             <p class="attendu">Réponse : <strong>${esc(q.nom)}</strong></p>`}
+          ? `<p class="verdict"><span class="tampon">Juste</span><span class="gain">+${gain} XP</span></p>`
+          : `<p class="verdict"><span class="tampon">Faux</span></p>
+             <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>`}
         <dl class="fiche-technique">
-          <dt>Repérage</dt><dd>${esc(q.reperage)}</dd>
-          <dt>Rôle</dt><dd>${esc(q.role)}</dd>
+          <dt>Repérage</dt><dd>${esc(typo(q.reperage))}</dd>
+          <dt>Rôle</dt><dd>${esc(typo(q.role))}</dd>
         </dl>
-        ${q.verifie ? '' : '<p class="note">Contenu à vérifier avec ton cours.</p>'}
-        <button id="suivant" class="btn principal plein" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button>
+        ${q.verifie ? '' : '<p class="note-marge">Note — à vérifier avec ton cours.</p>'}
+        <div class="actions"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

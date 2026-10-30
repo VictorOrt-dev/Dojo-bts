@@ -1,103 +1,98 @@
 // Accueil du Dojo + éléments d'interface partagés par les modes d'entraînement.
 
 import { NIVEAUX, BAREME, lireXP, niveauPour, statsMode } from './xp.js';
-import { ICONES } from './icones.js';
+import { frontispice, titreSection, deuxChiffres, ROMAINS } from './mise-en-page.js';
 import { esc } from './util.js';
 
 export const TAILLE_SESSION = 10;
+export { deuxChiffres };
 
-export const deuxChiffres = n => String(n).padStart(2, '0');
-
+// Rang de l'opérateur : nom en italique, XP en mono, règle graduée vers le rang suivant.
 export function carteNiveau() {
   const xp = lireXP();
   const n = niveauPour(xp);
+  const rangs = NIVEAUX.map((_, i) => i === n.rang ? `<b>${ROMAINS[i]}</b>` : ROMAINS[i]).join(' · ');
   const suite = n.suivant
-    ? `Encore <span class="mono">${n.reste}</span> XP pour passer ${esc(n.suivant.nom)}`
-    : 'Niveau maximum atteint.';
+    ? `Encore <span class="mono">${n.reste}</span> XP avant le rang de ${esc(n.suivant.nom)}.`
+    : 'Rang le plus haut atteint.';
   return `
-    <section class="carte niveau">
-      <p class="panneau-titre">Niveau opérateur · N${n.rang + 1}/${NIVEAUX.length}</p>
-      <div class="niveau-ligne">
-        <div>
-          <p class="niveau-nom">${esc(n.nom)}</p>
-          <div class="rangs" role="img" aria-label="Niveau ${n.rang + 1} sur ${NIVEAUX.length}">
-            ${NIVEAUX.map((_, i) => `<span class="rang${i <= n.rang ? ' atteint' : ''}"></span>`).join('')}
-          </div>
-        </div>
-        <p class="niveau-xp"><span class="valeur">${xp}</span><span class="unite-xp">XP TOTAL</span></p>
+    <section class="niveau">
+      <div>
+        <p class="rangs" aria-label="Rang ${n.rang + 1} sur ${NIVEAUX.length}">RANG ${rangs}</p>
+        <p class="niveau-nom">${esc(n.nom)}</p>
       </div>
-      <div class="bargraphe"><div class="bargraphe-remplissage" style="width: ${Math.round(n.progression * 100)}%"></div></div>
+      <p class="niveau-xp"><span class="valeur">${String(xp).padStart(4, '0')}</span><span class="unite-xp">XP</span></p>
+      <div class="regle" aria-hidden="true"><div class="regle-remplissage" style="width: ${Math.round(n.progression * 100)}%"></div></div>
       <p class="niveau-suite">${suite}</p>
     </section>`;
 }
 
 function record(mode) {
   const s = statsMode(mode);
-  return s.sessions ? `REC ${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION} · ${s.sessions} SESSION${s.sessions > 1 ? 'S' : ''}` : 'AUCUNE SESSION';
+  return s.sessions ? `Rec. ${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '—';
 }
 
 export function renderDojo({ vue, definirTitre }) {
-  definirTitre('Le Dojo');
+  definirTitre('II — Dojo');
   vue.innerHTML = `
+    ${frontispice({ surtitre: 'Chapitre II · Le Dojo', titre: 'Entraînement', italique: 'quotidien' })}
+
     ${carteNiveau()}
 
-    <p class="panneau-titre">Modes d'entraînement</p>
+    <section>
+      ${titreSection('§ 1', "Exercices")}
+      <a class="ligne" href="#/dojo/reco">
+        <span class="ligne-num">A.</span>
+        <div>
+          <h2 class="ligne-titre">Reconnaissance</h2>
+          <p class="ligne-meta">Symboles IEC · matériel d'armoire · ${TAILLE_SESSION} planches</p>
+        </div>
+        <span class="ligne-fin">${record('reco')}</span>
+      </a>
+      <a class="ligne" href="#/dojo/calcul">
+        <span class="ligne-num">B.</span>
+        <div>
+          <h2 class="ligne-titre">Calculs flash</h2>
+          <p class="ligne-meta">${TAILLE_SESSION} calculs · 30 s chacun · tolérance ±2 %</p>
+        </div>
+        <span class="ligne-fin">${record('calcul')}</span>
+      </a>
+      <div class="ligne inactif">
+        <span class="ligne-num">C.</span>
+        <div>
+          <h2 class="ligne-titre">Cas de panne</h2>
+          <p class="ligne-meta">Diagnostic pas à pas</p>
+        </div>
+        <span class="ligne-fin">À venir</span>
+      </div>
+    </section>
 
-    <a class="carte mode" href="#/dojo/reco">
-      <span class="mode-icone">${ICONES.reco}</span>
-      <span class="mode-texte">
-        <span class="mode-titre">Reconnaissance</span>
-        <span class="mode-desc">Symboles IEC et matériel d'armoire</span>
-        <span class="mode-record">${record('reco')}</span>
-      </span>
-      <span class="chevron">${ICONES.chevron}</span>
-    </a>
-
-    <a class="carte mode" href="#/dojo/calcul">
-      <span class="mode-icone">${ICONES.calcul}</span>
-      <span class="mode-texte">
-        <span class="mode-titre">Calculs Flash</span>
-        <span class="mode-desc">30 s par calcul · tolérance ±2 %</span>
-        <span class="mode-record">${record('calcul')}</span>
-      </span>
-      <span class="chevron">${ICONES.chevron}</span>
-    </a>
-
-    <div class="carte mode inactif">
-      <span class="mode-icone">${ICONES.panne}</span>
-      <span class="mode-texte">
-        <span class="mode-titre">Cas de panne</span>
-        <span class="mode-desc">Diagnostic pas à pas</span>
-        <span class="mode-record">VERROUILLÉ · ÉTAPE 3</span>
-      </span>
-    </div>
-
-    <details class="carte bareme">
-      <summary>Barème et niveaux</summary>
-      <table class="tableau">
+    <section>
+      ${titreSection('§ 2', 'Barème')}
+      <table class="tableau corps">
         <tr><td>Bonne réponse</td><td>+${BAREME.bonneReponse} XP</td></tr>
         <tr><td>Calcul juste en moins de ${BAREME.seuilRapidite} s</td><td>+${BAREME.bonusRapidite} XP</td></tr>
-        <tr><td>Session parfaite ${TAILLE_SESSION}/${TAILLE_SESSION}</td><td>+${BAREME.sessionParfaite} XP</td></tr>
-        ${NIVEAUX.map((n, i) => `<tr class="seuil"><td>N${i + 1} · ${esc(n.nom)}</td><td>${n.seuil} XP</td></tr>`).join('')}
+        <tr><td>Session sans faute</td><td>+${BAREME.sessionParfaite} XP</td></tr>
+        ${NIVEAUX.map((n, i) => `<tr><td>Rang ${ROMAINS[i]} · <em>${esc(n.nom)}</em></td><td>${n.seuil} XP</td></tr>`).join('')}
       </table>
-    </details>`;
+    </section>`;
 }
 
-// En-tête d'une session : "Q 03/10" + score.
+// En-tête d'une session : "Question 03/10" + score.
 export function enteteSession(numero, score) {
-  return `<div class="session-entete"><span>Q ${deuxChiffres(numero)}/${TAILLE_SESSION}</span><span class="session-score">SCORE ${deuxChiffres(score)}</span></div>`;
+  return `<div class="session-entete"><span>Question ${deuxChiffres(numero)}/${TAILLE_SESSION}</span><span class="session-score">Score ${deuxChiffres(score)}</span></div>`;
 }
 
 // Écran de fin de session.
 export function afficherBilan(vue, { score, xpGagne, onRejouer }) {
   const parfait = score === TAILLE_SESSION;
-  const message = parfait ? 'Sans faute' : score >= 7 ? 'Solide' : score >= 4 ? 'Ça vient, continue' : 'Revois les fiches et retente';
+  const message = parfait ? 'Sans faute.' : score >= 7 ? 'Travail solide.' : score >= 4 ? 'Ça vient, continue.' : 'Relis les fiches, puis reviens.';
   vue.innerHTML = `
-    <section class="carte bilan">
-      <p class="panneau-titre">Rapport de session</p>
+    <section class="bilan">
+      <p class="surtitre">Rapport de session</p>
       <p class="bilan-score">${deuxChiffres(score)}<small>/${TAILLE_SESSION}</small></p>
       <p class="bilan-message">${message}</p>
-      <p class="bilan-xp">+${xpGagne} XP${parfait ? ' · bonus 10/10' : ''}</p>
+      <p class="bilan-xp">+${xpGagne} XP${parfait ? ' · dont bonus sans faute' : ''}</p>
     </section>
     ${carteNiveau()}
     <div class="actions">
@@ -108,16 +103,16 @@ export function afficherBilan(vue, { score, xpGagne, onRejouer }) {
   window.scrollTo(0, 0);
 }
 
-// Message d'alarme court en haut de l'écran (ex. montée de niveau).
+// Message bref épinglé en haut de l'écran (ex. nouveau rang).
 export function afficherToast(texte) {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.setAttribute('role', 'status');
-  toast.innerHTML = `<span class="led led-vert"></span><span>${esc(texte)}</span>`;
+  toast.innerHTML = `<span class="marque-etat marque-attention" aria-hidden="true"></span><span>${esc(texte)}</span>`;
   document.body.append(toast);
   setTimeout(() => toast.remove(), 3200);
 }
 
 export function annoncerMontee(resultat) {
-  if (resultat.montee) afficherToast(`Niveau atteint : ${resultat.montee.nom}`);
+  if (resultat.montee) afficherToast(`Nouveau rang : ${resultat.montee.nom}`);
 }
