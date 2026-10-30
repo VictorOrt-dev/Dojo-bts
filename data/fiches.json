@@ -1,0 +1,108 @@
+[
+  {
+    "id": "elec-puissances-tri",
+    "module": "Électrotechnique",
+    "titre": "Puissances en triphasé équilibré",
+    "verifie": false,
+    "definitions": [
+      { "terme": "Tension simple V", "def": "Tension entre une phase et le neutre. 230 V sur un réseau 230/400 V." },
+      { "terme": "Tension composée U", "def": "Tension entre deux phases. 400 V sur un réseau 230/400 V." },
+      { "terme": "Puissance active P", "def": "Puissance réellement convertie en travail mécanique ou en chaleur. Unité : watt (W)." },
+      { "terme": "Puissance réactive Q", "def": "Puissance échangée avec les champs magnétiques (moteurs, transformateurs). Elle ne produit pas de travail mais charge les câbles. Unité : volt-ampère réactif (var)." },
+      { "terme": "Puissance apparente S", "def": "Puissance qui sert à dimensionner les câbles, les protections et les transformateurs. Unité : volt-ampère (VA)." },
+      { "terme": "Facteur de puissance cos φ", "def": "Rapport P / S en régime sinusoïdal. φ est le déphasage entre le courant et la tension." }
+    ],
+    "formules": [
+      { "nom": "Relation entre tensions", "expr": "U = √3 · V", "unites": "U et V en volts (V)" },
+      { "nom": "Puissance active", "expr": "P = √3 · U · I · cos φ", "unites": "P en W · U en V · I en A (courant de ligne)" },
+      { "nom": "Puissance réactive", "expr": "Q = √3 · U · I · sin φ", "unites": "Q en var" },
+      { "nom": "Puissance apparente", "expr": "S = √3 · U · I", "unites": "S en VA" },
+      { "nom": "Triangle des puissances", "expr": "S² = P² + Q²   et   cos φ = P / S", "unites": "P en W · Q en var · S en VA" },
+      { "nom": "Rendement d'un moteur", "expr": "η = Pu / Pa", "unites": "Pu (utile, mécanique) et Pa (absorbée, électrique) en W · η sans unité, < 1" }
+    ],
+    "pieges": [
+      "Mettre V (230 V) au lieu de U (400 V) dans une formule avec √3 : le résultat est faux d'un facteur √3.",
+      "La puissance sur la plaque signalétique d'un moteur est la puissance UTILE (mécanique). La puissance absorbée est plus grande : Pa = Pu / η.",
+      "Dans P = √3 · U · I · cos φ, I est le courant de ligne (mesuré à la pince sur un conducteur de phase), pas le courant dans un enroulement couplé en triangle.",
+      "Moteur plaqué 230/400 V sur un réseau 400 V : couplage ÉTOILE. En triangle, chaque enroulement reçoit 400 V au lieu de 230 V : surintensité, échauffement, déclenchement du relais thermique."
+    ]
+  },
+  {
+    "id": "auto-capteurs-inductifs",
+    "module": "Automatismes",
+    "titre": "Capteurs inductifs 3 fils PNP / NPN",
+    "verifie": false,
+    "definitions": [
+      { "terme": "Capteur inductif", "def": "Détecte sans contact la présence d'un objet métallique grâce à un champ électromagnétique." },
+      { "terme": "Signal TOR", "def": "Signal « tout ou rien » à deux états : 0 ou 1 (en pratique 0 V ou 24 V DC)." },
+      { "terme": "Sortie PNP (source)", "def": "Quand il détecte, le capteur fournit le +24 V à la charge. La charge est raccordée entre la sortie et le 0 V." },
+      { "terme": "Sortie NPN (puits)", "def": "Quand il détecte, le capteur relie la sortie au 0 V. La charge est raccordée entre le +24 V et la sortie." },
+      { "terme": "Contact NO / NF", "def": "NO (normalement ouvert) : sortie active quand l'objet est présent. NF (normalement fermé) : sortie active quand l'objet est absent." },
+      { "terme": "Portée nominale Sn", "def": "Distance de détection conventionnelle donnée par le fabricant, mesurée avec une cible normalisée en acier doux." }
+    ],
+    "formules": [
+      { "nom": "Portée de travail assurée", "expr": "Sa ≤ 0,81 · Sn", "unites": "Sa et Sn en mm" },
+      { "nom": "Correction selon le matériau", "expr": "Sa ≈ 0,81 · Sn · k", "unites": "k sans unité. Valeurs indicatives : acier ≈ 1 · inox ≈ 0,7 · laiton ≈ 0,4 · aluminium ≈ 0,3 (voir la doc du fabricant)" },
+      { "nom": "Raccordement 3 fils (IEC 60947-5-2)", "expr": "BN = +24 V · BU = 0 V · BK = sortie", "unites": "BN marron · BU bleu · BK noir" },
+      { "nom": "Courant de sortie", "expr": "I = U / R  ≤  I max du capteur", "unites": "I en A · U en V · R (charge) en Ω · I max souvent 100 à 200 mA" }
+    ],
+    "pieges": [
+      "Un capteur PNP raccordé sur une carte d'entrées automate prévue pour du NPN (ou l'inverse) n'est jamais vu par l'automate, même si sa LED s'allume. Vérifier le type de carte (« source » / « sink »).",
+      "La LED du capteur allumée prouve seulement qu'il détecte. Elle ne prouve pas que le signal arrive à l'automate : contrôler la LED de l'entrée automate ou mesurer la tension au bornier.",
+      "Remplacer un capteur qui détecte de l'inox ou de l'alu par un modèle de même Sn sans tenir compte du facteur matériau : la détection devient aléatoire.",
+      "Un capteur non noyable monté encastré dans du métal détecte son propre support en permanence."
+    ]
+  },
+  {
+    "id": "reseau-adressage-ipv4",
+    "module": "Réseaux",
+    "titre": "Adressage IPv4 d'un réseau automate",
+    "verifie": false,
+    "definitions": [
+      { "terme": "Adresse IP", "def": "Identifiant logique d'un équipement sur le réseau (ex. 192.168.0.10). Elle doit être unique sur le réseau." },
+      { "terme": "Masque de sous-réseau", "def": "Indique quelle partie de l'adresse IP désigne le réseau et quelle partie désigne l'équipement (ex. 255.255.255.0, noté /24)." },
+      { "terme": "Passerelle (gateway)", "def": "Adresse du routeur qui permet de communiquer avec un autre sous-réseau." },
+      { "terme": "Adresse MAC", "def": "Identifiant physique de la carte réseau, sur 6 octets (ex. 00:1B:1B:4A:2C:01). Fixée par le fabricant." },
+      { "terme": "Switch", "def": "Relie les équipements d'un même réseau local et aiguille les trames selon les adresses MAC." }
+    ],
+    "formules": [
+      { "nom": "Adresse du réseau", "expr": "Réseau = IP ET masque", "unites": "ET logique bit à bit · ex. 192.168.0.10 ET 255.255.255.0 = 192.168.0.0" },
+      { "nom": "Nombre d'adresses attribuables", "expr": "N = 2^(32 − n) − 2", "unites": "n = longueur du préfixe · ex. /24 → 254 adresses" },
+      { "nom": "Notation CIDR", "expr": "/24 = 255.255.255.0   ·   /16 = 255.255.0.0", "unites": "chaque octet à 255 = 8 bits à 1 dans le masque" },
+      { "nom": "Condition de communication directe", "expr": "(IP_A ET masque) = (IP_B ET masque)", "unites": "sinon il faut passer par une passerelle" }
+    ],
+    "pieges": [
+      "PC de maintenance hors du sous-réseau de l'automate (PC en 192.168.1.x, automate en 192.168.0.x, masque /24) : aucune communication. Fixer sur le PC une IP manuelle libre dans le bon sous-réseau.",
+      "Deux équipements avec la même IP : défaut intermittent, difficile à trouver. Tester l'adresse (ping) avant de l'attribuer et tenir à jour le plan d'adressage.",
+      "L'adresse du réseau (.0) et l'adresse de diffusion (.255 en /24) ne s'attribuent jamais à un équipement.",
+      "Ne jamais brancher son PC sur le réseau de production sans autorisation : risque de conflit d'adresse ou d'introduire un virus (cybersécurité industrielle, IEC 62443)."
+    ]
+  },
+  {
+    "id": "secu-consignation",
+    "module": "Sécurité",
+    "titre": "Consignation électrique (NF C 18-510)",
+    "verifie": false,
+    "definitions": [
+      { "terme": "Consignation", "def": "Ensemble des opérations qui permettent de mettre et de maintenir en sécurité une installation, pour y travailler hors tension." },
+      { "terme": "Chargé de consignation (BC)", "def": "Personne habilitée qui réalise la consignation et remet l'attestation de consignation." },
+      { "terme": "VAT", "def": "Vérificateur d'absence de tension : appareil normalisé (IEC 61243-3) pour vérifier l'absence de tension. Un multimètre n'est pas un VAT." },
+      { "terme": "Condamnation", "def": "Blocage de l'organe de séparation en position ouverte (cadenas personnel) + signalisation (pancarte)." },
+      { "terme": "MALT-CC", "def": "Mise à la terre et en court-circuit des conducteurs actifs, pour se protéger d'un retour de tension." }
+    ],
+    "formules": [
+      { "nom": "Les 5 étapes, dans l'ordre", "expr": "1 Séparation → 2 Condamnation → 3 Identification → 4 VAT → 5 MALT-CC", "unites": "En BT, la MALT-CC est obligatoire s'il existe un risque de tension induite ou de réalimentation" },
+      { "nom": "Loi d'Ohm appliquée au corps humain", "expr": "I = U / R corps", "unites": "I en A · U en V · R en Ω (de quelques centaines à quelques milliers d'Ω selon la peau, l'humidité et le trajet)" },
+      { "nom": "Effets du courant (50 Hz, valeurs indicatives)", "expr": "0,5 mA perception · 10 mA non-lâcher · 30 mA paralysie respiratoire · 75 mA fibrillation", "unites": "en mA · d'où les DDR 30 mA pour la protection des personnes" },
+      { "nom": "Domaines de tension (AC)", "expr": "TBT ≤ 50 V · BT : 50 V < U ≤ 1 000 V · HTA : 1 kV < U ≤ 50 kV", "unites": "En DC : TBT ≤ 120 V · BT ≤ 1 500 V" },
+      { "nom": "Tension limite conventionnelle de contact", "expr": "UL = 50 V AC (local sec) · 25 V AC (local mouillé)", "unites": "en volts (V)" }
+    ],
+    "pieges": [
+      "Tester le VAT sur une source connue AVANT et APRÈS la vérification : un VAT en panne affiche « absence de tension » sur un circuit sous tension.",
+      "Vérifier l'absence de tension sur TOUS les conducteurs actifs, neutre compris, au plus près de la zone de travail.",
+      "Un variateur de vitesse coupé reste dangereux : ses condensateurs restent chargés plusieurs minutes. Respecter le temps d'attente indiqué sur l'appareil et mesurer le bus continu.",
+      "Penser aux sources de réalimentation : onduleur, groupe électrogène, alimentation auxiliaire, circuit de commande venant d'une autre armoire.",
+      "Ne jamais manœuvrer un sectionneur en charge (risque d'arc) : couper d'abord la charge avec le contacteur ou le disjoncteur."
+    ]
+  }
+]
