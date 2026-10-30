@@ -209,20 +209,24 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
     const ex = session.exercices[session.index];
     vue.innerHTML = `
       ${enteteSession(session.index + 1, session.score)}
-      <div class="chrono"><div class="chrono-barre"></div></div>
-      <p class="chrono-texte"><span id="secondes">${DUREE}</span> s</p>
+      <div class="chrono">
+        <div class="bargraphe"><div class="bargraphe-remplissage chrono-barre"></div></div>
+        <span class="chrono-valeur"><span id="secondes">${DUREE}</span><small>s</small></span>
+      </div>
       <section class="carte exercice">
-        <p class="badge">${esc(ex.generateur.titre)}</p>
+        <p class="exercice-type">${esc(ex.generateur.titre)}</p>
         <p class="enonce">${esc(ex.enonce)}</p>
-        ${ex.aide ? `<p class="discret petit">${esc(ex.aide)}</p>` : ''}
+        ${ex.aide ? `<p class="aide">${esc(ex.aide)}</p>` : ''}
         ${ex.choix
-          ? `<div class="choix choix-2">${ex.choix.map(c => `<button class="btn choix-btn" type="button">${esc(c)}</button>`).join('')}</div>`
+          ? `<div class="choix choix-2">${ex.choix.map(c => `<button class="choix-btn" type="button" data-valeur="${esc(c)}">${esc(c)}</button>`).join('')}</div>`
           : `<form id="saisie" class="saisie" autocomplete="off">
-               <input id="reponse" type="text" inputmode="decimal" enterkeyhint="done" placeholder="Ta réponse" aria-label="Ta réponse en ${esc(ex.unite)}">
-               <span class="unite">${esc(ex.unite)}</span>
-               <button class="btn principal" type="submit">Valider</button>
+               <div class="afficheur">
+                 <input id="reponse" type="text" inputmode="decimal" enterkeyhint="done" placeholder="0,00" aria-label="Ta réponse en ${esc(ex.unite)}">
+                 <span class="unite">${esc(ex.unite)}</span>
+               </div>
+               <button class="btn valider" type="submit">Valider</button>
              </form>`}
-        <p id="erreur-saisie" class="alerte petit" role="alert"></p>
+        <p id="erreur-saisie" class="erreur-saisie" role="alert"></p>
       </section>
       <div id="correction"></div>`;
 
@@ -243,13 +247,14 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
       champ.focus();
     }
 
+    const chrono = vue.querySelector('.chrono');
     const barre = vue.querySelector('.chrono-barre');
     const secondes = vue.querySelector('#secondes');
     ex.debut = Date.now();
     minuteur = setInterval(() => {
       const restant = Math.max(0, DUREE - (Date.now() - ex.debut) / 1000);
       barre.style.width = `${restant / DUREE * 100}%`;
-      barre.classList.toggle('urgent', restant <= 10);
+      chrono.classList.toggle('critique', restant <= 10);
       secondes.textContent = Math.ceil(restant);
       if (restant <= 0) terminer(ex, null);
     }, 200);
@@ -269,8 +274,8 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
     vue.querySelector('#erreur-saisie').textContent = '';
     if (ex.choix) {
       vue.querySelectorAll('.choix-btn').forEach(b => {
-        if (b.textContent === ex.reponse) b.classList.add('juste');
-        else if (b.textContent === valeur) b.classList.add('faux');
+        if (b.dataset.valeur === ex.reponse) b.classList.add('juste');
+        else if (b.dataset.valeur === valeur) b.classList.add('faux');
       });
     }
 
@@ -286,17 +291,19 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
 
     const attendu = ex.choix ? ex.reponse : `${nb(ex.reponse)} ${ex.unite}`;
     let verdict;
-    if (juste) verdict = `✅ Juste ! <span class="gain">+${gain} XP${rapide ? ' (bonus rapidité)' : ''}</span>`;
-    else if (valeur === null) verdict = `⏱️ Temps écoulé. Réponse : <strong>${esc(attendu)}</strong>`;
-    else verdict = `❌ Ta réponse : ${esc(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`)}. Attendu : <strong>${esc(attendu)}</strong>`;
+    if (juste) verdict = `<p class="verdict"><span class="led led-vert"></span>Conforme<span class="gain">+${gain} XP${rapide ? ' · rapide' : ''}</span></p>`;
+    else if (valeur === null) verdict = `<p class="verdict"><span class="led led-rouge"></span>Temps dépassé</p>
+      <p class="attendu">Attendu : <strong class="mono">${esc(attendu)}</strong></p>`;
+    else verdict = `<p class="verdict"><span class="led led-rouge"></span>Non conforme</p>
+      <p class="attendu">Ta réponse : <strong class="mono">${esc(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`)}</strong> · attendu : <strong class="mono">${esc(attendu)}</strong></p>`;
 
     const derniere = session.index === session.exercices.length - 1;
     const zone = vue.querySelector('#correction');
     zone.innerHTML = `
       <section class="carte explication ${juste ? 'est-juste' : 'est-faux'}">
-        <p class="verdict">${verdict}</p>
+        ${verdict}
         <p class="solution">${esc(ex.solution)}</p>
-        <button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le résultat' : 'Calcul suivant'}</button>
+        <button id="suivant" class="btn principal plein" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

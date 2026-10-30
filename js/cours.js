@@ -2,19 +2,23 @@
 // Le contenu vient de data/fiches.json ; ce fichier ne fait que l'afficher.
 
 import * as stockage from './storage.js';
-import { esc, normaliser, plurielS } from './util.js';
+import { ICONES } from './icones.js';
+import { esc, normaliser } from './util.js';
 
 // Le champ "module" de chaque fiche doit correspondre exactement à un "nom" ci-dessous.
+// "code" = repère court affiché comme une étiquette d'équipement.
 export const MODULES = [
-  { nom: 'Électrotechnique', icone: '⚡', cle: 'elec' },
-  { nom: 'Automatismes', icone: '⚙️', cle: 'auto' },
-  { nom: 'Réseaux', icone: '🌐', cle: 'reseau' },
-  { nom: 'Sécurité', icone: '🦺', cle: 'secu' }
+  { nom: 'Électrotechnique', code: 'ELT' },
+  { nom: 'Automatismes', code: 'AUT' },
+  { nom: 'Réseaux', code: 'RES' },
+  { nom: 'Sécurité', code: 'SEC' }
 ];
 
 function moduleDe(nom) {
-  return MODULES.find(m => m.nom === nom) ?? { nom, icone: '📄', cle: 'autre' };
+  return MODULES.find(m => m.nom === nom) ?? { nom, code: 'DIV' };
 }
+
+const deuxChiffres = n => String(n).padStart(2, '0');
 
 let promesseFiches = null;
 
@@ -52,13 +56,13 @@ export async function renderCours({ vue, definirTitre, params }) {
   const puce = (nom, libelle, nb) => {
     const href = nom ? `#/cours?m=${encodeURIComponent(nom)}` : '#/cours';
     const actif = nom === moduleActif ? ' aria-current="true"' : '';
-    return `<a class="puce" href="${href}"${actif}>${esc(libelle)} <small>${nb}</small></a>`;
+    return `<a class="puce" href="${href}"${actif}><span>${esc(libelle)}</span><span class="puce-nb">${deuxChiffres(nb)}</span></a>`;
   };
 
   vue.innerHTML = `
     <div class="puces">
       ${puce('', 'Tous', fiches.length)}
-      ${MODULES.map(m => puce(m.nom, `${m.icone} ${m.nom}`, fiches.filter(f => f.module === m.nom).length)).join('')}
+      ${MODULES.map(m => puce(m.nom, m.nom, fiches.filter(f => f.module === m.nom).length)).join('')}
     </div>
     <input id="recherche" class="recherche" type="search" enterkeyhint="search"
            placeholder="Rechercher : cos φ, VAT, masque…" value="${esc(recherche)}">
@@ -91,13 +95,14 @@ export async function renderCours({ vue, definirTitre, params }) {
 function carteFiche(fiche, lue) {
   const mod = moduleDe(fiche.module);
   return `
-    <a class="carte carte-fiche mod-${mod.cle}" href="#/fiche/${encodeURIComponent(fiche.id)}">
-      <div class="carte-haut">
-        <span class="badge">${mod.icone} ${esc(mod.nom)}</span>
-        ${lue ? '<span class="lue">✓ lue</span>' : ''}
+    <a class="carte carte-fiche" href="#/fiche/${encodeURIComponent(fiche.id)}">
+      <div class="carte-fiche-haut">
+        <span class="tag">${mod.code}</span>
+        ${lue ? '<span class="etat-lu"><span class="led led-vert"></span>LUE</span>' : ''}
       </div>
       <h2>${esc(fiche.titre)}</h2>
-      <p class="meta">${plurielS(fiche.definitions.length, 'définition')} · ${plurielS(fiche.formules.length, 'formule')} · ${plurielS(fiche.pieges.length, 'piège')}</p>
+      <p class="meta">${deuxChiffres(fiche.definitions.length)} DÉF · ${deuxChiffres(fiche.formules.length)} FORM · ${deuxChiffres(fiche.pieges.length)} PIÈGES</p>
+      <span class="chevron">${ICONES.chevron}</span>
     </a>`;
 }
 
@@ -123,20 +128,20 @@ export async function renderFiche({ vue, definirTitre, id }) {
   const suiv = memeModule[i + 1];
 
   vue.innerHTML = `
-    <article class="fiche mod-${mod.cle}">
-      <p class="badge">${mod.icone} ${esc(mod.nom)}</p>
+    <article class="fiche">
+      <div class="fiche-entete"><span class="tag">${mod.code}</span><span class="fiche-module">${esc(mod.nom)}</span></div>
       <h2 class="fiche-titre">${esc(fiche.titre)}</h2>
-      ${fiche.verifie ? '' : '<p class="a-verifier">⚠️ Contenu pas encore vérifié avec ton cours. Relis-le avec ton support avant de le réviser, puis passe <code>"verifie": true</code> dans fiches.json.</p>'}
+      ${fiche.verifie ? '' : '<p class="bandeau-danger"><strong>Contenu non vérifié.</strong> Relis-le avec ton cours avant de le réviser, puis passe <code>"verifie": true</code> dans fiches.json.</p>'}
 
-      <section class="bloc bloc-def">
-        <h3>📖 Définitions clés</h3>
+      <section class="carte bloc">
+        <h3 class="bloc-titre"><span class="bloc-num">01</span>Définitions clés</h3>
         <dl>
           ${fiche.definitions.map(d => `<dt>${esc(d.terme)}</dt><dd>${esc(d.def)}</dd>`).join('')}
         </dl>
       </section>
 
-      <section class="bloc bloc-formules">
-        <h3>🧮 Formules &amp; lois</h3>
+      <section class="carte bloc">
+        <h3 class="bloc-titre"><span class="bloc-num">02</span>Formules &amp; lois</h3>
         ${fiche.formules.map(f => `
           <div class="formule">
             <p class="formule-nom">${esc(f.nom)}</p>
@@ -145,9 +150,9 @@ export async function renderFiche({ vue, definirTitre, id }) {
           </div>`).join('')}
       </section>
 
-      <section class="bloc bloc-pieges">
-        <h3>⚠️ Pièges de terrain</h3>
-        <ul>
+      <section class="carte bloc bloc-pieges">
+        <h3 class="bloc-titre"><span class="bloc-num">03</span>Pièges de terrain</h3>
+        <ul class="pieges">
           ${fiche.pieges.map(p => `<li>${esc(p)}</li>`).join('')}
         </ul>
       </section>

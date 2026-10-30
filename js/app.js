@@ -7,6 +7,7 @@ import { renderProfil } from './profil.js';
 import { renderDojo } from './dojo.js';
 import { renderReco } from './quiz.js';
 import { renderCalcul } from './calcul.js';
+import { appliquerTheme } from './theme.js';
 import * as stockage from './storage.js';
 import { esc } from './util.js';
 
@@ -88,5 +89,6 @@ window.addEventListener('hashchange', () => {
   router();
 });
 
+appliquerTheme();
 stockage.demanderPersistance();
 router();

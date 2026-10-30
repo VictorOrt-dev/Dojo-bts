@@ -6,10 +6,11 @@ import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
 
-const LIBELLES_TYPE = {
-  symbole: 'Symbole schématique (IEC 60617)',
-  materiel: "Matériel d'armoire électrique"
+const LEGENDES = {
+  symbole: 'SYMBOLE · IEC 60617',
+  materiel: 'MATÉRIEL · ARMOIRE'
 };
+const TOUCHES = ['A', 'B', 'C', 'D'];
 
 let promesseQuestions = null;
 
@@ -43,11 +44,13 @@ export async function renderReco({ vue, definirTitre }) {
 
     vue.innerHTML = `
       ${enteteSession(session.index + 1, session.score)}
-      <figure class="reco-visuel"><img src="${esc(q.image)}" alt="Image à identifier"></figure>
-      <p class="reco-type">${LIBELLES_TYPE[q.type] ?? ''}</p>
+      <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
+        <img src="${esc(q.image)}" alt="Image à identifier">
+        <figcaption class="reco-legende">${LEGENDES[q.type] ?? ''}</figcaption>
+      </figure>
       <h2 class="question">${esc(q.question)}</h2>
       <div class="choix">
-        ${choix.map(c => `<button class="btn choix-btn" type="button">${esc(c)}</button>`).join('')}
+        ${choix.map((c, i) => `<button class="choix-btn" type="button"><span class="choix-touche">${TOUCHES[i]}</span><span>${esc(c)}</span></button>`).join('')}
       </div>
       <div id="explication"></div>`;
 
@@ -60,7 +63,7 @@ export async function renderReco({ vue, definirTitre }) {
     const juste = choisi === q.nom;
     vue.querySelectorAll('.choix-btn').forEach(b => {
       b.disabled = true;
-      if (b.textContent === q.nom) b.classList.add('juste');
+      if (b.lastElementChild.textContent === q.nom) b.classList.add('juste');
     });
     if (!juste) boutonChoisi.classList.add('faux');
 
@@ -77,13 +80,16 @@ export async function renderReco({ vue, definirTitre }) {
     const zone = vue.querySelector('#explication');
     zone.innerHTML = `
       <section class="carte explication ${juste ? 'est-juste' : 'est-faux'}">
-        <p class="verdict">${juste ? `✅ Bonne réponse ! <span class="gain">+${gain} XP</span>` : `❌ C'était : <strong>${esc(q.nom)}</strong>`}</p>
-        <dl>
+        ${juste
+          ? `<p class="verdict"><span class="led led-vert"></span>Conforme<span class="gain">+${gain} XP</span></p>`
+          : `<p class="verdict"><span class="led led-rouge"></span>Non conforme</p>
+             <p class="attendu">Réponse : <strong>${esc(q.nom)}</strong></p>`}
+        <dl class="fiche-technique">
           <dt>Repérage</dt><dd>${esc(q.reperage)}</dd>
           <dt>Rôle</dt><dd>${esc(q.role)}</dd>
         </dl>
-        ${q.verifie ? '' : '<p class="discret petit">⚠️ Contenu à vérifier avec ton cours.</p>'}
-        <button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le résultat' : 'Question suivante'}</button>
+        ${q.verifie ? '' : '<p class="note">Contenu à vérifier avec ton cours.</p>'}
+        <button id="suivant" class="btn principal plein" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

@@ -23,7 +23,7 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 ```
 index.html              coquille : barre du haut, zone #vue, onglets
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
-css/style.css           tout le style ; couleurs en variables (clair/sombre auto)
+css/style.css           tout le style ; jetons de couleur Nuit / Plein jour en tête de fichier
 js/app.js               routeur par hash : #/cours, #/fiche/<id>, #/dojo, #/dojo/reco, #/dojo/calcul, #/profil
 js/storage.js           SEUL fichier qui touche localStorage (clé "dojo:v1")
 js/cours.js             liste + détail des fiches
@@ -33,6 +33,9 @@ js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance visuelle (QCM sur image)
 js/calcul.js            mode Calculs Flash (générateurs, chrono 30 s, tolérance ±2 %)
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
+js/theme.js             affichage Nuit (défaut) / Plein jour, mémorisé dans les préférences
+js/icones.js            icônes SVG au trait (pas d'emoji)
+fonts/                  polices auto-hébergées (Barlow, Barlow Condensed, JetBrains Mono — licence OFL)
 js/util.js              esc(), normaliser(), plurielS()
 data/fiches.json        CONTENU des fiches (aucun code)
 data/reconnaissance.json CONTENU des questions de reconnaissance
@@ -50,6 +53,16 @@ img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg =
 - **Normes.** Repérage : le Dojo indique les deux (IEC 81346 `-QA1`, `-KF1`… et usage français `Q1`, `KM1`…). _Noter ici celui de ton référentiel._ Symboles : IEC 60617. Unités SI, virgule décimale dans les textes.
 - **Cache GitHub Pages (10 min).** Juste après une mise en ligne, le téléphone peut mélanger anciens et nouveaux fichiers JS. Pour une nouvelle fonction partagée, préférer un nouveau fichier plutôt qu'ajouter un export à un fichier existant.
 - **Une fonctionnalité par demande à l'IA, un commit Git dès que ça marche.**
+
+## Charte graphique (supervision industrielle)
+
+- **Principe ISA-101** : surfaces neutres (acier), la couleur signale un état et rien d'autre.
+  Jaune `--jaune` = attention, score, action principale · Vert `--vert` = conforme, XP, valider · Rouge `--rouge` = défaut, chrono < 10 s.
+  Pas de couleur décorative, pas d'emoji : icônes SVG de `js/icones.js`, repères en monospace (`ELT`, `AUT`, `RES`, `SEC`).
+- **Polices** : Barlow (texte), Barlow Condensed en capitales (titres, étiquettes, boutons), JetBrains Mono (chiffres, unités, formules).
+- **Composants** : `.carte` (panneau métal brossé), `.panneau-titre`, `.btn` (poussoir : `.principal` jaune, `.valider` vert, `.danger`), `.led` (`.led-vert/jaune/rouge`), `.bargraphe`, `.tag`, `.selecteur`, `.bandeau-danger` (rubalise).
+- **Contrastes** vérifiés WCAG : AA minimum partout, AAA pour le texte principal, dans les deux modes.
+- **Performances** : pas de flou ni d'ombre animée ; animations ≤ 160 ms sur `transform`/`opacity` ; `prefers-reduced-motion` respecté.
 
 ## Format d'une fiche (`data/fiches.json`)
 
@@ -104,7 +117,7 @@ Ajouter un type de calcul = ajouter un objet dans ce tableau. Une session = 10 c
 | Calcul juste en moins de 10 s | +5 |
 | Session parfaite 10/10 | +20 |
 
-Niveaux : 🔰 Apprenti (0) · 🔧 Compagnon (200) · ⚡ Technicien (600) · 🛠️ Technicien Confirmé (1 500) · 🏆 Expert Senior (3 000).
+Niveaux : N1 Apprenti (0) · N2 Compagnon (200) · N3 Technicien (600) · N4 Technicien Confirmé (1 500) · N5 Expert Senior (3 000).
 Les résultats par question sont gardés dans `stats.reco.elements` / `stats.calcul.elements` (base pour une future révision des erreurs).
 
 ## Feuille de route

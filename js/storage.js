@@ -10,7 +10,8 @@ function etatParDefaut() {
     xp: 0,                   // utilisé à l'étape 2
     fichesVues: {},          // { idFiche: timestamp de dernière lecture }
     stats: {},               // utilisé à l'étape 2 (résultats du Dojo)
-    derniereSauvegarde: null // timestamp du dernier export
+    derniereSauvegarde: null, // timestamp du dernier export
+    preferences: { theme: 'nuit' }
   };
 }
 
