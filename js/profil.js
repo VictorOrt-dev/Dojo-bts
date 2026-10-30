@@ -2,6 +2,8 @@
 
 import * as stockage from './storage.js';
 import { chargerFiches } from './cours.js';
+import { carteNiveau, TAILLE_SESSION } from './dojo.js';
+import { statsMode } from './xp.js';
 import { plurielS } from './util.js';
 
 const JOUR = 24 * 60 * 60 * 1000;
@@ -11,6 +13,11 @@ function texteDerniereSauvegarde(ts) {
   const jours = Math.floor((Date.now() - ts) / JOUR);
   const texte = jours === 0 ? "Dernière sauvegarde : aujourd'hui" : `Dernière sauvegarde : il y a ${plurielS(jours, 'jour')}`;
   return { texte, alerte: jours >= 7 };
+}
+
+function ligneStats(libelle, mode) {
+  const s = statsMode(mode);
+  return `<li>${libelle} : ${s.sessions ? `${plurielS(s.sessions, 'session')}, record ${s.meilleurScore}/${TAILLE_SESSION}` : 'pas encore joué'}</li>`;
 }
 
 function estInstallee() {
@@ -28,11 +35,16 @@ export async function renderProfil({ vue, definirTitre }) {
   vue.innerHTML = `
     ${stockage.disponible() ? '' : '<p class="alerte">❌ Le stockage du navigateur est bloqué (navigation privée ?). Rien ne sera enregistré.</p>'}
 
+    ${carteNiveau()}
+
     <section class="carte">
       <h2>Progression</h2>
       <p>${plurielS(nbLues, 'fiche')} lue${nbLues > 1 ? 's' : ''} sur ${fiches.length}</p>
       <progress max="${fiches.length || 1}" value="${nbLues}"></progress>
-      <p class="discret">XP et niveaux arrivent avec le Dojo (étape 2).</p>
+      <ul class="stats-dojo">
+        ${ligneStats('👁️ Reconnaissance', 'reco')}
+        ${ligneStats('🧮 Calculs Flash', 'calcul')}
+      </ul>
     </section>
 
     <section class="carte">

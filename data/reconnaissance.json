@@ -1,0 +1,112 @@
+[
+  {
+    "id": "sym-contact-no",
+    "type": "symbole",
+    "image": "img/reco/sym-contact-no.svg",
+    "question": "Que représente ce symbole ?",
+    "nom": "Contact à fermeture (NO)",
+    "reperage": "Porte le repère de l'appareil qui le manœuvre (ex. -QA1 / KM1). Contacts auxiliaires NO : bornes finissant par 3-4 (13-14, 23-24…).",
+    "role": "Ouvert au repos, il se ferme quand l'appareil est actionné. Sert à l'auto-maintien, à la signalisation « en marche » ou à envoyer une information à l'automate.",
+    "faux": ["Contact à ouverture (NF)", "Sectionneur", "Contact temporisé au travail"],
+    "verifie": false
+  },
+  {
+    "id": "sym-contact-nf",
+    "type": "symbole",
+    "image": "img/reco/sym-contact-nf.svg",
+    "question": "Que représente ce symbole ?",
+    "nom": "Contact à ouverture (NF)",
+    "reperage": "Porte le repère de l'appareil qui le manœuvre. Contacts auxiliaires NF : bornes finissant par 1-2 (11-12, 21-22…).",
+    "role": "Fermé au repos, il s'ouvre quand l'appareil est actionné. Utilisé pour les arrêts, les sécurités et les verrouillages : un fil coupé provoque l'arrêt (sécurité positive).",
+    "faux": ["Contact à fermeture (NO)", "Disjoncteur", "Contact temporisé au repos"],
+    "verifie": false
+  },
+  {
+    "id": "sym-bobine",
+    "type": "symbole",
+    "image": "img/reco/sym-bobine.svg",
+    "question": "Que représente ce symbole ?",
+    "nom": "Bobine de contacteur ou de relais",
+    "reperage": "Bornes A1-A2. Repère de l'appareil : -QA (contacteur de puissance) ou -KF (relais auxiliaire) en IEC 81346 ; KM ou KA en usage français.",
+    "role": "Électro-aimant : quand elle est alimentée, elle attire l'armature mobile et fait basculer tous les contacts de l'appareil.",
+    "faux": ["Fusible", "Résistance chauffante", "Voyant lumineux"],
+    "verifie": false
+  },
+  {
+    "id": "sym-moteur",
+    "type": "symbole",
+    "image": "img/reco/sym-moteur.svg",
+    "question": "Que représente ce symbole ?",
+    "nom": "Moteur asynchrone triphasé",
+    "reperage": "-MA en IEC 81346 ; M en usage français. Bornes de raccordement U, V, W.",
+    "role": "Convertit l'énergie électrique triphasée en énergie mécanique de rotation.",
+    "faux": ["Génératrice à courant continu", "Transformateur triphasé", "Moteur à courant continu"],
+    "verifie": false
+  },
+  {
+    "id": "sym-fusible",
+    "type": "symbole",
+    "image": "img/reco/sym-fusible.svg",
+    "question": "Que représente ce symbole ?",
+    "nom": "Fusible",
+    "reperage": "-FA en IEC 81346 ; F ou FU en usage français.",
+    "role": "Protège contre les courts-circuits en fondant ; les fusibles gG protègent aussi contre les surcharges, les aM (accompagnement moteur) seulement contre les courts-circuits. Se remplace par un fusible de même calibre et de même classe.",
+    "faux": ["Résistance", "Bobine de contacteur", "Sectionneur"],
+    "verifie": false
+  },
+  {
+    "id": "mat-disjoncteur-modulaire",
+    "type": "materiel",
+    "image": "img/reco/mat-disjoncteur-modulaire.svg",
+    "question": "Quel est ce matériel ?",
+    "nom": "Disjoncteur divisionnaire (modulaire)",
+    "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
+    "role": "Protège un circuit contre les surcharges (déclencheur thermique) et les courts-circuits (déclencheur magnétique). « C16 » = courbe C, calibre 16 A. Se réarme après déclenchement.",
+    "faux": ["Interrupteur différentiel", "Contacteur modulaire", "Télérupteur"],
+    "verifie": false
+  },
+  {
+    "id": "mat-disjoncteur-moteur",
+    "type": "materiel",
+    "image": "img/reco/mat-disjoncteur-moteur.svg",
+    "question": "Quel est ce matériel ?",
+    "nom": "Disjoncteur moteur magnéto-thermique",
+    "reperage": "-QA en IEC 81346 ; Q en usage français. Pôles 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3.",
+    "role": "Protège le moteur contre les courts-circuits (magnétique) et les surcharges (thermique). La molette se règle sur l'intensité nominale de la plaque moteur (ici plage 2,5–4 A).",
+    "faux": ["Interrupteur-sectionneur rotatif", "Contacteur", "Relais thermique"],
+    "verifie": false
+  },
+  {
+    "id": "mat-contacteur",
+    "type": "materiel",
+    "image": "img/reco/mat-contacteur.svg",
+    "question": "Quel est ce matériel ?",
+    "nom": "Contacteur tripolaire",
+    "reperage": "-QA en IEC 81346 ; KM en usage français. Bobine A1-A2, pôles 1-2 / 3-4 / 5-6, contact auxiliaire 13-14.",
+    "role": "Établit et coupe à distance l'alimentation d'un récepteur (moteur…), commandé par sa bobine. Il ne protège pas : il faut l'associer à un disjoncteur moteur ou à un relais thermique.",
+    "faux": ["Relais thermique", "Disjoncteur moteur", "Sectionneur porte-fusibles"],
+    "verifie": false
+  },
+  {
+    "id": "mat-relais-thermique",
+    "type": "materiel",
+    "image": "img/reco/mat-relais-thermique.svg",
+    "question": "Quel est ce matériel ?",
+    "nom": "Relais thermique de protection",
+    "reperage": "F en usage français (souvent F2 ou FR). En IEC 81346, la lettre varie selon les référentiels (-FA, -BB…) : vérifie celle de ton cours. Contacts 95-96 (NF) et 97-98 (NO).",
+    "role": "Protège le moteur contre les surcharges. Réglé sur l'In du moteur, il ouvre son contact 95-96 placé dans le circuit de commande, ce qui fait retomber le contacteur. Il ne protège pas contre les courts-circuits.",
+    "faux": ["Disjoncteur moteur", "Contacteur auxiliaire", "Bloc de contacts temporisés"],
+    "verifie": false
+  },
+  {
+    "id": "mat-arret-urgence",
+    "type": "materiel",
+    "image": "img/reco/mat-arret-urgence.svg",
+    "question": "Quel est ce matériel ?",
+    "nom": "Arrêt d'urgence « coup de poing »",
+    "reperage": "-SF en IEC 81346 ; S ou AU en usage français. Contact NF à manœuvre positive d'ouverture.",
+    "role": "Arrête la machine le plus vite possible en cas de danger. Il reste verrouillé une fois enfoncé : on le déverrouille en le tournant ou en le tirant, puis le redémarrage doit être une action volontaire et séparée (ISO 13850).",
+    "faux": ["Bouton d'arrêt normal", "Bouton de réarmement", "Interrupteur à clé"],
+    "verifie": false
+  }
+]

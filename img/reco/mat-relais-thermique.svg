@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200">
+  <rect width="240" height="200" fill="#e7ebf0"/>
+  <g fill="#c99a4b" stroke="#8a6524" stroke-width="1.5">
+    <rect x="80" y="12" width="9" height="46"/><rect x="115" y="12" width="9" height="46"/><rect x="150" y="12" width="9" height="46"/>
+  </g>
+  <rect x="62" y="54" width="116" height="134" rx="5" fill="#d2d6db" stroke="#9aa1a9" stroke-width="2"/>
+  <circle cx="95" cy="88" r="15" fill="#2563eb" stroke="#1e3a8a" stroke-width="1.5"/>
+  <line x1="95" y1="88" x2="95" y2="75" stroke="#fff" stroke-width="3" stroke-linecap="round" transform="rotate(35 95 88)"/>
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle" fill="#1f2937">
+    <text x="95" y="116" font-size="9" font-weight="bold">9–13 A</text>
+  </g>
+  <circle cx="148" cy="84" r="10" fill="#1d4ed8" stroke="#1e3a8a" stroke-width="1.5"/>
+  <text x="148" y="106" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#1f2937" text-anchor="middle">RESET</text>
+  <rect x="140" y="111" width="16" height="7" rx="2" fill="#dc2626"/>
+  <text x="120" y="136" font-family="Arial, Helvetica, sans-serif" font-size="9" fill="#1f2937" text-anchor="middle">95 NC 96 · 97 NO 98</text>
+  <g fill="#c4c8cd" stroke="#848b93" stroke-width="1.5">
+    <circle cx="88" cy="172" r="7"/><circle cx="120" cy="172" r="7"/><circle cx="152" cy="172" r="7"/>
+  </g>
+  <g stroke="#5f656c" stroke-width="2">
+    <line x1="83" y1="172" x2="93" y2="172"/><line x1="115" y1="172" x2="125" y2="172"/><line x1="147" y1="172" x2="157" y2="172"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle" fill="#374151" font-size="8">
+    <text x="88" y="156">2/T1</text><text x="120" y="156">4/T2</text><text x="152" y="156">6/T3</text>
+  </g>
+</svg>

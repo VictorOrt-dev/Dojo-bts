@@ -1,8 +1,12 @@
-// Point d'entrée : routeur par hash (#/cours, #/fiche/<id>, #/dojo, #/profil).
+// Point d'entrée : routeur par hash.
+//   #/cours  #/fiche/<id>  #/dojo  #/dojo/reco  #/dojo/calcul  #/profil
 // Chaque écran est une fonction render*(ctx) qui remplit l'élément #vue.
 
 import { renderCours, renderFiche } from './cours.js';
 import { renderProfil } from './profil.js';
+import { renderDojo } from './dojo.js';
+import { renderReco } from './quiz.js';
+import { renderCalcul } from './calcul.js';
 import * as stockage from './storage.js';
 import { esc } from './util.js';
 
@@ -10,6 +14,7 @@ const vue = document.getElementById('vue');
 const titre = document.getElementById('titre');
 const boutonRetour = document.getElementById('retour');
 let navigationInterne = false; // vrai dès qu'on a navigué dans l'app : "Retour" peut alors utiliser l'historique
+let nettoyages = [];           // fonctions à appeler en quittant l'écran courant (ex. arrêter un chrono)
 
 function definirTitre(texte) {
   titre.textContent = texte;
@@ -22,18 +27,11 @@ function lireHash() {
   return { page, id: id && decodeURIComponent(id), params: new URLSearchParams(requete) };
 }
 
-function renderDojo({ definirTitre }) {
-  definirTitre('Le Dojo');
-  vue.innerHTML = `
-    <section class="carte">
-      <h2>🥋 Bientôt : étape 2</h2>
-      <p class="discret">Les modes d'entraînement arrivent ici :</p>
-      <ul>
-        <li>👁️ Reconnaissance visuelle (composants et symboles IEC)</li>
-        <li>🧮 Calculs Flash chronométrés</li>
-        <li>🔧 Cas de panne industrielle (étape 3)</li>
-      </ul>
-    </section>`;
+// Page vers laquelle revient le bouton "Retour" (null = pas de bouton).
+function pageParente({ page, id }) {
+  if (page === 'fiche') return '#/cours';
+  if (page === 'dojo' && id) return '#/dojo';
+  return null;
 }
 
 function renderErreur(err) {
@@ -50,19 +48,28 @@ function renderErreur(err) {
 }
 
 async function router() {
-  const { page, id, params } = lireHash();
+  nettoyages.forEach(f => f());
+  nettoyages = [];
+
+  const route = lireHash();
+  const { page, id, params } = route;
   const onglet = page === 'fiche' ? 'cours' : page;
   document.querySelectorAll('.tabbar a').forEach(a =>
     a.toggleAttribute('aria-current', a.dataset.onglet === onglet));
-  boutonRetour.hidden = page !== 'fiche';
+  boutonRetour.hidden = !pageParente(route);
   window.scrollTo(0, 0);
 
-  const ctx = { vue, definirTitre, id, params };
+  const ctx = { vue, definirTitre, id, params, auNettoyage: f => nettoyages.push(f) };
   try {
     switch (page) {
       case 'cours': await renderCours(ctx); break;
       case 'fiche': await renderFiche(ctx); break;
-      case 'dojo': renderDojo(ctx); break;
+      case 'dojo':
+        if (!id) renderDojo(ctx);
+        else if (id === 'reco') await renderReco(ctx);
+        else if (id === 'calcul') renderCalcul(ctx);
+        else location.replace('#/dojo');
+        break;
       case 'profil': await renderProfil(ctx); break;
       default: location.replace('#/cours');
     }
@@ -73,7 +80,7 @@ async function router() {
 
 boutonRetour.addEventListener('click', () => {
   if (navigationInterne) history.back();
-  else location.assign('#/cours');
+  else location.assign(pageParente(lireHash()) ?? '#/cours');
 });
 
 window.addEventListener('hashchange', () => {
