@@ -48,6 +48,13 @@ export default async function ({ t, url: U, navigateur }) {
         case 'chute-24v': return 24 - 2 * rho * d.L * (d.P / 24) / d.S;
         case 'contact-tt': return d.type === 'uc' ? d.Ra * 230 / (d.Ra + d.Rb) : 50 / (d.IdnMA / 1000);
         case 'hta-courant': return d.type === 'in' ? d.S / (r3 * 20) : d.Ibt * 0.4 / 20;
+        case 'tensions-reseau': return d.demande === 'V' ? d.U / r3 : d.U;
+        case 'courant-corps': return d.U / d.R * 1000;
+        case 'rapport-transfo': return d.U1 * 410 / 20;
+        case 'prise-transfo': return d.U1 * 410 / (20 * (1 + d.p / 100));
+        case 'lmax-tn': return 0.8 * 230 * d.S / (rho * 2 * d.k * d.In);
+        case 'boucle-4-20': return d.type === 'mesure' ? d.P * (d.I - 4) / 16 : 24 - 0.02 * (d.Re + d.Rc);
+        case 'neutre-coupe': { const R1 = 230 ** 2 / d.P1, R2 = 230 ** 2 / d.P2; return 400 * R1 / (R1 + R2); }
         case 'transfo': { const In = d.S * 1000 / (r3 * 400); return d.demande === 'In' ? In : In * 100 / d.ucc / 1000; }
       } };
     for (const g of c.GENERATEURS) { const pb = [];
@@ -195,8 +202,9 @@ export default async function ({ t, url: U, navigateur }) {
   await p.goto(U + '#/entrainement/reco'); await p.waitForSelector('.filtres-domaines');
   t.ok(await p.locator('.filtres-domaines .filtre').count() === 6, 'filtre par domaine : Tous + 5 domaines');
   await p.click('.filtres-domaines .filtre:has-text("HTA")'); await p.waitForTimeout(200);
-  t.ok(p.url().endsWith('#/entrainement/reco?d=hta') && await p.locator('.mode.inactif').count() === 2 && (await p.textContent('.domaine-desc')).includes('Haute tension'),
-    'domaine HTA : niveaux I et II grisés (pas de contenu), description du domaine affichée');
+  const htaVides = [1, 2, 3].filter(n => !qs.some(q => q.niveau === n && q.domaines.includes('hta'))).length;
+  t.ok(p.url().endsWith('#/entrainement/reco?d=hta') && await p.locator('.mode.inactif').count() === htaVides && (await p.textContent('.domaine-desc')).includes('Haute tension'),
+    `domaine HTA : ${3 - htaVides} niveaux avec du contenu, ${htaVides} grisé(s), description du domaine affichée`);
   await p.click('a.mode[href="#/entrainement/reco?n=3&d=hta"]'); await p.waitForSelector('.choix-btn');
   const nbHta = qs.filter(q => q.niveau === 3 && q.domaines.includes('hta')).length;
   t.ok((await p.textContent('.session-chiffres')).includes(`/${String(nbHta).padStart(2, '0')}`), `séance HTA niveau III : ${nbHta} planches, pas 10`);
@@ -265,6 +273,18 @@ export default async function ({ t, url: U, navigateur }) {
   let ordresDifferents = false;
   for (let k = 0; k < 6 && !ordresDifferents; k++) { await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/panne?c=commande-hs'); await p.waitForSelector('.etape'); ordresDifferents = (await p.locator('.choix-btn').evaluateAll(bs => bs.map(b => b.dataset.i).join(''))) !== ordreA; }
   t.ok(ordresDifferents, 'l\'ordre des propositions change d\'une fois sur l\'autre');
+  // Chaque cas se joue de bout en bout (bonne démarche à chaque étape) et se termine par risque + norme.
+  const casIncomplets = [];
+  for (const c of pannes) {
+    await p.goto(U + '#/entrainement'); await p.goto(U + `#/entrainement/panne?c=${c.id}`); await p.waitForSelector('.etape');
+    for (const e of c.etapes) {
+      await p.waitForSelector('.etape .choix-btn:not([disabled])');
+      await p.click(`.choix-btn[data-i="${e.choix.findIndex(x => x.verdict === 'bon')}"]`); await p.click('#suite');
+    }
+    await p.waitForSelector('.rapport-panne');
+    if (!(await p.isVisible('.rapport-panne .risque')) || !(await p.isVisible('.rapport-panne .norme'))) casIncomplets.push(c.id);
+  }
+  t.ok(casIncomplets.length === 0, `les ${pannes.length} cas se jouent jusqu'au diagnostic final, avec risque et norme` + (casIncomplets.length ? ' — ' + casIncomplets.join(', ') : ''));
 
   t.section('F. Nouveau nom « Elec learning »');
   const textes = [];

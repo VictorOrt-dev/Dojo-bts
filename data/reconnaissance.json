@@ -927,5 +927,336 @@
     ],
     "norme": "IEC 60076-1",
     "risque": "Deux transformateurs d'indices horaires différents mis en parallèle se court-circuitent l'un l'autre : courants énormes, protections qui déclenchent, transformateurs détruits. Un neutre BT coupé fait monter les tensions simples jusqu'à 400 V : récepteurs 230 V détruits, risque d'incendie."
+  },
+  {
+    "id": "sym-differentiel",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-differentiel.svg",
+    "question": "Que représente ce symbole, en tête d'un tableau de bureaux ?",
+    "nom": "Dispositif différentiel résiduel (DDR)",
+    "faux": [
+      "Disjoncteur magnéto-thermique bipolaire",
+      "Transformateur de courant de mesure",
+      "Contacteur bipolaire de puissance"
+    ],
+    "pourquoiPas": {
+      "Disjoncteur magnéto-thermique bipolaire": "Un disjoncteur magnéto-thermique porte une croix sur la borne fixe et n'a pas de tore : il mesure le courant de chaque conducteur, pas leur somme.",
+      "Transformateur de courant de mesure": "Un transformateur de courant entoure un seul conducteur et alimente un appareil de mesure ; il n'actionne aucun contact. Ici, le tore entoure la phase et le neutre et agit sur les contacts.",
+      "Contacteur bipolaire de puissance": "Un contacteur se commande par une bobine (rectangle A1-A2). Ici, l'ordre d'ouverture vient du tore qui entoure les conducteurs actifs."
+    },
+    "explication": "Le tore (l'ellipse) entoure tous les conducteurs actifs, phase et neutre. En temps normal, le courant qui part revient : la somme est nulle. S'il manque quelques milliampères, c'est qu'ils fuient par la terre, peut-être à travers quelqu'un : le tore le détecte et le pointillé ouvre les contacts.",
+    "reperage": "Repère usuel Q ou ID (interrupteur différentiel) ; IEC 81346-2 : -FC (protection contre le courant de fuite). Sensibilité IΔn et type (AC, A, F, B) lisibles sur l'appareil.",
+    "role": "Protège les personnes contre les contacts indirects (30 mA pour les prises et circuits terminaux) et l'installation contre les incendies dus aux fuites.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
+    "norme": "NF C 15-100 (§ 411.3.3) · NF EN 61008 / 61009",
+    "risque": "Un DDR jamais testé peut rester collé le jour du défaut : on appuie sur le bouton test régulièrement. Et le shunter ou le remplacer par un modèle moins sensible pour « faire tenir » supprime la seule protection contre l'électrocution sur un outil portatif."
+  },
+  {
+    "id": "reco-commande-lampe",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-voyant.svg",
+    "question": "Ce point lumineux est commandé par un interrupteur simple. Quel conducteur l'interrupteur doit-il couper ?",
+    "nom": "La phase, jamais le neutre",
+    "faux": [
+      "Le neutre, le sens est indifférent",
+      "Le fil bleu, plus facile à repérer",
+      "Le PE vert-jaune du point lumineux"
+    ],
+    "pourquoiPas": {
+      "Le neutre, le sens est indifférent": "Couper le neutre éteint la lampe, mais laisse la douille sous 230 V : la personne qui change l'ampoule touche une pièce sous tension.",
+      "Le fil bleu, plus facile à repérer": "Le bleu clair est réservé au neutre. Le retour lampe est un conducteur de phase commutée, de couleur différente du bleu et du vert-jaune.",
+      "Le PE vert-jaune du point lumineux": "Le conducteur de protection ne doit jamais être coupé ni traverser un interrupteur : c'est lui qui relie la masse du luminaire à la terre."
+    },
+    "explication": "L'interrupteur se place sur la phase : ouvert, il isole la douille du réseau. Le retour lampe, entre l'interrupteur et le luminaire, est alors une phase commutée. Câblé sur le neutre, le circuit s'éteint pareil : l'erreur ne se voit pas, elle se ressent en changeant l'ampoule.",
+    "reperage": "Retour lampe repéré à ses deux extrémités, de couleur différente du bleu et du vert-jaune (souvent orange, violet ou noir).",
+    "role": "Commander un point lumineux de façon que, interrupteur ouvert, plus aucune partie du luminaire ne soit sous tension.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
+    "norme": "NF C 15-100 (commande unipolaire sur la phase)",
+    "risque": "Neutre commuté : douille et culot restent à 230 V interrupteur ouvert. La personne qui change l'ampoule, perchée sur un escabeau, s'électrise et peut chuter. C'est l'erreur de câblage la plus banale, et elle ne se voit à aucun essai de fonctionnement."
+  },
+  {
+    "id": "reco-tn-c-ddr",
+    "niveau": 3,
+    "type": "symbole",
+    "image": "img/reco/sym-differentiel.svg",
+    "question": "Le tableau est en schéma TN-C (conducteur PEN commun). Peut-on protéger un départ avec ce dispositif ?",
+    "nom": "Non : le PEN traverserait le tore",
+    "faux": [
+      "Oui, c'est même la protection imposée",
+      "Oui, s'il est de type A ou de type B",
+      "Non, il n'est admis qu'en schéma IT"
+    ],
+    "pourquoiPas": {
+      "Oui, c'est même la protection imposée": "En TN-C, c'est l'inverse : le dispositif différentiel y est interdit. On passe d'abord en TN-S (PE et N séparés) en aval, puis on peut en installer.",
+      "Oui, s'il est de type A ou de type B": "Le type (A, B) dit quelles formes de courant de fuite il détecte. Il ne change rien au problème : le PEN passe dans le tore.",
+      "Non, il n'est admis qu'en schéma IT": "Un DDR est admis en TT, en TN-S et en IT. Ce qui l'interdit, c'est un PEN commun, pas le schéma IT."
+    },
+    "explication": "En TN-C, neutre et protection forment un seul conducteur, le PEN. Il devrait traverser le tore avec la phase : le courant de défaut, qui revient par le PEN, repasse dans le tore, la somme reste nulle et rien ne déclenche. On ne coupe jamais le PEN : passage en TN-S en aval, puis DDR.",
+    "reperage": "PEN repéré vert-jaune avec bagues bleues aux extrémités (ou l'inverse). Le point de séparation PEN → PE + N est unique et ne se refait plus en aval.",
+    "role": "Savoir si un DDR est possible conditionne la protection des prises : en TN-C, il faut créer une partie TN-S pour y installer les 30 mA.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt",
+      "tri"
+    ],
+    "norme": "NF C 15-100 (§ 411.4.5)",
+    "risque": "Un DDR monté en TN-C ne voit pas le défaut : la carcasse en défaut reste sous tension sans que rien ne coupe. Et couper le PEN avec l'appareil, c'est déconnecter toutes les masses en aval de la terre, en marche normale."
+  },
+  {
+    "id": "reco-led-allumee",
+    "niveau": 3,
+    "type": "symbole",
+    "image": "img/reco/sym-voyant.svg",
+    "question": "Interrupteur ouvert, la lampe LED de ce couloir reste faiblement allumée. Le câble fait 40 m. Cause la plus probable ?",
+    "nom": "Couplage capacitif sur le retour lampe",
+    "faux": [
+      "Neutre et PE inversés au point lumineux",
+      "Surtension sur le réseau du distributeur",
+      "Défaut d'isolement franc à la terre"
+    ],
+    "pourquoiPas": {
+      "Neutre et PE inversés au point lumineux": "Une inversion neutre / PE ferait déclencher le différentiel dès que la lampe s'allume, et ne fait pas briller une lampe éteinte.",
+      "Surtension sur le réseau du distributeur": "Une surtension ferait briller toutes les lampes allumées, pas une lampe éteinte. Le symptôme est local : il vient du câble de ce circuit.",
+      "Défaut d'isolement franc à la terre": "Un défaut franc fait déclencher le différentiel. Ici, il s'agit de quelques milliampères, sans fuite à la terre."
+    },
+    "explication": "Sur 40 m, le retour lampe chemine à côté de la phase dans le même câble : la capacité entre les deux laisse passer quelques milliampères. Une lampe à incandescence n'en fait rien, une LED s'allume faiblement ou clignote. Un interrupteur à voyant lumineux produit le même effet. Remède : supprimer le voyant, ajouter une charge de compensation ou séparer les conducteurs.",
+    "reperage": "Retour lampe repéré à ses deux extrémités ; un interrupteur à voyant se reconnaît à la petite lampe intégrée.",
+    "role": "C'est la tension fantôme du monophasé : comprendre ce couplage évite de chercher un défaut d'isolement qui n'existe pas.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "NF C 15-100 · NF EN 61243-3 (VAT)",
+    "risque": "Au multimètre classique, ce retour lampe affiche des dizaines de volts interrupteur ouvert : on croit à un défaut, ou pire, on prend l'habitude de ces « fausses » tensions et on en ignore une vraie. Avant de toucher, c'est le VAT qui conclut, pas la lampe éteinte."
+  },
+  {
+    "id": "reco-domaine-hta",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-transfo.svg",
+    "question": "Ce transformateur de poste est alimenté en 20 kV alternatif. Dans quel domaine de tension se trouve son primaire ?",
+    "nom": "HTA : plus de 1 kV, jusqu'à 50 kV",
+    "faux": [
+      "HTB : plus de 15 kV, jusqu'à 63 kV",
+      "BTB : plus de 500 V, jusqu'à 25 kV",
+      "HTA : plus de 25 kV, jusqu'à 100 kV"
+    ],
+    "pourquoiPas": {
+      "HTB : plus de 15 kV, jusqu'à 63 kV": "Le domaine HTB commence au-delà de 50 kV en alternatif (63 kV, 225 kV, 400 kV) : réseaux de transport, pas une distribution en 20 kV.",
+      "BTB : plus de 500 V, jusqu'à 25 kV": "La BTB s'arrête à 1 000 V en alternatif. Au-delà, c'est la haute tension.",
+      "HTA : plus de 25 kV, jusqu'à 100 kV": "Les bornes sont fausses : la HTA va de 1 kV (exclu) à 50 kV (inclus) en alternatif."
+    },
+    "explication": "Domaines de tension en alternatif : TBT jusqu'à 50 V, BTA de 50 à 500 V, BTB de 500 à 1 000 V, HTA de 1 à 50 kV, HTB au-delà de 50 kV. Le 20 kV de distribution est en HTA : habilitation H, distances et procédures propres.",
+    "reperage": "Le domaine se lit sur la plaque du transformateur et sur les cellules. Il fixe l'habilitation requise (B pour la BT, H pour la HT).",
+    "role": "Le domaine de tension conditionne les distances de sécurité, l'habilitation, les EPI et le droit d'ouvrir une enveloppe.",
+    "verifie": false,
+    "domaines": [
+      "hta",
+      "securite"
+    ],
+    "norme": "NF C 18-510 (domaines de tension)",
+    "risque": "En HTA, l'arc s'amorce sans contact, à quelques centimètres d'une pièce nue : se croire « en BT » dans un poste et s'approcher d'une cellule ouverte suffit à être électrocuté ou brûlé gravement."
+  },
+  {
+    "id": "reco-habilitation-b1v",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-sectionneur.svg",
+    "question": "Ton titre d'habilitation porte « B1V ». Peux-tu manœuvrer l'interrupteur-sectionneur d'une cellule HTA ?",
+    "nom": "Non : la lettre B ne vaut qu'en BT",
+    "faux": [
+      "Oui, l'indice 1 autorise les manœuvres",
+      "Oui, le V couvre aussi les cellules HTA",
+      "Oui, à condition de porter des gants HTA"
+    ],
+    "pourquoiPas": {
+      "Oui, l'indice 1 autorise les manœuvres": "L'indice 1 désigne un exécutant de travaux, dans le domaine de la lettre qui le précède : ici la basse tension.",
+      "Oui, le V couvre aussi les cellules HTA": "Le V autorise le voisinage des pièces nues sous tension, dans le domaine BT. Il n'ouvre aucun droit en HTA.",
+      "Oui, à condition de porter des gants HTA": "Les EPI ne remplacent pas l'habilitation : sans la lettre H et l'attribut adapté, pas de manœuvre en HTA, même équipé."
+    },
+    "explication": "Dans un titre d'habilitation, la première lettre donne le domaine : B pour la basse et très basse tension, H pour la haute tension. Les manœuvres en HTA exigent une habilitation H avec l'attribut correspondant (HE Manœuvre, chargé de consignation HC…).",
+    "reperage": "Le titre précise symbole, domaine et limites ; il est signé par l'employeur après formation et se recycle périodiquement.",
+    "role": "Un habilité B peut travailler dans la partie BT d'un poste ; les cellules HTA restent fermées pour lui.",
+    "verifie": false,
+    "domaines": [
+      "hta",
+      "securite"
+    ],
+    "norme": "NF C 18-510 (symboles d'habilitation)",
+    "risque": "Manœuvrer une cellule HTA sans formation, c'est risquer la fausse manœuvre (fermeture sur la terre, ouverture en charge d'un sectionneur) et l'arc qui va avec : brûlures très graves, voire mortelles, devant la cellule."
+  },
+  {
+    "id": "reco-dgpt2",
+    "niveau": 2,
+    "type": "symbole",
+    "image": "img/reco/sym-transfo.svg",
+    "question": "Sur ce transformateur immergé, un relais DGPT2 est monté sur le couvercle. Que surveille-t-il ?",
+    "nom": "Gaz, pression et température de l'huile",
+    "faux": [
+      "Courant, tension et fréquence côté HTA",
+      "Isolement des bornes de sortie BT",
+      "Courant de défaut à la terre du neutre"
+    ],
+    "pourquoiPas": {
+      "Courant, tension et fréquence côté HTA": "Courant et tension HTA relèvent des relais de protection de la cellule, pas d'un appareil monté sur la cuve.",
+      "Isolement des bornes de sortie BT": "L'isolement se mesure hors tension, au mégohmmètre. Le DGPT2 surveille en permanence l'intérieur de la cuve.",
+      "Courant de défaut à la terre du neutre": "Le défaut à la terre du neutre BT est vu par d'autres protections (DDR, contrôleur d'isolement). Le DGPT2 regarde l'huile."
+    },
+    "explication": "DGPT2 : Détection de Gaz, Pression, Température à 2 seuils. Le gaz (ou une baisse de niveau) trahit un arc ou un point chaud qui décompose l'huile ; la pression, un défaut violent ; la température, une surcharge. Premier seuil thermique : alarme ; second seuil, gaz ou pression : déclenchement de la cellule.",
+    "reperage": "Contacts d'alarme et de déclenchement câblés vers la cellule de protection du transformateur ; voyants et fenêtre de lecture du gaz sur le relais.",
+    "role": "Protège un transformateur immergé à remplissage total contre ses propres défauts internes, que les protections électriques voient trop tard.",
+    "verifie": false,
+    "domaines": [
+      "hta",
+      "tri"
+    ],
+    "norme": "NF C 13-100 · NF EN 50216",
+    "risque": "Réarmer un DGPT2 déclenché sur gaz, ou shunter son contact pour remettre en service, c'est réalimenter un transformateur en défaut interne : la cuve peut éclater et l'huile s'enflammer."
+  },
+  {
+    "id": "reco-fusible-percuteur",
+    "niveau": 2,
+    "type": "symbole",
+    "image": "img/reco/sym-fusible.svg",
+    "question": "Dans une cellule HTA interrupteur-fusibles, ce fusible est dit « à percuteur ». À quoi sert le percuteur ?",
+    "nom": "Ouvrir les trois pôles de l'interrupteur",
+    "faux": [
+      "Réarmer le fusible après le défaut",
+      "Limiter le courant de court-circuit",
+      "Mettre la cellule à la terre"
+    ],
+    "pourquoiPas": {
+      "Réarmer le fusible après le défaut": "Un fusible ne se réarme pas : il se remplace, et en HTA par du personnel habilité, cellule consignée.",
+      "Limiter le courant de court-circuit": "C'est l'élément fusible qui limite le courant. Le percuteur n'agit qu'après la fusion.",
+      "Mettre la cellule à la terre": "La mise à la terre est une manœuvre volontaire du sectionneur de terre, jamais automatique."
+    },
+    "explication": "À la fusion, une tige (le percuteur) sort de la cartouche et actionne le déclencheur de l'interrupteur : les trois phases s'ouvrent ensemble. Sans lui, une seule cartouche fondue laisserait le transformateur alimenté sur deux phases.",
+    "reperage": "Le percuteur sorti se voit sur la cartouche ; l'interrupteur déclenché l'indique sur le synoptique. On remplace les trois cartouches, pas seulement celle qui a fondu.",
+    "role": "Garantit qu'un défaut côté HTA coupe le transformateur sur toutes ses phases.",
+    "verifie": false,
+    "domaines": [
+      "hta"
+    ],
+    "norme": "IEC 62271-105 (combinés interrupteur-fusibles)",
+    "risque": "Sur deux phases, le transformateur alimente une BT déséquilibrée : moteurs en manque de phase qui chauffent, tensions anormales sur les récepteurs monophasés. Et changer une seule cartouche laisse en place deux autres fragilisées par le même défaut."
+  },
+  {
+    "id": "sym-terre-protection",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-terre-protection.svg",
+    "question": "Ce symbole est gravé à côté d'une borne, dans la boîte à bornes d'un moteur. Qu'indique-t-il ?",
+    "nom": "Borne de terre de protection (PE)",
+    "faux": [
+      "Borne de neutre du moteur",
+      "Terre fonctionnelle d'électronique",
+      "Borne de liaison au châssis seul"
+    ],
+    "pourquoiPas": {
+      "Borne de neutre du moteur": "Un moteur triphasé n'a pas de borne de neutre : ses bornes sont U, V, W (et leurs extrémités en boîte à bornes).",
+      "Terre fonctionnelle d'électronique": "La terre fonctionnelle se dessine sans le cercle. Le cercle autour du symbole de terre désigne la protection des personnes.",
+      "Borne de liaison au châssis seul": "La liaison au châssis a son propre symbole : un trait barré de petites hachures obliques. Le cercle autour de la terre désigne la protection des personnes."
+    },
+    "explication": "Le symbole de terre entouré d'un cercle désigne la borne de terre de protection : c'est là que se raccorde le conducteur vert-jaune PE, pour qu'un défaut d'isolement sur la carcasse provoque la coupure.",
+    "reperage": "Conducteur vert-jaune, cosse serrée au couple, rondelle de contact sur la carcasse ; jamais de PE repris sous une vis de capot.",
+    "role": "Relie la carcasse métallique au circuit de protection : sans elle, un défaut d'isolement met la carcasse sous tension.",
+    "verifie": false,
+    "domaines": [
+      "securite",
+      "tri"
+    ],
+    "norme": "IEC 60417-5019 · NF EN 60204-1 (§ 8.2)",
+    "risque": "PE oublié, desserré ou serré sur une surface peinte : au premier défaut d'isolement, la carcasse du moteur monte à la tension du réseau, et celui qui la touche ferme le circuit vers la terre."
+  },
+  {
+    "id": "reco-epi-vat",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-disjoncteur-modulaire.svg",
+    "question": "Tu dois vérifier l'absence de tension en aval de ce disjoncteur, dans une armoire 400 V. Quels équipements portes-tu ?",
+    "nom": "Gants isolants et écran facial anti-UV",
+    "faux": [
+      "Gants de manutention en cuir épais",
+      "Écran facial seul, les mains restent nues",
+      "Rien de plus : le VAT est déjà isolé"
+    ],
+    "pourquoiPas": {
+      "Gants de manutention en cuir épais": "Des gants de manutention protègent des coupures, pas de la tension : ils ne sont pas isolants.",
+      "Écran facial seul, les mains restent nues": "L'écran protège le visage de l'arc ; les mains, au plus près des bornes, ont besoin de gants isolants.",
+      "Rien de plus : le VAT est déjà isolé": "Le VAT est isolé, mais la VAT se fait sur des pièces peut-être sous tension : un glissement de pointe peut provoquer un court-circuit et un arc."
+    },
+    "explication": "La VAT est la dernière opération faite en présence possible de tension : elle se fait avec des gants isolants (classe 0 en BT, vérifiés par gonflage avant usage), un écran facial anti-UV et une tenue sans parties métalliques, résistante à l'arc.",
+    "reperage": "Gants isolants rangés dans leur boîte, date de vérification lisible ; VAT conforme à la NF EN 61243-3, testé avant et après.",
+    "role": "Protège des deux risques de la VAT : le contact avec une pièce sous tension et l'arc d'un court-circuit entre pointes.",
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "NF C 18-510 · NF EN 60903 (gants isolants)",
+    "risque": "Un arc dans une armoire 400 V dégage en quelques millisecondes une chaleur et un rayonnement qui brûlent le visage et les yeux, et projettent du métal en fusion. Un gant percé, non vérifié, ne protège plus de rien."
+  },
+  {
+    "id": "reco-prises-25",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-disjoncteur-modulaire.svg",
+    "question": "Circuit de prises 16 A en cuivre 2,5 mm². Calibre maximal du disjoncteur qui le protège ?",
+    "nom": "20 A",
+    "faux": [
+      "16 A",
+      "25 A",
+      "32 A"
+    ],
+    "pourquoiPas": {
+      "16 A": "16 A protège aussi ce câble, mais ce n'est pas le maximum : en 2,5 mm², le calibre admis pour des prises va jusqu'à 20 A.",
+      "25 A": "25 A dépasse ce que le 2,5 mm² supporte en permanence dans les conditions de pose courantes : le câble chaufferait sans déclenchement.",
+      "32 A": "32 A, c'est le calibre d'un circuit spécialisé en 6 mm² (plaque de cuisson) : sur du 2,5 mm², le câble n'est plus protégé."
+    },
+    "explication": "Le calibre du disjoncteur se choisit d'après la section du câble, pas d'après la charge : il doit couper avant que le câble chauffe. Repères NF C 15-100 pour les prises : 1,5 mm² → 16 A, 2,5 mm² → 20 A (avec un nombre de socles limité).",
+    "reperage": "Section imprimée sur la gaine du câble ; calibre lisible sur le disjoncteur. Les deux se vérifient à chaque intervention sur un tableau.",
+    "role": "Garantit que le câble ne dépassera jamais sa température admissible, même sur une surcharge durable.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "NF C 15-100 (partie 7-771, circuits de prises)",
+    "risque": "Remonter le calibre pour éviter les déclenchements : la multiprise chargée à 25 A fait chauffer le câble dans la cloison, l'isolant vieillit, et l'incendie démarre là où personne ne regarde."
+  },
+  {
+    "id": "reco-sens-rotation",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-moteur.svg",
+    "question": "Ce moteur triphasé tourne à l'envers après un remplacement. Comment inverses-tu son sens de rotation ?",
+    "nom": "Permuter deux phases d'alimentation",
+    "faux": [
+      "Permuter les trois phases entre elles",
+      "Inverser le neutre et une des phases",
+      "Passer du couplage étoile au triangle"
+    ],
+    "pourquoiPas": {
+      "Permuter les trois phases entre elles": "Une permutation des trois phases (L1→L2→L3→L1) garde le même ordre de succession : le champ tourne dans le même sens.",
+      "Inverser le neutre et une des phases": "Un moteur triphasé n'est pas raccordé au neutre. Y mettre une phase à la place changerait les tensions et l'abîmerait.",
+      "Passer du couplage étoile au triangle": "Le couplage fixe la tension vue par chaque enroulement, pas le sens du champ. Le changer à tort détruit le moteur."
+    },
+    "explication": "Le sens de rotation suit l'ordre des phases. Croiser deux phases inverse cet ordre, donc le champ tournant. Sur une pompe ou un ventilateur, on vérifie le sens à vide, avant accouplement, avec un indicateur d'ordre des phases ou par une impulsion brève.",
+    "reperage": "Bornes U, V, W du moteur ; ordre des phases L1, L2, L3 repéré au départ. Après inversion, on repère la modification sur le schéma.",
+    "role": "Vérifier le sens de rotation fait partie de toute remise en service après intervention sur un moteur ou son câble.",
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60034-8 (repérage des bornes et sens de rotation)",
+    "risque": "Une pompe qui tourne à l'envers se désamorce et détruit sa garniture ; un convoyeur, un pont ou une vis sans fin qui part à l'envers surprend l'opérateur et peut le happer. On contrôle toujours le sens avant de remettre la machine en production."
   }
 ]

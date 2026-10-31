@@ -220,6 +220,93 @@ export const GENERATEURS = [
     }
   },
 
+  {
+    id: 'tensions-reseau',
+    niveau: 1,
+    titre: 'Tension simple et tension composée',
+    domaines: ['tri'],
+    norme: 'IEC 60038 (tensions normales)',
+    risque: "Brancher un récepteur 230 V entre deux phases d'un réseau 400 V le détruit instantanément (alimentation électronique, bobine de contacteur), parfois avec un départ de feu. Et lire une plaque « 230/400 V » de travers mène au mauvais couplage du moteur.",
+    creer() {
+      const U = parmi([400, 690, 230]);
+      const V = U / RACINE3;
+      const explication = 'En triphasé équilibré, la tension composée (entre deux phases) vaut √3 fois la tension simple (entre une phase et le neutre) : U = V × √3. Réseau 400 V → 230 V phase-neutre ; réseau 690 V (gros moteurs, éolien) → 400 V ; ancien réseau 230 V triphasé → 133 V.';
+      const piege = 'Sur un réseau trois fils, sans neutre distribué, il n\'y a pas de tension simple à lire : une mesure phase-terre y dépend du schéma de liaison à la terre (en IT, une phase peut se retrouver presque au potentiel de la terre).';
+      return parmi([
+        () => ({
+          enonce: `Réseau triphasé ${U} V entre phases, neutre distribué. Quelle tension dois-tu lire entre une phase et le neutre ?`,
+          unite: 'V', reponse: V, donnees: { U, demande: 'V' },
+          solution: `V = U / √3 = ${U} / 1,732 = ${nb(V, 1)} V`,
+          explication, piege,
+          erreurs: [
+            { valeur: U * RACINE3, message: 'Tu as multiplié par √3 : la tension simple est la plus petite des deux, V = U / √3.' },
+            { valeur: U / 2, message: 'Ce n\'est pas une moitié : en triphasé, le rapport entre U et V vaut √3 (1,732), pas 2.' }
+          ]
+        }),
+        () => ({
+          enonce: `Entre une phase et le neutre d'un réseau triphasé, tu lis ${nb(V, 0)} V. Quelle tension dois-tu lire entre deux phases ?`,
+          unite: 'V', reponse: U, donnees: { U, demande: 'U' },
+          solution: `U = V × √3 = ${nb(V, 0)} × 1,732 = ${nb(U, 0)} V`,
+          explication, piege,
+          erreurs: [
+            { valeur: V / RACINE3, message: 'Tu as divisé par √3 : entre deux phases, la tension est plus grande, U = V × √3.' },
+            { valeur: V * 2, message: 'Les deux tensions simples ne s\'additionnent pas : elles sont décalées de 120°. U = V × √3, pas 2 × V.' }
+          ]
+        })
+      ])();
+    }
+  },
+
+  {
+    id: 'courant-corps',
+    niveau: 1,
+    titre: 'Courant à travers le corps',
+    domaines: ['securite'],
+    norme: 'IEC 60479-1 · NF C 15-100 (§ 411)',
+    risque: "À 230 V, quelques centaines de milliampères peuvent traverser le corps : fibrillation cardiaque, brûlures internes, chute de hauteur. La TBT n'est pas « sans risque » : en local mouillé, la tension limite tombe à 25 V, et à 12 V là où le corps est immergé.",
+    creer() {
+      const U = parmi([50, 230, 400]);
+      const R = parmi([1000, 2000, 5000]);
+      const I = U / R * 1000;
+      return {
+        enonce: `Contact main-pieds avec une pièce sous ${U} V. Résistance totale (corps et chaussures) : ${nb(R, 0)} Ω. Courant qui traverse le corps, en mA ?`,
+        unite: 'mA', reponse: I, donnees: { U, R },
+        solution: `I = U / R = ${U} / ${nb(R, 0)} = ${nb(U / R, 3)} A = ${nb(I, 1)} mA`,
+        explication: 'Loi d\'Ohm appliquée au corps : I = U / R. Ordres de grandeur en 50 Hz (IEC 60479-1) : 0,5 mA, seuil de perception ; une dizaine de mA, contraction musculaire, on ne peut plus lâcher ; au-delà de quelques dizaines de mA pendant une fraction de seconde, risque de fibrillation cardiaque. D\'où les 30 mA des différentiels de protection des personnes.',
+        piege: 'La résistance du corps n\'est pas fixe : elle chute avec la tension, la sueur, l\'eau et la surface de contact. La même pièce sous 230 V peut faire passer quelques dizaines de mA mains sèches et plusieurs centaines pieds dans l\'eau.',
+        erreurs: [
+          { valeur: U / R, message: 'Résultat en ampères : multiplie par 1 000 pour l\'avoir en milliampères.' },
+          { valeur: R / U, message: 'Tu as divisé R par U : le courant, c\'est I = U / R.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'rapport-transfo',
+    niveau: 1,
+    titre: 'Rapport d\'un transformateur de poste',
+    domaines: ['hta', 'tri'],
+    norme: 'IEC 60076-1',
+    risque: "Une BT durablement trop haute fait vieillir les isolants et griller lampes et électronique ; trop basse, les moteurs chauffent et les contacteurs vibrent. La correction se fait par les prises du transformateur, hors tension, par du personnel habilité HTA.",
+    creer() {
+      const U1 = parmi([19.6, 20.4, 20.8, 21]);
+      const U2 = U1 * 410 / 20;
+      return {
+        enonce: `Transformateur 20 kV / 410 V, à vide, prise centrale. La HTA est à ${nb(U1, 1)} kV. Tension entre phases au secondaire ?`,
+        aide: 'Réponse au volt près',
+        unite: 'V', reponse: U2, tolerance: 0.004, donnees: { U1 },
+        solution: `U2 = U1 × U2n / U1n = ${nb(U1, 1)} × 410 / 20 = ${nb(U2, 1)} V`,
+        explication: 'À vide, le transformateur divise toutes les tensions dans son rapport : U2 = U1 × U2n / U1n. La HTA varie de quelques % autour de 20 kV, la BT suit dans la même proportion. La plaque indique 410 V à vide : en charge, la chute interne ramène vers 400 V.',
+        piege: 'Une BT « trop haute » le dimanche et « trop basse » en semaine n\'est pas une panne : c\'est la HTA qui varie avec la charge du réseau. On compare à la tension HTA du moment avant d\'accuser le transformateur.',
+        erreurs: [
+          { valeur: U1 * 400 / 20, message: 'Tu as pris 400 V : la plaque d\'un transformateur de poste donne la tension à vide, ici 410 V.' },
+          { valeur: 410, message: 'La BT ne reste pas fixe à 410 V : elle suit les variations de la HTA, dans le rapport du transformateur.' }
+        ]
+      };
+    }
+  },
+
   // ---------------------------------------------------------------- Niveau II · Pratique courante
   {
     id: 'triphase',
@@ -522,6 +609,32 @@ export const GENERATEURS = [
     }
   },
 
+  {
+    id: 'prise-transfo',
+    niveau: 2,
+    titre: 'Prises de réglage d\'un transformateur',
+    domaines: ['hta'],
+    norme: 'IEC 60076-1 · NF C 18-510',
+    risque: "Manœuvrer le changeur de prises sous tension, c'est ouvrir un enroulement en charge dans la cuve : arc dans l'huile, gaz, déclenchement du DGPT2 au mieux, éclatement de la cuve au pire. Et une prise réglée dans le mauvais sens aggrave l'écart de tension sur tout le site.",
+    creer() {
+      const { U1, p } = parmi([{ U1: 20.6, p: 2.5 }, { U1: 20.8, p: 2.5 }, { U1: 21.2, p: 5 }, { U1: 19.4, p: -2.5 }, { U1: 19.2, p: -2.5 }]);
+      const U2 = U1 * 410 / (20 * (1 + p / 100));
+      const prise = `${p > 0 ? '+' : '−'}${nb(Math.abs(p), 1)} %`;
+      return {
+        enonce: `Transformateur 20 kV / 410 V, à vide. La HTA est à ${nb(U1, 1)} kV ; pour corriger la BT, la prise a été passée sur ${prise}. Tension BT à vide ?`,
+        aide: 'Réponse au volt près',
+        unite: 'V', reponse: U2, tolerance: 0.004, donnees: { U1, p },
+        solution: `Primaire réglé pour 20 × (1 ${p > 0 ? '+' : '−'} ${nb(Math.abs(p) / 100, 3)}) = ${nb(20 * (1 + p / 100), 2)} kV ; U2 = ${nb(U1, 1)} × 410 / ${nb(20 * (1 + p / 100), 2)} = ${nb(U2, 1)} V`,
+        explication: 'Une prise « +2,5 % » ajoute des spires au primaire : le transformateur attend 20,5 kV pour donner 410 V. À HTA égale, la BT baisse donc de 2,5 %. Pour baisser une BT trop haute, on monte la prise ; pour la remonter, on la baisse. U2 = U1 × 410 / (20 × (1 + prise)).',
+        piege: 'Le sens des prises se trompe facilement : on raisonne sur le primaire, pas sur la BT. Et le changeur de prises se manœuvre transformateur hors tension, consigné côté HTA et côté BT.',
+        erreurs: [
+          { valeur: U1 * 410 / 20 * (1 + p / 100), message: 'Tu as appliqué la prise dans le mauvais sens : une prise positive ajoute des spires au primaire, elle fait BAISSER la BT.' },
+          { valeur: U1 * 410 / 20, message: 'Tu as oublié la prise : le transformateur n\'est plus réglé pour 20 kV mais pour 20 × (1 + prise).' }
+        ]
+      };
+    }
+  },
+
   // ---------------------------------------------------------------- Niveau III · Cas complexes
   {
     id: 'chute-tri',
@@ -744,6 +857,109 @@ export const GENERATEURS = [
           };
         }
       ])();
+    }
+  },
+
+  {
+    id: 'lmax-tn',
+    niveau: 3,
+    titre: 'Longueur maximale protégée en TN',
+    domaines: ['securite', 'mono-bt'],
+    norme: 'NF C 15-100 (§ 411.4) · guide UTE C 15-105',
+    risque: "Au-delà de Lmax, un défaut franc phase-masse ne fait pas déclencher le magnétique à temps : la masse reste à près de 100 V pendant que le thermique « réfléchit », des secondes ou des minutes. Celui qui la touche est électrisé.",
+    creer() {
+      const { S, In } = parmi([{ S: 1.5, In: 16 }, { S: 2.5, In: 20 }, { S: 4, In: 25 }, { S: 6, In: 32 }]);
+      const courbe = parmi(['B', 'C']);
+      const k = courbe === 'B' ? 5 : 10;
+      const L = 0.8 * 230 * S / (RHO_CUIVRE * 2 * k * In);
+      const erreurs = [
+        { valeur: L / 0.8, message: 'Tu as oublié le coefficient 0,8 : la méthode conventionnelle suppose qu\'il ne reste que 80 % de U0 au départ du circuit pendant le défaut.' },
+        { valeur: 2 * L, message: courbe === 'C'
+          ? 'Facteur 2 en trop : tu as oublié le retour par le PE (1 + m = 2), ou pris Ia = 5 In alors qu\'en courbe C le magnétique n\'est garanti qu\'à 10 In.'
+          : 'Facteur 2 en trop : tu as oublié le retour du courant par le PE (1 + m = 2).' }
+      ];
+      if (courbe === 'B') erreurs.push({ valeur: L / 2, message: 'Tu as pris Ia = 10 In : c\'est la courbe C. En courbe B, le magnétique est garanti à 5 In.' });
+      return {
+        enonce: `Schéma TN-S, 230 V. Circuit en cuivre ${nb(S)} mm², PE de même section, protégé par un disjoncteur ${courbe}${In}. Longueur maximale protégée contre les contacts indirects ?`,
+        aide: 'ρ = 0,0225 Ω·mm²/m · m = S phase / S PE = 1 · courbe B : Ia = 5 In ; courbe C : Ia = 10 In',
+        unite: 'm', reponse: L, donnees: { S, In, k },
+        solution: `Lmax = 0,8 × U0 × S / (ρ × (1 + m) × Ia) = 0,8 × 230 × ${nb(S)} / (0,0225 × 2 × ${k} × ${In}) = ${nb(L, 1)} m`,
+        explication: 'En TN, un défaut phase-masse est un court-circuit qui revient par le PE : son courant doit faire déclencher le magnétique (Ia) en moins de 0,4 s sous 230 V. La méthode conventionnelle suppose 80 % de U0 au départ du circuit : Id = 0,8 × U0 × S / (ρ × (1 + m) × L). D\'où Lmax = 0,8 × U0 × S / (ρ × (1 + m) × Ia).',
+        piege: 'Un câble rallongé lors d\'un déplacement de machine peut dépasser Lmax sans que rien ne le montre : tout fonctionne, jusqu\'au défaut. On recalcule à chaque modification de longueur, ou on ajoute un différentiel.',
+        erreurs
+      };
+    }
+  },
+
+  {
+    id: 'boucle-4-20',
+    niveau: 3,
+    titre: 'Boucle de courant 4-20 mA',
+    domaines: ['tbt-cc'],
+    norme: 'IEC 60381-1 · NAMUR NE 43',
+    risque: "Une boucle coupée (0 mA) lue comme « mesure nulle » par un automate mal paramétré : la régulation pousse la pompe à fond sur un circuit déjà en pression. Le zéro décalé à 4 mA sert justement à distinguer zéro et fil coupé, encore faut-il traiter le défaut (moins de 3,6 mA) dans le programme.",
+    creer() {
+      return parmi([
+        () => {
+          const P = parmi([6, 10, 16, 25]);
+          const I = parmi([6.4, 8, 12, 15.2, 18.4]);
+          const v = P * (I - 4) / 16;
+          return {
+            enonce: `Capteur de pression 0-${P} bar, sortie 4-20 mA. À la pince milliampèremétrique, tu lis ${nb(I, 1)} mA dans la boucle. Pression mesurée ?`,
+            unite: 'bar', reponse: v, donnees: { type: 'mesure', P, I },
+            solution: `p = (I − 4) / 16 × pleine échelle = (${nb(I, 1)} − 4) / 16 × ${P} = ${nb(v, 2)} bar`,
+            explication: 'Échelle linéaire à zéro décalé : 4 mA = début d\'échelle, 20 mA = pleine échelle, soit 16 mA d\'étendue. Valeur = (I − 4) / 16 × pleine échelle.',
+            piege: 'Un capteur qui affiche toujours 0 alors que le process tourne : mesure le courant. 4 mA, c\'est un vrai zéro ; 0 mA, c\'est la boucle ouverte (fil coupé, fusible, alimentation).',
+            erreurs: [
+              { valeur: P * I / 20, message: 'Tu as oublié le zéro décalé : 0 bar correspond à 4 mA, pas à 0 mA. Valeur = (I − 4) / 16 × pleine échelle.' },
+              { valeur: P * (I - 4) / 20, message: 'L\'étendue fait 16 mA (de 4 à 20), pas 20 mA.' }
+            ]
+          };
+        },
+        () => {
+          const Re = parmi([250, 500]);
+          const Rc = parmi([10, 20, 40]);
+          const U = 24 - 0.02 * (Re + Rc);
+          return {
+            enonce: `Boucle 4-20 mA alimentée en 24 V DC : entrée analogique de l'automate ${Re} Ω, câble ${Rc} Ω (aller-retour). Tension disponible aux bornes du capteur au courant maximal ?`,
+            aide: 'Calcule à 20 mA',
+            unite: 'V', reponse: U, donnees: { type: 'budget', Re, Rc },
+            solution: `U capteur = 24 − 0,020 × (${Re} + ${Rc}) = 24 − ${nb(0.02 * (Re + Rc), 2)} = ${nb(U, 2)} V`,
+            explication: 'La boucle est en série : l\'alimentation doit couvrir la chute dans l\'entrée de l\'automate et dans le câble, et laisser au capteur sa tension minimale de fonctionnement (souvent 10 à 12 V, voir la notice). On calcule au courant maximal, 20 mA, là où les chutes sont les plus fortes.',
+            piege: 'Un capteur qui marche au banc et « décroche » en haut d\'échelle sur site : la boucle manque de tension à 20 mA. Le défaut n\'apparaît qu\'en haut de la mesure, c\'est ce qui le rend pernicieux.',
+            erreurs: [
+              { valeur: 24 - 0.004 * (Re + Rc), message: 'Tu as calculé à 4 mA : le cas critique est le courant maximal, 20 mA.' },
+              { valeur: 0.02 * (Re + Rc), message: 'Ça, c\'est la chute dans la boucle : la tension disponible au capteur est 24 V moins cette chute.' }
+            ]
+          };
+        }
+      ])();
+    }
+  },
+
+  {
+    id: 'neutre-coupe',
+    niveau: 3,
+    titre: 'Neutre coupé',
+    domaines: ['mono-bt', 'tri'],
+    norme: 'NF C 15-100 (le neutre n\'est jamais coupé ni protégé seul)',
+    risque: "Neutre coupé : les appareils peu chargés reçoivent jusqu'à 400 V. Alimentations électroniques détruites, condensateurs qui éclatent, multiprises qui fondent ; et aucune protection ne déclenche, puisque rien ne fuit à la terre. D'où le serrage au couple et la surveillance des connexions de neutre.",
+    creer() {
+      const { P1, P2 } = parmi([{ P1: 500, P2: 2000 }, { P1: 300, P2: 1500 }, { P1: 1000, P2: 3000 }, { P1: 200, P2: 2200 }]);
+      const U1 = 400 * P2 / (P1 + P2);
+      return {
+        enonce: `Bâtiment en 400 V + N. Sur L1-N, un appareil résistif de ${P1} W ; sur L2-N, un radiateur de ${P2} W. Le neutre se coupe en amont. Tension aux bornes de l'appareil de ${P1} W ?`,
+        aide: 'Récepteurs résistifs : R = 230² / P · tension entre phases 400 V',
+        unite: 'V', reponse: U1, donnees: { P1, P2 },
+        solution: `R1 = 230² / ${P1} = ${nb(230 ** 2 / P1, 1)} Ω ; R2 = 230² / ${P2} = ${nb(230 ** 2 / P2, 1)} Ω ; en série sous 400 V : U1 = 400 × R1 / (R1 + R2) = ${nb(U1, 0)} V`,
+        explication: 'Neutre coupé, les deux récepteurs ne sont plus reliés au point neutre : ils se retrouvent en série entre L1 et L2, sous 400 V. La tension se partage au prorata des résistances : U1 = 400 × R1 / (R1 + R2), avec R = U² / P. Le plus petit consommateur, qui a la plus forte résistance, prend la plus grosse part.',
+        piege: 'Le symptôme trompe : des lampes qui brillent trop dans un bureau et trop peu dans l\'autre, un onduleur qui grille, mais le différentiel ne bouge pas. Mesurer phase-neutre et neutre-terre révèle le défaut.',
+        erreurs: [
+          { valeur: 230, message: 'Sans neutre, l\'appareil ne voit plus 230 V : les deux récepteurs sont en série sous la tension entre phases, 400 V.' },
+          { valeur: 400 * P1 / (P1 + P2), message: 'Tu as calculé la tension du radiateur. Le petit appareil, de plus forte résistance, prend la plus grosse part.' },
+          { valeur: 200, message: 'La tension ne se partage pas en deux moitiés : elle se répartit au prorata des résistances.' }
+        ]
+      };
     }
   }
 ];

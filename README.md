@@ -55,7 +55,7 @@ js/circuit.js           petit solveur électrique du banc (potentiels en alterna
 js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance (QCM sur image, par niveau et par domaine)
-js/calcul.js            mode Calculs flash (17 générateurs, 3 niveaux, 5 domaines, diagnostic d'erreur, clavier à l'écran)
+js/calcul.js            mode Calculs flash (24 générateurs, 3 niveaux, 5 domaines, diagnostic d'erreur, clavier à l'écran)
 js/difficulte.js        les 3 niveaux de difficulté + écran de choix niveau × domaine
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
 js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
@@ -98,7 +98,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
 | `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, `__proto__`, nettoyage au démarrage |
-| `tests/non-regression.mjs` | Dans le navigateur. **A** : 17 générateurs × 300 tirages, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne. **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
+| `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
@@ -159,6 +159,18 @@ sur l'écran de choix du niveau (Reconnaissance, Calculs) et sur la liste des Ca
 | `tri` | Triphasé & puissance | départs moteurs, transformateurs, couplages, réactif | brun, noir, gris (L1, L2, L3) |
 | `securite` | Sécurité & habilitations | consignation, VAT, risques électriques, NF C 18-510 | vert-jaune (PE) |
 | `hta` | Haute tension · postes | cellules HTA, protections de transformateur, sélectivité (niveau expert) | rouge (danger) |
+
+**Couverture actuelle** (éléments par niveau I / II / III ; un élément peut compter dans plusieurs domaines) :
+
+| Domaine | Reconnaissance (46) | Calculs (24 générateurs) | Cas de panne (14) |
+|---|---|---|---|
+| TBT & CC | 7 / 5 / 3 | 2 / 1 / 1 | 1 / 1 / 1 |
+| Monophasé & BT | 4 / 3 / 2 | 3 / 2 / 2 | 1 / 2 / 1 |
+| Triphasé & puissance | 6 / 7 / 8 | 2 / 4 / 7 | 1 / 1 / 3 |
+| Sécurité & habilitations | 6 / 2 / 4 | 1 / 1 / 1 | 3 / 2 / 2 |
+| HTA · postes | 2 / 2 / 3 | 1 / 1 / 2 | 1 / 1 / 1 |
+
+Aucune case vide : chaque domaine se travaille à chaque niveau, dans chaque mode.
 
 - Une séance filtrée peut compter moins de 10 questions (Reconnaissance) ; les Calculs restent à 10, les générateurs du domaine étant repris à tour de rôle.
 - Les records par niveau ne comptent que les séances « tous domaines ». Le bonus sans faute exige au moins 5 questions.
@@ -305,6 +317,8 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] P0 : tests versionnés, import sécurisé, intégration continue
 - [x] Pivot « simulateur de terrain » : fiches de cours retirées, 5 domaines techniques, risque et norme sur chaque exercice,
       nouveaux contenus TBT & CC, Sécurité (consignation / VAT) et HTA (DGPT2, couplage Dyn11, sectionneur de terre)
+- [x] Contenu « niveau expert » : 12 questions, 7 calculs, 6 cas de panne ; plus aucune case vide niveau × domaine × mode
+- [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)
 

@@ -289,6 +289,104 @@
     "verifie": false
   },
   {
+    "id": "poste-general-bt",
+    "niveau": 1,
+    "domaines": [
+      "hta",
+      "securite"
+    ],
+    "titre": "Coupure générale : le disjoncteur BT du poste a déclenché",
+    "contexte": "Usine alimentée par un poste HTA/BT. Le TGBT est dans le même local que les cellules HTA. Tout l'atelier est arrêté ; le disjoncteur général BT, en sortie de transformateur, a déclenché. Tu es habilité BR, sans habilitation HTA.",
+    "etapes": [
+      {
+        "situation": "Le local du poste est fermé à clé ; la clé est au bureau de maintenance.",
+        "question": "Peux-tu intervenir dans ce local ?",
+        "choix": [
+          {
+            "texte": "Oui, sur la partie BT, cellules HTA fermées",
+            "verdict": "bon",
+            "explication": "Habilité BR, tu peux intervenir sur le TGBT, avec l'autorisation d'accès au local. Les cellules HTA restent fermées : tu n'as ni à les ouvrir ni à les manœuvrer, et leurs enveloppes te protègent tant qu'elles sont closes."
+          },
+          {
+            "texte": "Non, aucun électricien BT n'entre dans un poste",
+            "verdict": "mauvais",
+            "explication": "Le TGBT est souvent dans le poste : un habilité BT peut y intervenir, côté BT, avec l'autorisation d'accès. Ce qui lui est interdit, ce sont les cellules HTA."
+          },
+          {
+            "texte": "Oui, et ouvrir la cellule HTA pour comprendre",
+            "verdict": "danger",
+            "explication": "En 20 kV, l'arc s'amorce sans contact. Ouvrir une cellule HTA sans habilitation ni consignation, c'est entrer dans la zone de danger. Les verrouillages sont là pour ça."
+          },
+          {
+            "texte": "Oui, seul et sans prévenir, pour gagner du temps",
+            "verdict": "mauvais",
+            "explication": "On ne travaille pas seul et à l'insu de tous dans un poste : on prévient, on suit les consignes du site et on reste joignable."
+          }
+        ]
+      },
+      {
+        "situation": "Devant le disjoncteur général BT, déclenché.",
+        "question": "Avant de le réarmer ?",
+        "choix": [
+          {
+            "texte": "Chercher pourquoi : lire l'indication du déclencheur",
+            "verdict": "bon",
+            "explication": "Le déclencheur électronique indique la protection qui a agi (long retard, court retard, instantané, terre). Elle oriente la recherche : surcharge générale ou court-circuit sur un départ. On réarme une fois la cause connue."
+          },
+          {
+            "texte": "Le réarmer tout de suite, deux fois si besoin",
+            "verdict": "danger",
+            "explication": "Réarmer sans savoir, c'est refermer sur un court-circuit peut-être franc : arc dans le TGBT, devant toi. Un disjoncteur général qui a déclenché a vu quelque chose."
+          },
+          {
+            "texte": "Manœuvrer la cellule HTA pour réarmer le général en sécurité",
+            "verdict": "danger",
+            "explication": "Manœuvrer une cellule HTA demande une habilitation H avec l'attribut adapté. Sans elle, on ne touche pas aux cellules, même pour bien faire."
+          },
+          {
+            "texte": "Remplacer le disjoncteur général, sûrement usé",
+            "verdict": "mauvais",
+            "explication": "Un disjoncteur qui déclenche fait en général son travail. On cherche le défaut avant d'accuser l'appareil."
+          }
+        ]
+      },
+      {
+        "situation": "Le déclencheur indique « court retard » ; sur un départ moteur, le disjoncteur divisionnaire a aussi déclenché.",
+        "question": "Comment réalimentes-tu ?",
+        "choix": [
+          {
+            "texte": "Isoler le départ en défaut, puis réarmer le général",
+            "verdict": "bon",
+            "explication": "Le départ en défaut reste ouvert et consigné pour la recherche ; le général est réarmé, puis les autres départs remis en service un par un. L'atelier redémarre sans le départ fautif."
+          },
+          {
+            "texte": "Tout réarmer : un court-circuit ne revient pas",
+            "verdict": "danger",
+            "explication": "Un court-circuit franc ne disparaît pas tout seul : refermer dessus, c'est un nouvel arc, et peut-être un câble qui fond."
+          },
+          {
+            "texte": "Monter le réglage court retard du général pour qu'il tienne",
+            "verdict": "danger",
+            "explication": "Le réglage des protections découle de l'étude de sélectivité. Le monter, c'est laisser un défaut alimenté plus longtemps, avec un arc plus destructeur."
+          },
+          {
+            "texte": "Attendre l'arrivée du technicien HTA du site",
+            "verdict": "mauvais",
+            "explication": "Le défaut est côté BT : il relève de ton habilitation. Le technicien HTA n'est utile que si la HTA est en cause, ce qui n'est pas le cas ici."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Court-circuit sur un départ moteur ; le disjoncteur général BT a déclenché en même temps que le divisionnaire, signe d'un défaut de sélectivité à étudier.",
+      "remede": "Départ en défaut isolé et consigné, général réarmé, autres départs remis en service un par un ; recherche du défaut sur le départ moteur ; demande d'étude de la sélectivité entre général et divisionnaire.",
+      "lecon": "Dans un poste, la partie BT est à toi, les cellules HTA ne le sont pas sans habilitation H. Un disjoncteur qui a déclenché se lit avant de se réarmer.",
+      "risque": "Réarmer en aveugle sur un court-circuit, c'est un arc dans le TGBT au niveau du visage : brûlures graves, projection de métal en fusion. Et s'approcher d'une cellule HTA ouverte, c'est risquer l'amorçage sans même toucher.",
+      "norme": "NF C 18-510 · NF C 13-100 · NF C 15-100"
+    },
+    "verifie": false
+  },
+  {
     "id": "moteur-grogne",
     "niveau": 2,
     "domaines": [
@@ -470,6 +568,299 @@
       "lecon": "On suit le signal point par point, du capteur à l'automate, en coupant la chaîne en deux à chaque mesure. Le programme passe en dernier.",
       "risque": "Un capteur de fin de course qui ne détecte plus, c'est une machine qui force contre une butée ou envoie les pièces dans le vide. Le forcer dans l'automate ou le shunter « pour finir la série » supprime la fonction : si c'est une sécurité, l'opérateur n'est plus protégé.",
       "norme": "IEC 61131-2 · NF EN 60204-1"
+    },
+    "verifie": false
+  },
+  {
+    "id": "retour-lampe-neutre",
+    "niveau": 2,
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
+    "titre": "Décharge électrique en changeant une ampoule, interrupteur éteint",
+    "contexte": "Bureau d'atelier, circuit d'éclairage 230 V protégé par un disjoncteur 10 A et un différentiel 30 mA. Un collègue a ressenti une décharge en changeant une ampoule, l'interrupteur étant éteint. Il va bien. Tu dois trouver pourquoi.",
+    "etapes": [
+      {
+        "situation": "Le luminaire est un plafonnier à douille E27 ; l'interrupteur simple est près de la porte.",
+        "question": "Que soupçonnes-tu d'abord ?",
+        "choix": [
+          {
+            "texte": "L'interrupteur coupe le neutre, pas la phase",
+            "verdict": "bon",
+            "explication": "Si l'interrupteur coupe le neutre, la lampe s'éteint, mais la douille reste reliée à la phase : 230 V sur le culot, interrupteur ouvert. C'est l'erreur de câblage qui ne se voit à aucun essai de fonctionnement."
+          },
+          {
+            "texte": "Une ampoule LED défectueuse qui fuit vers le culot",
+            "verdict": "mauvais",
+            "explication": "Une ampoule, même défectueuse, ne met pas le culot sous tension quand l'interrupteur coupe la phase. Si le culot est sous tension interrupteur ouvert, c'est le câblage qui l'alimente."
+          },
+          {
+            "texte": "Le différentiel 30 mA est hors service",
+            "verdict": "mauvais",
+            "explication": "Un 30 mA en bon état laisse passer une décharge brève : il limite la durée, il n'empêche pas la sensation. On le testera, mais il n'explique pas pourquoi le culot était sous tension."
+          },
+          {
+            "texte": "Une tension induite par le câble d'éclairage voisin",
+            "verdict": "mauvais",
+            "explication": "Un couplage capacitif peut faire luire une LED, pas donner une vraie décharge. Une décharge franche, interrupteur ouvert, c'est une phase présente sur la douille."
+          }
+        ]
+      },
+      {
+        "situation": "Tu dois confirmer avant de toucher au câblage.",
+        "question": "Comment le vérifies-tu ?",
+        "choix": [
+          {
+            "texte": "Au VAT, interrupteur ouvert : plot de douille et terre",
+            "verdict": "bon",
+            "explication": "Avec ton VAT et tes EPI (gants isolants, écran facial), interrupteur ouvert : présence de tension entre le plot central de la douille et la terre. Interrupteur fermé, même mesure côté neutre. Le résultat désigne le conducteur commuté."
+          },
+          {
+            "texte": "Au multimètre sur Ω, circuit laissé sous tension",
+            "verdict": "danger",
+            "explication": "Un ohmmètre sur un circuit sous tension donne une lecture fausse, grille le fusible de l'appareil et peut provoquer un court-circuit dans tes mains. Sous tension, on mesure une tension."
+          },
+          {
+            "texte": "En regardant les couleurs des fils dans la boîte de dérivation",
+            "verdict": "mauvais",
+            "explication": "Les couleurs ne prouvent rien : un retour lampe peut être bleu par erreur, et c'est justement une erreur de câblage que tu cherches. On mesure."
+          },
+          {
+            "texte": "Avec un tournevis testeur posé sur la douille",
+            "verdict": "danger",
+            "explication": "Le tournevis testeur n'est pas un VAT : il dépend de ton propre contact à la terre, peut ne rien allumer sur une phase réelle, et te fait mettre les doigts près d'une pièce nue."
+          }
+        ]
+      },
+      {
+        "situation": "Confirmé : l'interrupteur est câblé sur le neutre, la phase va directement au luminaire.",
+        "question": "Ta correction ?",
+        "choix": [
+          {
+            "texte": "Consigner, mettre la phase sur l'interrupteur, repérer",
+            "verdict": "bon",
+            "explication": "Circuit consigné et VAT faite : la phase passe par l'interrupteur, le neutre va directement au luminaire, le retour lampe est repéré à ses deux extrémités. Essai, puis contrôle au VAT interrupteur ouvert : douille hors tension."
+          },
+          {
+            "texte": "Inverser les deux fils directement au culot",
+            "verdict": "mauvais",
+            "explication": "Inverser au culot ne change rien : l'interrupteur coupe toujours le neutre, et c'est l'autre contact de la douille qui reste sous tension."
+          },
+          {
+            "texte": "Poser un interrupteur bipolaire à la place",
+            "verdict": "acceptable",
+            "explication": "Un bipolaire coupe la phase et le neutre : le danger disparaît. Mais l'erreur de câblage reste en place pour le prochain qui intervient ; corrige-la et repère les conducteurs."
+          },
+          {
+            "texte": "Corriger sous tension : il n'y a qu'un seul fil à déplacer",
+            "verdict": "danger",
+            "explication": "Un seul fil, mais c'est la phase. Travailler sous tension sur un circuit terminal n'a aucune justification : on consigne, on vérifie, puis on corrige."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Interrupteur câblé sur le neutre lors d'une rénovation : la douille restait reliée à la phase, interrupteur ouvert.",
+      "remede": "Circuit consigné, interrupteur reporté sur la phase, retour lampe repéré, essai et contrôle au VAT interrupteur ouvert. Contrôle des autres points lumineux posés par le même intervenant.",
+      "lecon": "Un interrupteur coupe la phase, toujours. Une erreur de câblage qui ne se voit pas à l'essai de fonctionnement se vérifie au VAT, interrupteur ouvert.",
+      "risque": "Douille sous 230 V interrupteur ouvert : électrisation de la personne qui change l'ampoule, perchée sur un escabeau, avec le risque de chute qui va avec. Le différentiel 30 mA limite la durée du choc, il ne l'empêche pas.",
+      "norme": "NF C 15-100 (commande unipolaire sur la phase) · NF C 18-510"
+    },
+    "verifie": false
+  },
+  {
+    "id": "barrette-terre",
+    "niveau": 2,
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "titre": "Mesure de la prise de terre : la barrette de coupure",
+    "contexte": "Atelier en schéma TT, protégé en tête par un différentiel 500 mA (les prises sont en 30 mA). Tu dois mesurer la résistance de la prise de terre (Ra) avec un telluromètre, lors de la vérification annuelle.",
+    "etapes": [
+      {
+        "situation": "La barrette de mesure relie le conducteur de terre à la prise de terre, dans un regard au pied du bâtiment.",
+        "question": "Pour mesurer Ra, que fais-tu de la barrette ?",
+        "choix": [
+          {
+            "texte": "L'ouvrir, installation hors tension, pour isoler la terre",
+            "verdict": "bon",
+            "explication": "Barrette ouverte, le telluromètre ne mesure que la prise de terre, sans les chemins parallèles du bâtiment. Mais pendant ce temps, plus aucune masse n'est reliée à la terre : on travaille installation hors tension, ou sous surveillance stricte, le temps de la mesure."
+          },
+          {
+            "texte": "La laisser fermée, la mesure reste parfaitement juste",
+            "verdict": "mauvais",
+            "explication": "Barrette fermée, le courant de mesure emprunte aussi les liaisons du bâtiment (canalisations, structure) : la valeur est flatteuse et ne dit rien de la prise de terre elle-même."
+          },
+          {
+            "texte": "L'ouvrir en pleine production, c'est l'affaire de minutes",
+            "verdict": "danger",
+            "explication": "Barrette ouverte, les masses ne sont plus reliées à la terre. Un défaut d'isolement pendant ces minutes met toutes les carcasses sous tension sans qu'aucun différentiel ne voie de fuite."
+          },
+          {
+            "texte": "Mesurer au multimètre, en Ω, entre PE et un piquet",
+            "verdict": "mauvais",
+            "explication": "Un multimètre injecte du continu : le sol se polarise, la valeur est fausse. La mesure de terre se fait au telluromètre, en alternatif, avec deux piquets auxiliaires correctement éloignés."
+          }
+        ]
+      },
+      {
+        "situation": "Le telluromètre affiche Ra = 35 Ω.",
+        "question": "Avec le différentiel de tête de 500 mA, conclusion ?",
+        "choix": [
+          {
+            "texte": "Conforme : Ra × IΔn = 17,5 V, sous les 50 V",
+            "verdict": "bon",
+            "explication": "La condition du TT est Ra × IΔn ≤ 50 V (local sec) : 35 × 0,5 = 17,5 V. Au seuil de déclenchement, la carcasse ne dépasse pas 17,5 V. La prise de terre est conforme pour ce différentiel."
+          },
+          {
+            "texte": "Non conforme : une terre doit faire moins de 10 Ω",
+            "verdict": "mauvais",
+            "explication": "Il n'y a pas de valeur magique en TT : la règle est Ra × IΔn ≤ 50 V. 10 Ω, c'est une habitude d'autres contextes, pas la condition de protection."
+          },
+          {
+            "texte": "Conforme seulement si tous les départs sont en 30 mA",
+            "verdict": "mauvais",
+            "explication": "Avec 500 mA, Ra peut aller jusqu'à 100 Ω (50 / 0,5). Les 30 mA des prises sont imposés pour d'autres raisons, pas pour rattraper la terre."
+          },
+          {
+            "texte": "Impossible de conclure sans connaître Rb du poste",
+            "verdict": "mauvais",
+            "explication": "Rb intervient dans le courant de défaut, pas dans la condition de protection : Ra × IΔn ≤ 50 V suffit pour conclure."
+          }
+        ]
+      },
+      {
+        "situation": "Mesure terminée, valeur notée.",
+        "question": "Avant de quitter le regard ?",
+        "choix": [
+          {
+            "texte": "Refermer la barrette, serrer, vérifier la continuité",
+            "verdict": "bon",
+            "explication": "Barrette refermée et serrée à l'outil, puis contrôle : continuité entre la barrette et une masse de l'atelier, et nouvelle mesure de boucle si possible. Une barrette oubliée ouverte ou mal serrée laisse toute l'installation sans terre."
+          },
+          {
+            "texte": "La laisser ouverte : nouvelle mesure prévue demain",
+            "verdict": "danger",
+            "explication": "Une nuit sans terre, c'est une nuit où le premier défaut d'isolement met toutes les carcasses sous tension. On referme toujours avant de partir."
+          },
+          {
+            "texte": "La refermer à la main : elle tient très bien toute seule",
+            "verdict": "danger",
+            "explication": "Une barrette serrée à la main prend du jeu, s'oxyde et finit par ne plus conduire : l'installation perd sa terre sans que personne le sache. Serrage à l'outil, puis contrôle de continuité."
+          },
+          {
+            "texte": "Refermer, serrer, puis tester les différentiels",
+            "verdict": "acceptable",
+            "explication": "Bon réflexe, mais il manque le contrôle de continuité : un différentiel qui déclenche au bouton test ne dit rien de la liaison à la terre."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Pas de panne : c'est la procédure de mesure qui est évaluée, avec ses deux pièges, la barrette mesurée fermée et la barrette laissée ouverte ou mal serrée.",
+      "remede": "Mesure barrette ouverte, installation hors tension ; vérification de la condition Ra × IΔn ≤ 50 V ; barrette refermée, serrée à l'outil, continuité contrôlée ; valeur reportée au registre de sécurité.",
+      "lecon": "La barrette de mesure s'ouvre installation hors tension et ne se referme jamais à la main. En TT, la règle est Ra × IΔn ≤ 50 V, pas une valeur fixe.",
+      "risque": "Barrette restée ouverte ou mal serrée : toute l'installation perd sa prise de terre. Au premier défaut, les carcasses montent à 230 V et le différentiel de tête ne déclenche pas, faute de courant de fuite. Le prochain qui touche une machine ferme le circuit.",
+      "norme": "NF C 15-100 (§ 411.5, § 542) · NF C 18-510"
+    },
+    "verifie": false
+  },
+  {
+    "id": "hta-enclenchement",
+    "niveau": 2,
+    "domaines": [
+      "hta"
+    ],
+    "titre": "Le disjoncteur HTA déclenche à chaque remise sous tension",
+    "contexte": "Poste de livraison 20 kV, transformateur de 1 000 kVA. Après la maintenance annuelle du poste, la protection de la cellule disjoncteur HTA déclenche instantanément à chaque tentative de mise sous tension. Aucun défaut n'a été trouvé. Le technicien HTA habilité te demande ton avis.",
+    "etapes": [
+      {
+        "situation": "Le transformateur est à vide au moment de l'enclenchement : le disjoncteur général BT est ouvert.",
+        "question": "Que se passe-t-il à l'enclenchement d'un transformateur ?",
+        "choix": [
+          {
+            "texte": "Un courant d'appel magnétisant de 8 à 12 In",
+            "verdict": "bon",
+            "explication": "À l'enclenchement, le circuit magnétique se sature : le transformateur appelle pendant quelques dixièmes de seconde un courant de 8 à 12 fois son In, riche en harmonique 2. Une protection mal réglée le prend pour un court-circuit."
+          },
+          {
+            "texte": "Rien : un transformateur à vide n'appelle rien",
+            "verdict": "mauvais",
+            "explication": "À vide en régime établi, le courant est faible. Mais à l'enclenchement, la saturation du circuit magnétique provoque un fort appel de courant."
+          },
+          {
+            "texte": "Une surtension qui fait réagir le relais",
+            "verdict": "mauvais",
+            "explication": "Une protection à maximum de courant réagit au courant, pas à la tension. Et l'enclenchement d'un transformateur ne crée pas de surtension durable."
+          },
+          {
+            "texte": "Un courant de fuite à la terre normal",
+            "verdict": "mauvais",
+            "explication": "Un transformateur sain n'a pas de fuite à la terre significative. L'appel de courant à l'enclenchement concerne les phases, pas la terre."
+          }
+        ]
+      },
+      {
+        "situation": "La maintenance comprenait un essai du relais de protection.",
+        "question": "Qu'est-ce qui a pu changer ?",
+        "choix": [
+          {
+            "texte": "Les réglages du relais, remis à leur valeur d'usine",
+            "verdict": "bon",
+            "explication": "Un essai par injection peut remettre le relais à ses réglages d'usine, ou en laisser un modifié. Un déclenchement instantané et systématique, juste après cet essai, oriente d'abord vers les réglages."
+          },
+          {
+            "texte": "Le transformateur a simplement vieilli d'un an",
+            "verdict": "mauvais",
+            "explication": "Un an de service ne change pas le courant d'enclenchement au point de faire déclencher systématiquement. Ce qui a changé, c'est l'intervention sur le relais."
+          },
+          {
+            "texte": "Un défaut interne du transformateur, à vérifier",
+            "verdict": "acceptable",
+            "explication": "Toujours à envisager : le DGPT2 et des mesures (isolement, rapport) le diront. Mais un déclenchement instantané et systématique juste après un essai de relais oriente d'abord vers les réglages."
+          },
+          {
+            "texte": "Rien : il suffit de shunter la protection pour une fois",
+            "verdict": "danger",
+            "explication": "Shunter la protection d'une cellule HTA, c'est enclencher un transformateur sans rien pour couper un vrai défaut : l'arc détruirait la cellule et le disjoncteur du distributeur couperait en amont."
+          }
+        ]
+      },
+      {
+        "situation": "Le relais affiche un seuil instantané à 2 In, sans temporisation ni retenue d'harmonique 2.",
+        "question": "Que faites-vous ?",
+        "choix": [
+          {
+            "texte": "Rétablir le plan de protection d'origine, puis essai",
+            "verdict": "bon",
+            "explication": "Les réglages viennent de l'étude de sélectivité, coordonnée avec le distributeur : on les rétablit d'après le document, on vérifie par injection, on rédige le procès-verbal, puis le technicien habilité remet sous tension."
+          },
+          {
+            "texte": "Monter le seuil du relais au maximum pour être tranquille",
+            "verdict": "danger",
+            "explication": "Un seuil au maximum ne protège plus le transformateur : un défaut réel resterait alimenté jusqu'à ce que le distributeur coupe en amont, avec un arc qui détruit la cellule."
+          },
+          {
+            "texte": "Désactiver le relais le temps d'enclencher",
+            "verdict": "danger",
+            "explication": "Pendant l'enclenchement, le transformateur n'est protégé par rien. Si le défaut existe, il est alimenté à pleine puissance, devant l'opérateur de la cellule."
+          },
+          {
+            "texte": "Régler au jugé à 10 In, ça devrait passer",
+            "verdict": "mauvais",
+            "explication": "Au jugé, on casse la sélectivité avec le distributeur et on ignore la retenue d'harmonique 2. Le bon réglage est écrit dans le plan de protection."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Relais de protection remis à ses réglages d'usine lors de l'essai de maintenance : seuil instantané trop bas, sans retenue d'harmonique 2, qui voyait le courant d'appel du transformateur comme un court-circuit.",
+      "remede": "Réglages rétablis selon le plan de protection, vérification par injection, procès-verbal, remise sous tension par le personnel habilité HTA. Contrôle de la procédure d'essai pour qu'elle se termine toujours par la vérification des réglages.",
+      "lecon": "Un transformateur appelle 8 à 12 In à l'enclenchement. Une protection HTA se règle d'après le plan de protection, jamais au jugé, et se vérifie après chaque essai.",
+      "risque": "Une protection HTA mal réglée, c'est soit des déclenchements à répétition, soit pire, un seuil trop haut qui laisse un défaut alimenté : l'arc détruit la cellule et le disjoncteur du distributeur coupe tout le secteur. Toute manœuvre se fait par du personnel habilité HTA.",
+      "norme": "NF C 13-100 · IEC 60255 · NF C 18-510"
     },
     "verifie": false
   },
@@ -754,6 +1145,201 @@
       "lecon": "Une protection de transformateur qui déclenche sur gaz signale un défaut interne : on ne réenclenche pas. Sans habilitation HTA, ton rôle est de constater, de sécuriser les abords et de prévenir.",
       "risque": "Réenclencher un transformateur immergé en défaut interne peut faire éclater la cuve : incendie d'huile, projections, arc. En HTA, il suffit de s'approcher trop près d'une pièce nue sous tension pour que l'arc s'amorce.",
       "norme": "NF C 18-510 · NF C 13-100 · IEC 60076"
+    },
+    "verifie": false
+  },
+  {
+    "id": "sorties-grillees",
+    "niveau": 3,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "titre": "Une sortie d'automate grille pour la deuxième fois en un mois",
+    "contexte": "Presse de découpe. La sortie TOR 24 V DC Q2.3 de l'automate est hors service, pour la deuxième fois en un mois. Elle pilote le relais KA4 (bobine 24 V DC), qui commande l'électrovanne du vérin de maintien.",
+    "etapes": [
+      {
+        "situation": "La carte de sorties est sous la main ; le chef d'atelier veut redémarrer vite.",
+        "question": "Avant de remplacer la carte, que vérifies-tu ?",
+        "choix": [
+          {
+            "texte": "Ce que la sortie pilote, et comment c'est câblé",
+            "verdict": "bon",
+            "explication": "Une sortie statique qui grille deux fois a une cause en aval : surintensité, court-circuit ou surtension de coupure. Remplacer la carte sans chercher, c'est préparer la troisième panne."
+          },
+          {
+            "texte": "Le programme : cette voie commute beaucoup trop souvent",
+            "verdict": "mauvais",
+            "explication": "Le nombre de commutations use un contact de relais, pas une sortie transistor. Une sortie statique meurt d'une surintensité ou d'une surtension, pas d'un programme trop bavard."
+          },
+          {
+            "texte": "Rien : la carte est défectueuse, on la change",
+            "verdict": "mauvais",
+            "explication": "Deux pannes identiques sur la même voie en un mois ne sont pas un hasard : la carte neuve mourra de la même façon."
+          },
+          {
+            "texte": "Changer la carte sous tension pour aller vite",
+            "verdict": "danger",
+            "explication": "Retirer ou insérer une carte sous tension peut détruire le bus et faire changer d'état des sorties au moment de l'insertion : le vérin de maintien peut bouger alors que tu as les mains dans la machine."
+          }
+        ]
+      },
+      {
+        "situation": "KA4 a été remplacé il y a un mois par un relais d'une autre marque. Sur l'ancien, un petit module était clipsé sur la bobine ; le nouveau n'en a pas.",
+        "question": "Ton hypothèse ?",
+        "choix": [
+          {
+            "texte": "Plus de diode de roue libre : surtension à la coupure",
+            "verdict": "bon",
+            "explication": "Une bobine stocke de l'énergie. À l'ouverture du transistor, elle force le passage du courant et sa tension monte à plusieurs centaines de volts : l'étage de sortie claque. Le module disparu était la diode (ou le circuit RC) qui absorbait cette énergie."
+          },
+          {
+            "texte": "La bobine du nouveau relais consomme bien trop",
+            "verdict": "mauvais",
+            "explication": "Une bobine de relais 24 V consomme quelques dizaines de milliampères, loin des 0,5 A d'une sortie courante. Mesure le courant si tu as un doute, mais ce n'est pas l'hypothèse qui colle au changement de relais."
+          },
+          {
+            "texte": "Une bobine de 230 V AC montée par erreur sur la sortie",
+            "verdict": "mauvais",
+            "explication": "Sous 24 V DC, une bobine 230 V AC ne collerait simplement pas : le vérin ne bougerait pas, mais la sortie ne grillerait pas."
+          },
+          {
+            "texte": "Des parasites venus du variateur installé à côté",
+            "verdict": "mauvais",
+            "explication": "Possible en théorie, mais on commence par ce qui a changé : le relais, et son module de protection disparu. C'est la piste évidente."
+          }
+        ]
+      },
+      {
+        "situation": "Le relais neuf n'accepte pas de module enfichable.",
+        "question": "Comment remets-tu en état ?",
+        "choix": [
+          {
+            "texte": "Diode en inverse sur la bobine, cathode au +, carte neuve",
+            "verdict": "bon",
+            "explication": "La diode se monte en inverse : cathode (la bague) côté +, sur A1, anode côté 0 V, sur A2. Elle est bloquée en marche normale et absorbe la surtension à la coupure. Ensuite seulement, carte neuve, essai, et contrôle du temps de retombée du relais : la diode le rallonge."
+          },
+          {
+            "texte": "Diode cathode au 0 V : le sens n'a pas d'importance",
+            "verdict": "mauvais",
+            "explication": "À l'envers, la diode est passante dès que la sortie commande : court-circuit franc sur la sortie neuve, détruite au premier essai."
+          },
+          {
+            "texte": "Un fusible de calibre plus élevé en tête de la carte de sorties",
+            "verdict": "mauvais",
+            "explication": "Le fusible ne voit rien d'une surtension de quelques microsecondes : la sortie claque avant qu'il ait chauffé. Et un calibre plus gros protège moins bien la carte."
+          },
+          {
+            "texte": "Remettre l'ancien relais et son module d'origine",
+            "verdict": "acceptable",
+            "explication": "Ça marche si le modèle est disponible. Mais retiens la cause : tout relais à bobine continue piloté par un transistor doit avoir sa protection de bobine."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Relais remplacé par un modèle sans diode de roue libre : à chaque coupure, la bobine renvoyait une surtension de plusieurs centaines de volts qui a détruit l'étage de sortie transistor de l'automate.",
+      "remede": "Diode de roue libre montée en inverse sur la bobine (ou module de protection d'origine), remplacement de la carte, essai de la séquence et contrôle du temps de retombée du relais.",
+      "lecon": "Une sortie statique qui grille a une cause en aval : on cherche ce qui a changé dans ce qu'elle pilote. Toute bobine continue commandée par un transistor a sa diode, montée dans le bon sens.",
+      "risque": "Un transistor de sortie qui claque reste souvent en court-circuit : la sortie demeure active alors que le programme la croit au repos. Le vérin de maintien reste commandé, ou se met en mouvement de façon inattendue : risque d'écrasement pour l'opérateur de la presse.",
+      "norme": "NF EN 60204-1 · IEC 61131-2"
+    },
+    "verifie": false
+  },
+  {
+    "id": "neutre-tgbt",
+    "niveau": 3,
+    "domaines": [
+      "mono-bt",
+      "tri"
+    ],
+    "titre": "Lundi matin : onduleurs grillés et lampes qui brillent trop",
+    "contexte": "Bureaux alimentés en 400 V + N depuis un TGBT. Lundi matin, deux onduleurs et trois écrans sont hors service ; dans un bureau, les lampes éclairent trop fort, dans le bureau voisin, faiblement. Vendredi, une entreprise extérieure est intervenue dans le TGBT.",
+    "etapes": [
+      {
+        "situation": "Aucun disjoncteur ni différentiel n'a déclenché.",
+        "question": "Ton hypothèse ?",
+        "choix": [
+          {
+            "texte": "Neutre coupé ou desserré en amont des départs",
+            "verdict": "bon",
+            "explication": "Neutre interrompu, les récepteurs monophasés se retrouvent en série entre phases, sous 400 V : les peu chargés prennent la plus grosse part de tension, les très chargés la plus petite. Lampes trop fortes d'un côté, faibles de l'autre, électronique détruite : c'est la signature. Le lien avec l'intervention de vendredi est évident."
+          },
+          {
+            "texte": "Surtension venue du réseau du distributeur",
+            "verdict": "mauvais",
+            "explication": "Une surtension réseau ferait briller toutes les lampes, pas certaines trop fort et d'autres trop faiblement. Le déséquilibre entre bureaux trahit un point neutre perdu."
+          },
+          {
+            "texte": "Défaut d'isolement phase-terre dans les bureaux",
+            "verdict": "mauvais",
+            "explication": "Un défaut d'isolement ferait déclencher le différentiel, et ne crée pas de surtension sur un bureau et de sous-tension sur l'autre."
+          },
+          {
+            "texte": "Harmoniques des onduleurs qui saturent le neutre",
+            "verdict": "mauvais",
+            "explication": "Les harmoniques de rang 3 chargent le neutre et peuvent le faire chauffer, jusqu'à le détruire. Mais le symptôme du jour, juste après une intervention, est celui d'une connexion de neutre interrompue."
+          }
+        ]
+      },
+      {
+        "situation": "Le TGBT est en service ; tu dois confirmer sans ouvrir la connexion de neutre.",
+        "question": "Comment confirmes-tu ?",
+        "choix": [
+          {
+            "texte": "Tensions phase-neutre et phase-PE sur les trois phases",
+            "verdict": "bon",
+            "explication": "Avec tes EPI, au VAT ou au multimètre : phase-neutre très inégales (par exemple 290, 170, 235 V) alors que phase-PE restent proches de 230 V, et une tension nette entre neutre et PE. Le point neutre « flotte » : il est déconnecté de la source."
+          },
+          {
+            "texte": "Mesurer le courant dans le neutre, avec la pince ampèremétrique",
+            "verdict": "mauvais",
+            "explication": "Un neutre coupé donne 0 A en aval… mais un neutre bien raccordé et peu chargé aussi. La pince ne tranche pas ; les tensions, si."
+          },
+          {
+            "texte": "Ouvrir le capot et resserrer le neutre en marche",
+            "verdict": "danger",
+            "explication": "Resserrer une connexion de puissance sous tension, dans un TGBT, c'est risquer le court-circuit et l'arc au visage. Et un neutre interrompu en charge peut amorcer à la reconnexion."
+          },
+          {
+            "texte": "Mesurer le neutre à l'ohmmètre, sans rien couper",
+            "verdict": "danger",
+            "explication": "Un ohmmètre ne se branche jamais sur un circuit sous tension : lecture fausse, appareil détruit, court-circuit possible entre tes pointes."
+          }
+        ]
+      },
+      {
+        "situation": "Confirmé : la cosse du neutre général est desserrée, noircie, sur la barre de neutre du TGBT.",
+        "question": "Ta remise en état ?",
+        "choix": [
+          {
+            "texte": "Consigner, refaire la connexion, serrer au couple, tester",
+            "verdict": "bon",
+            "explication": "TGBT consigné et VAT faite : cosse et barre contrôlées (remplacées si brûlées), serrage à la clé dynamométrique au couple du constructeur, marquage du serrage, remise sous tension, mesure des trois tensions phase-neutre, puis contrôle des appareils restés branchés avant de les remettre en service."
+          },
+          {
+            "texte": "Resserrer la cosse, puis tout remettre en service sans contrôle",
+            "verdict": "mauvais",
+            "explication": "Des appareils ont reçu 300 à 400 V : certains sont détruits, d'autres abîmés et dangereux (condensateurs gonflés, alimentation qui chauffe). On contrôle avant de les remettre en service."
+          },
+          {
+            "texte": "Doubler le neutre défectueux par un fil volant",
+            "verdict": "danger",
+            "explication": "Un fil volant de section incertaine, serré à la main, dans un TGBT : c'est le prochain point chaud et le prochain neutre coupé. On refait la connexion, on ne la contourne pas."
+          },
+          {
+            "texte": "Remplacer toute la barre de neutre par précaution",
+            "verdict": "acceptable",
+            "explication": "Justifié si la barre est marquée par l'échauffement. Sinon, une connexion refaite et serrée au couple suffit ; l'essentiel est le serrage contrôlé."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Cosse du neutre général mal serrée lors de l'intervention de vendredi : elle a chauffé puis perdu le contact. Les récepteurs monophasés se sont retrouvés en série entre phases.",
+      "remede": "Connexion refaite et serrée au couple, mesure des tensions phase-neutre, contrôle des appareils exposés, remplacement des appareils détruits. Contrôle thermographique du TGBT et des serrages réalisés par l'entreprise extérieure.",
+      "lecon": "Lampes trop fortes d'un côté, trop faibles de l'autre, électronique détruite, aucune protection déclenchée : penser neutre coupé. Une connexion de puissance se serre au couple, se marque et se vérifie.",
+      "risque": "Neutre coupé : jusqu'à 400 V sur les appareils peu chargés. Électronique détruite, condensateurs qui éclatent, multiprises qui fondent, départ de feu dans les bureaux ; aucune protection ne déclenche, puisque rien ne fuit à la terre.",
+      "norme": "NF C 15-100 (le neutre n'est jamais coupé ni protégé seul) · NF C 18-510"
     },
     "verifie": false
   }
