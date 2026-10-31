@@ -1,27 +1,17 @@
 // SEUL module autorisé à lire ou écrire dans localStorage.
 // Toutes les données de l'utilisateur tiennent dans un seul objet, sous une seule clé.
 
+import { controler, etatParDefaut, VERSION, TAILLE_MAX } from './sauvegarde.js';
+
 const CLE = 'elec-learning:v1';
 const ANCIENNE_CLE = 'dojo:v1'; // nom de l'app avant « Elec learning » : migrée au premier lancement
 const APP = 'elec-learning';
 const ANCIENNES_APPS = ['dojo-bts']; // sauvegardes exportées avant le changement de nom
-const VERSION = 1;
 
-function etatParDefaut() {
-  return {
-    version: VERSION,
-    xp: 0,                   // utilisé à l'étape 2
-    fichesVues: {},          // { idFiche: timestamp de dernière lecture }
-    stats: {},               // résultats des exercices, par mode
-    derniereSauvegarde: null, // timestamp du dernier export
-    preferences: { matiere: 'bakelite' }
-  };
-}
-
-// Point unique pour faire évoluer le format : ajouter ici les conversions v1 → v2, etc.
+// Point unique pour faire évoluer le format : ajouter ici les conversions v1 → v2, etc., AVANT le contrôle.
+// Le contrôle (sauvegarde.js) reconstruit l'état champ par champ : rien de mal typé ne passe.
 function migrer(donnees) {
-  const { app, exporteLe, ...etat } = donnees;
-  return { ...etatParDefaut(), ...etat, version: VERSION };
+  return controler(donnees);
 }
 
 function charger() {
@@ -31,7 +21,11 @@ function charger() {
       localStorage.setItem(CLE, brut);       // reprend la progression enregistrée sous l'ancien nom
       localStorage.removeItem(ANCIENNE_CLE);
     }
-    return brut ? migrer(JSON.parse(brut)) : etatParDefaut();
+    if (!brut) return etatParDefaut();
+    // Au démarrage, on ne refuse rien : on nettoie (un champ abîmé reprend sa valeur par défaut, le reste est gardé).
+    const { etat, anomalies } = migrer(JSON.parse(brut));
+    if (anomalies.length) console.warn('Données locales nettoyées :', anomalies);
+    return etat;
   } catch (err) {
     console.warn('Lecture du stockage impossible, état vierge utilisé.', err);
     return etatParDefaut();
@@ -114,21 +108,36 @@ export async function exporter() {
 }
 
 // Remplace toutes les données par celles d'un fichier exporté. Lève une Error lisible si le fichier est invalide.
+// Contrôle strict : à la moindre anomalie (xp en texte, compteur négatif, clé suspecte…), la sauvegarde est
+// refusée en entier et les données actuelles restent intactes.
 export async function importer(fichier) {
+  if (fichier.size > TAILLE_MAX) {
+    throw new Error("Fichier trop volumineux pour être une sauvegarde Elec learning.");
+  }
   let donnees;
   try {
     donnees = JSON.parse(await fichier.text());
   } catch {
     throw new Error("Fichier illisible : ce n'est pas un fichier JSON.");
   }
-  if (![APP, ...ANCIENNES_APPS].includes(donnees?.app) || typeof donnees.version !== 'number') {
+  if (![APP, ...ANCIENNES_APPS].includes(donnees?.app) || !Number.isSafeInteger(donnees.version)) {
     throw new Error("Ce fichier n'est pas une sauvegarde Elec learning.");
   }
   if (donnees.version > VERSION) {
     throw new Error("Cette sauvegarde vient d'une version plus récente de l'app.");
   }
-  etat = migrer(donnees);
-  if (!enregistrer()) throw new Error("Import lu, mais impossible d'écrire dans le stockage du navigateur.");
+  const { app, exporteLe, ...contenu } = donnees;
+  const { etat: propre, anomalies } = migrer(contenu);
+  if (anomalies.length) {
+    const autres = anomalies.length > 1 ? ` (et ${anomalies.length - 1} autre${anomalies.length > 2 ? 's' : ''} anomalie${anomalies.length > 2 ? 's' : ''})` : '';
+    throw new Error(`Sauvegarde refusée, elle semble abîmée : ${anomalies[0]}${autres}. Tes données actuelles n'ont pas été modifiées.`);
+  }
+  const avant = etat;
+  etat = propre;
+  if (!enregistrer()) {
+    etat = avant;
+    throw new Error("Import lu, mais impossible d'écrire dans le stockage du navigateur.");
+  }
 }
 
 export function toutEffacer() {

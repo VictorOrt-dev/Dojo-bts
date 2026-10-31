@@ -1,7 +1,7 @@
 # Elec learning — Cours & entraînement électricien (PWA)
 
 Application web mobile perso : fiches de révision BTS Maintenance + exercices pratiques (reconnaissance, calculs, cas de panne).
-HTML/CSS/JS sans framework, sans build, sans npm. Données de l'utilisateur dans `localStorage`. Fonctionne hors connexion.
+HTML/CSS/JS sans framework, sans build, sans npm (seuls les tests automatisés utilisent Playwright). Données de l'utilisateur dans `localStorage`. Fonctionne hors connexion.
 
 En ligne : https://victorort-dev.github.io/Dojo-bts/ (le dépôt garde son nom d'origine, voir « Renommer le dépôt » plus bas).
 
@@ -30,6 +30,7 @@ sw.js                   service worker : mode hors connexion (réseau d'abord, c
 js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/reco, /calcul, /panne, /banc, #/cours, #/fiche/<id>, #/profil
                         (les anciens liens #/dojo… sont redirigés)
 js/storage.js           SEUL fichier qui touche localStorage (clé "elec-learning:v1", reprend l'ancienne clé "dojo:v1")
+js/sauvegarde.js        contrôle strict des données (import refusé à la moindre anomalie, stockage local nettoyé au démarrage)
 js/cours.js             liste + détail des fiches
 js/profil.js            progression, export/import, remise à zéro
 js/entrainement.js      accueil (Exercices), plaque de l'opérateur, en-tête de séance, rapport, toast
@@ -52,13 +53,50 @@ data/pannes.json        CONTENU des cas de panne
 data/banc-depart-moteur.json CIRCUIT et pannes du banc de mesure
 img/banc/               schéma du banc (depart-moteur.svg)
 img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg = matériel)
+tests/                  tests automatisés (voir « Tests automatisés ») — hors de l'app, jamais mis en cache
+docs/                   rapports d'audit
 ```
+
+## Tests automatisés
+
+Les tests sont versionnés dans `tests/` et se lancent depuis la racine du dépôt.
+Ils démarrent eux-mêmes un petit serveur local : rien d'autre à lancer.
+
+**Prérequis.** Node.js 18 ou plus récent. Pour les suites qui pilotent un navigateur, Playwright et Chromium, à installer une
+seule fois (le dossier `node_modules/` créé est ignoré par Git ; l'app, elle, n'en a pas besoin) :
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+```
+
+**Lancer.**
+
+```bash
+node tests/lancer.mjs
+```
+
+On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
+`node tests/lancer.mjs non-regression` ou `node tests/lancer.mjs banc`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+
+| Fichier | Contenu |
+|---|---|
+| `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
+| `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, `__proto__`, nettoyage au démarrage |
+| `tests/non-regression.mjs` | Dans le navigateur. **A** : 13 générateurs × 300 tirages, contenus, équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** Cours. **E** Cas de panne. **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
+| `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport |
+
+**Règles.**
+- Lancer `node tests/lancer.mjs` avant chaque mise en ligne. Tout doit passer.
+- Nouvelle fonction = nouvelle vérification dans la suite concernée.
+- Un test qui échoue après une modification voulue (ex. : nouvelle question) se met à jour en même temps que le contenu, jamais en le supprimant.
+- Pour les tests, un écran peut exposer son état (`sessionEnCours()`, `interventionEnCours()`) ou accepter un paramètre (`?panne=<id>` au banc). L'interface ne doit jamais en dépendre.
 
 ## Conventions (à donner à l'IA à chaque session)
 
 - **Pas de framework, pas de npm, pas de build.** Modules ES natifs (`import`/`export`), chemins relatifs.
 - **Contenu ≠ code.** Le contenu pédagogique va dans `data/*.json`. Ajouter une fiche = modifier uniquement `fiches.json`.
-- **Stockage.** Seul `storage.js` lit/écrit `localStorage`, via `lire()` et `modifier(e => …)`. Nouveau champ = l'ajouter dans `etatParDefaut()`. Changement de format = incrémenter `VERSION` et compléter `migrer()`.
+- **Stockage.** Seul `storage.js` lit/écrit `localStorage`, via `lire()` et `modifier(e => …)`. Nouveau champ = l'ajouter dans `etatParDefaut()` **et** dans `controler()` (tous deux dans `sauvegarde.js`), sinon il sera retiré à l'import et au démarrage. Changement de format = incrémenter `VERSION` et compléter `migrer()`.
 - **Sécurité d'affichage.** Tout texte injecté dans `innerHTML` passe par `esc()`.
 - **Un écran = une fonction `render…({ vue, definirTitre, id, params })`**, branchée dans le `switch` de `app.js`.
 - **Langue.** Interface en français, tutoiement. Noms de variables et fonctions en français.

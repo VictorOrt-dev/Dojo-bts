@@ -25,6 +25,7 @@ const FICHIERS = [
   'js/panne.js',
   'js/profil.js',
   'js/quiz.js',
+  'js/sauvegarde.js',
   'js/storage.js',
   'js/theme.js',
   'js/util.js',
