@@ -95,7 +95,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : 13 générateurs × 300 tirages, contenus, équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** Cours. **E** Cas de panne. **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport |
 
-**Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Node 22, Playwright 1.63.0 figé dans
+**Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
 `.github/workflows/test.yml`, Chromium mis en cache) et bloque le déploiement en cas d'échec. Changer de version de Playwright :
 modifier `PLAYWRIGHT_VERSION` dans le workflow.
 

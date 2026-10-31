@@ -31,7 +31,9 @@ env:
 jobs:
   tests:
     name: Tests automatisés (141 vérifications)
-    runs-on: ubuntu-latest
+    # Version figée : ubuntu-latest bascule vers Ubuntu 26 (fin 2026) et les dépendances système de Chromium
+    # installées par Playwright dépendent de la version d'Ubuntu. À relever en même temps que PLAYWRIGHT_VERSION.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Récupérer le code
@@ -51,7 +53,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
+          key: playwright-chromium-ubuntu-24.04-${{ env.PLAYWRIGHT_VERSION }}
 
       - name: Télécharger Chromium et ses dépendances système
         if: steps.cache-navigateur.outputs.cache-hit != 'true'
@@ -69,7 +71,7 @@ jobs:
     name: Déploiement GitHub Pages
     needs: tests
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       pages: write      # publier sur Pages
