@@ -1,4 +1,4 @@
-// Points d'expérience, niveaux et statistiques du Dojo.
+// Points d'expérience, rangs et statistiques des exercices.
 // Tout est enregistré via storage.js : e.xp (nombre) et e.stats[mode].
 
 import * as stockage from './storage.js';

@@ -1,4 +1,4 @@
-// Tirages aléatoires pour le Dojo (ordre des questions, valeurs des calculs).
+// Tirages aléatoires pour les exercices (ordre des questions, valeurs des calculs).
 
 // Entier entre min et max inclus.
 export function entier(min, max) {

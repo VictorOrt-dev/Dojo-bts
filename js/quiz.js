@@ -2,7 +2,7 @@
 // par niveau de difficulté. Le contenu vient de data/reconnaissance.json.
 
 import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
-import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './dojo.js';
+import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau } from './difficulte.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
@@ -39,7 +39,7 @@ export async function renderReco({ vue, definirTitre, params }) {
       mode: 'reco',
       titre: 'Reconnaissance',
       sousTitre: 'Symboles IEC, matériel d\'armoire, repérages et réglages.',
-      href: n => `#/dojo/reco?n=${n}`,
+      href: n => `#/entrainement/reco?n=${n}`,
       nombre: n => `${toutes.filter(q => q.niveau === n).length} planches`
     });
     return;
@@ -137,7 +137,7 @@ export async function renderReco({ vue, definirTitre, params }) {
       score: session.score,
       xpGagne: session.xp,
       onRejouer: () => renderReco({ vue, definirTitre, params }),
-      suite: session.score >= 8 && suivantNiveau ? { href: `#/dojo/reco?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+      suite: session.score >= 8 && suivantNiveau ? { href: `#/entrainement/reco?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };
 

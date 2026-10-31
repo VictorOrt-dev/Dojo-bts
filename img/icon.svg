@@ -9,6 +9,6 @@
   <circle cx="256" cy="256" r="178" fill="#8E5229"/>
   <circle cx="256" cy="256" r="166" fill="#E0915A"/>
   <circle cx="256" cy="256" r="146" fill="url(#bouton)"/>
-  <text x="256" y="322" text-anchor="middle" font-family="'Young Serif', Georgia, serif" font-size="190" fill="#F1EADF">D</text>
+  <text x="256" y="322" text-anchor="middle" font-family="'Young Serif', Georgia, serif" font-size="190" fill="#F1EADF">E</text>
   <circle cx="256" cy="74" r="10" fill="#E0915A"/>
 </svg>

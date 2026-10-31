@@ -49,7 +49,7 @@ export function plaqueOperateur({ xp, n, total, sessions }) {
   return `
     <section class="plaque niveau">
       <span class="vis"></span><span class="vis"></span><span class="vis"></span><span class="vis"></span>
-      <p class="plaque-bandeau"><span>Dojo · Atelier</span><span>Rang ${ROMAINS[n.rang]} / ${ROMAINS[total - 1]}</span></p>
+      <p class="plaque-bandeau"><span>Elec learning</span><span>Rang ${ROMAINS[n.rang]} / ${ROMAINS[total - 1]}</span></p>
       <div class="plaque-corps">
         ${galvanometre(n.seuil, n.suivant?.seuil ?? null, n.progression)}
         <div class="niveau-centre">
@@ -68,7 +68,9 @@ export function plaqueOperateur({ xp, n, total, sessions }) {
 export function bornier(index, resultats, total) {
   let bornes = '';
   for (let i = 0; i < total; i++) {
-    const etat = i < resultats.length ? (resultats[i] ? ' juste' : ' faux') : i === index ? ' courante' : '';
+    // resultats[i] : vrai / faux, ou directement un état ('juste', 'moyen', 'faux')
+    const r = resultats[i];
+    const etat = i < resultats.length ? ` ${typeof r === 'string' ? r : r ? 'juste' : 'faux'}` : i === index ? ' courante' : '';
     bornes += `<span class="borne${etat}"></span>`;
   }
   return `<div class="bornier" aria-hidden="true">${bornes}</div>`;

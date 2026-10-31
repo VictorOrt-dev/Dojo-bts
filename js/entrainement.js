@@ -1,4 +1,4 @@
-// Accueil du Dojo (écran d'accueil de l'app) + éléments partagés par les modes d'entraînement.
+// Accueil des exercices (écran d'accueil d'Elec learning) + éléments partagés par les modes d'entraînement.
 
 import { NIVEAUX, BAREME, lireXP, niveauPour, statsMode } from './xp.js';
 import { plaqueOperateur, bornier, salutation } from './atelier.js';
@@ -12,8 +12,14 @@ export { deuxChiffres };
 // Plaque signalétique de l'opérateur (rang, XP, galvanomètre).
 export function carteNiveau() {
   const xp = lireXP();
-  const sessions = statsMode('reco').sessions + statsMode('calcul').sessions;
+  const sessions = ['reco', 'calcul', 'panne'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
   return plaqueOperateur({ xp, n: niveauPour(xp), total: NIVEAUX.length, sessions });
+}
+
+// Nombre de cas de panne réussis sans faute.
+function casSansFaute() {
+  const reussis = Object.values(statsMode('panne').elements).filter(e => e.reussites > 0).length;
+  return reussis ? `${reussis} sans faute` : '';
 }
 
 function record(mode) {
@@ -21,8 +27,8 @@ function record(mode) {
   return s.sessions ? `${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '';
 }
 
-export function renderDojo({ vue, definirTitre }) {
-  definirTitre('Dojo');
+export function renderEntrainement({ vue, definirTitre }) {
+  definirTitre('Exercices');
   const { mot, jour } = salutation();
   const n = niveauPour(lireXP());
   vue.innerHTML = `
@@ -34,21 +40,21 @@ export function renderDojo({ vue, definirTitre }) {
     ${carteNiveau()}
 
     <nav class="modes pousse-bas" aria-label="Exercices">
-      <a class="mode" href="#/dojo/reco">
+      <a class="mode" href="#/entrainement/reco">
         <span class="mode-bouton">A</span>
         <span><span class="mode-titre">Reconnaissance</span><span class="mode-desc">Symboles, matériel, repérages · 3 niveaux</span></span>
         <span class="mode-record">${record('reco')}</span>
       </a>
-      <a class="mode" href="#/dojo/calcul">
+      <a class="mode" href="#/entrainement/calcul">
         <span class="mode-bouton">B</span>
         <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">Sans chrono · 11 types de calcul · 3 niveaux</span></span>
         <span class="mode-record">${record('calcul')}</span>
       </a>
-      <div class="mode inactif">
+      <a class="mode" href="#/entrainement/panne">
         <span class="mode-bouton">C</span>
-        <span><span class="mode-titre">Cas de panne</span><span class="mode-desc">Bientôt à l'atelier</span></span>
-        <span class="mode-record"></span>
-      </div>
+        <span><span class="mode-titre">Cas de panne</span><span class="mode-desc">Interventions pas à pas · 3 niveaux</span></span>
+        <span class="mode-record">${casSansFaute()}</span>
+      </a>
     </nav>
 
     <details class="notice">
@@ -87,7 +93,7 @@ export function afficherBilan(vue, { score, xpGagne, onRejouer, suite = null }) 
     <div class="actions pousse-bas">
       ${suite ? `<a class="btn principal" href="${suite.href}">${esc(suite.libelle)}</a>` : ''}
       <button id="rejouer" class="btn${suite ? '' : ' principal'}" type="button">Une autre séance de ce niveau</button>
-      <a class="btn" href="#/dojo">Retour au Dojo</a>
+      <a class="btn" href="#/entrainement">Retour aux exercices</a>
     </div>`;
   vue.querySelector('#rejouer').addEventListener('click', onRejouer);
   window.scrollTo(0, 0);

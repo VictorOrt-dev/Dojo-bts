@@ -1,7 +1,10 @@
 // SEUL module autorisé à lire ou écrire dans localStorage.
 // Toutes les données de l'utilisateur tiennent dans un seul objet, sous une seule clé.
 
-const CLE = 'dojo:v1';
+const CLE = 'elec-learning:v1';
+const ANCIENNE_CLE = 'dojo:v1'; // nom de l'app avant « Elec learning » : migrée au premier lancement
+const APP = 'elec-learning';
+const ANCIENNES_APPS = ['dojo-bts']; // sauvegardes exportées avant le changement de nom
 const VERSION = 1;
 
 function etatParDefaut() {
@@ -9,7 +12,7 @@ function etatParDefaut() {
     version: VERSION,
     xp: 0,                   // utilisé à l'étape 2
     fichesVues: {},          // { idFiche: timestamp de dernière lecture }
-    stats: {},               // utilisé à l'étape 2 (résultats du Dojo)
+    stats: {},               // résultats des exercices, par mode
     derniereSauvegarde: null, // timestamp du dernier export
     preferences: { matiere: 'bakelite' }
   };
@@ -23,7 +26,11 @@ function migrer(donnees) {
 
 function charger() {
   try {
-    const brut = localStorage.getItem(CLE);
+    let brut = localStorage.getItem(CLE);
+    if (!brut && (brut = localStorage.getItem(ANCIENNE_CLE))) {
+      localStorage.setItem(CLE, brut);       // reprend la progression enregistrée sous l'ancien nom
+      localStorage.removeItem(ANCIENNE_CLE);
+    }
     return brut ? migrer(JSON.parse(brut)) : etatParDefaut();
   } catch (err) {
     console.warn('Lecture du stockage impossible, état vierge utilisé.', err);
@@ -56,8 +63,8 @@ export function modifier(fonction) {
 
 export function disponible() {
   try {
-    localStorage.setItem('dojo:test', '1');
-    localStorage.removeItem('dojo:test');
+    localStorage.setItem('elec-learning:test', '1');
+    localStorage.removeItem('elec-learning:test');
     return true;
   } catch {
     return false;
@@ -78,15 +85,15 @@ export async function estPersistant() {
 // Exporte toutes les données dans un fichier JSON.
 // Sur mobile : feuille de partage (Enregistrer dans Fichiers, Drive, mail…). Sinon : téléchargement.
 export async function exporter() {
-  const contenu = JSON.stringify({ app: 'dojo-bts', exporteLe: new Date().toISOString(), ...etat }, null, 2);
-  const nom = `dojo-bts-${new Date().toISOString().slice(0, 10)}.json`;
+  const contenu = JSON.stringify({ app: APP, exporteLe: new Date().toISOString(), ...etat }, null, 2);
+  const nom = `elec-learning-${new Date().toISOString().slice(0, 10)}.json`;
   const fichier = new File([contenu], nom, { type: 'application/json' });
 
   const mobile = matchMedia('(pointer: coarse)').matches;
   let partage = false;
   if (mobile && navigator.canShare?.({ files: [fichier] })) {
     try {
-      await navigator.share({ files: [fichier], title: 'Sauvegarde Dojo BTS' });
+      await navigator.share({ files: [fichier], title: 'Sauvegarde Elec learning' });
       partage = true;
     } catch (err) {
       if (err.name === 'AbortError') return false; // l'utilisateur a annulé
@@ -114,8 +121,8 @@ export async function importer(fichier) {
   } catch {
     throw new Error("Fichier illisible : ce n'est pas un fichier JSON.");
   }
-  if (donnees?.app !== 'dojo-bts' || typeof donnees.version !== 'number') {
-    throw new Error("Ce fichier n'est pas une sauvegarde Dojo BTS.");
+  if (![APP, ...ANCIENNES_APPS].includes(donnees?.app) || typeof donnees.version !== 'number') {
+    throw new Error("Ce fichier n'est pas une sauvegarde Elec learning.");
   }
   if (donnees.version > VERSION) {
     throw new Error("Cette sauvegarde vient d'une version plus récente de l'app.");

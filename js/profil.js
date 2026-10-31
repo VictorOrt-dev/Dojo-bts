@@ -2,7 +2,7 @@
 
 import * as stockage from './storage.js';
 import { chargerFiches } from './cours.js';
-import { carteNiveau, TAILLE_SESSION } from './dojo.js';
+import { carteNiveau, TAILLE_SESSION } from './entrainement.js';
 import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
 import { frontispice, titreSection, ligneEtat, deuxChiffres } from './mise-en-page.js';
@@ -86,6 +86,9 @@ export async function renderProfil({ vue, definirTitre }) {
         ${estInstallee()
           ? ligneEtat('ok', 'App installée sur l’écran d’accueil.')
           : ligneEtat('attention', 'App non installée : sur iPhone, Partager › « Sur l’écran d’accueil ». Sinon Safari peut effacer tes données après 7 jours sans visite.')}
+        ${navigator.serviceWorker?.controller
+          ? ligneEtat('ok', 'Disponible hors connexion : l’app s’ouvre même sans réseau.')
+          : ligneEtat('neutre', 'Mode hors connexion en préparation : il sera actif au prochain lancement.')}
         ${persistant
           ? ligneEtat('ok', 'Stockage protégé par le navigateur.')
           : ligneEtat('neutre', 'Stockage non garanti par le navigateur : l’export reste ta vraie sauvegarde.')}

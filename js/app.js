@@ -1,12 +1,14 @@
 // Point d'entrée : routeur par hash.
-//   #/dojo (accueil)  #/dojo/reco  #/dojo/calcul  #/cours  #/fiche/<id>  #/profil
+//   #/entrainement (accueil)  #/entrainement/reco  #/entrainement/calcul  #/entrainement/panne
+//   #/cours  #/fiche/<id>  #/profil   (les anciens liens #/dojo… sont redirigés)
 // Chaque écran est une fonction render*(ctx) qui remplit l'élément #vue.
 
 import { renderCours, renderFiche } from './cours.js';
 import { renderProfil } from './profil.js';
-import { renderDojo } from './dojo.js';
+import { renderEntrainement } from './entrainement.js';
 import { renderReco } from './quiz.js';
 import { renderCalcul } from './calcul.js';
+import { renderPanne } from './panne.js';
 import { appliquerTheme } from './theme.js';
 import * as stockage from './storage.js';
 import { esc } from './util.js';
@@ -19,11 +21,11 @@ let nettoyages = [];           // fonctions à appeler en quittant l'écran cour
 
 function definirTitre(texte) {
   titre.textContent = texte;
-  document.title = `${texte} · Dojo BTS`;
+  document.title = `${texte} · Elec learning`;
 }
 
 function lireHash() {
-  const [chemin, requete = ''] = (location.hash.slice(2) || 'dojo').split('?');
+  const [chemin, requete = ''] = (location.hash.slice(2) || 'entrainement').split('?');
   const [page, id] = chemin.split('/');
   return { page, id: id && decodeURIComponent(id), params: new URLSearchParams(requete) };
 }
@@ -31,7 +33,7 @@ function lireHash() {
 // Page vers laquelle revient le bouton "Retour" (null = pas de bouton).
 function pageParente({ page, id }) {
   if (page === 'fiche') return '#/cours';
-  if (page === 'dojo' && id) return '#/dojo';
+  if (page === 'entrainement' && id) return '#/entrainement';
   return null;
 }
 
@@ -66,14 +68,18 @@ async function router() {
     switch (page) {
       case 'cours': await renderCours(ctx); break;
       case 'fiche': await renderFiche(ctx); break;
-      case 'dojo':
-        if (!id) renderDojo(ctx);
+      case 'entrainement':
+        if (!id) renderEntrainement(ctx);
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
-        else location.replace('#/dojo');
+        else if (id === 'panne') await renderPanne(ctx);
+        else location.replace('#/entrainement');
+        break;
+      case 'dojo': // ancien nom de l'app : on redirige les anciens liens
+        location.replace(location.hash.replace('#/dojo', '#/entrainement'));
         break;
       case 'profil': await renderProfil(ctx); break;
-      default: location.replace('#/dojo');
+      default: location.replace('#/entrainement');
     }
   } catch (err) {
     renderErreur(err);
@@ -82,7 +88,7 @@ async function router() {
 
 boutonRetour.addEventListener('click', () => {
   if (navigationInterne) history.back();
-  else location.assign(pageParente(lireHash()) ?? '#/dojo');
+  else location.assign(pageParente(lireHash()) ?? '#/entrainement');
 });
 
 window.addEventListener('hashchange', () => {
@@ -93,3 +99,8 @@ window.addEventListener('hashchange', () => {
 appliquerTheme();
 stockage.demanderPersistance();
 router();
+
+// Mode hors ligne (voir sw.js). Ignoré si le navigateur ne le permet pas ou si l'app est ouverte en fichier local.
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(err => console.warn('Mode hors ligne indisponible :', err));
+}

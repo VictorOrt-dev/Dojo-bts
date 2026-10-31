@@ -1,7 +1,9 @@
-# Dojo BTS — Cours & entraînement électricien (PWA)
+# Elec learning — Cours & entraînement électricien (PWA)
 
-Application web mobile perso : fiches de révision BTS Maintenance + « Dojo » d'entraînement pratique.
-HTML/CSS/JS sans framework, sans build, sans npm. Données de l'utilisateur dans `localStorage`.
+Application web mobile perso : fiches de révision BTS Maintenance + exercices pratiques (reconnaissance, calculs, cas de panne).
+HTML/CSS/JS sans framework, sans build, sans npm. Données de l'utilisateur dans `localStorage`. Fonctionne hors connexion.
+
+En ligne : https://victorort-dev.github.io/Dojo-bts/ (le dépôt garde son nom d'origine, voir « Renommer le dépôt » plus bas).
 
 ## Lancer en local
 
@@ -13,9 +15,9 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 
 ## Mettre en ligne (GitHub Pages)
 
-1. Créer un dépôt GitHub (ex. `dojo-bts`) et y pousser ce dossier.
+1. Créer un dépôt GitHub (ex. `elec-learning`) et y pousser ce dossier.
 2. Dans le dépôt : Settings › Pages › Source « Deploy from a branch » › branche `main`, dossier `/ (root)`.
-3. L'app est servie sur `https://<pseudo>.github.io/dojo-bts/`.
+3. L'app est servie sur `https://<pseudo>.github.io/<nom-du-depot>/`.
 4. Sur iPhone : ouvrir l'URL dans Safari › Partager › « Sur l'écran d'accueil ».
 
 ## Structure
@@ -24,11 +26,14 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 index.html              coquille : barre du haut, zone #vue, onglets
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
 css/style.css           tout le style ; jetons Bakélite / Porcelaine en tête de fichier
-js/app.js               routeur par hash : #/dojo (accueil), #/dojo/reco, #/dojo/calcul, #/cours, #/fiche/<id>, #/profil
-js/storage.js           SEUL fichier qui touche localStorage (clé "dojo:v1")
+sw.js                   service worker : mode hors connexion (réseau d'abord, cache en secours) — liste FICHIERS à tenir à jour
+js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/reco, /calcul, /panne, #/cours, #/fiche/<id>, #/profil
+                        (les anciens liens #/dojo… sont redirigés)
+js/storage.js           SEUL fichier qui touche localStorage (clé "elec-learning:v1", reprend l'ancienne clé "dojo:v1")
 js/cours.js             liste + détail des fiches
 js/profil.js            progression, export/import, remise à zéro
-js/dojo.js              accueil (Dojo), plaque de l'opérateur, en-tête de séance, rapport, toast
+js/entrainement.js      accueil (Exercices), plaque de l'opérateur, en-tête de séance, rapport, toast
+js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées)
 js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, fil de cuivre, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance (QCM sur image, par niveau, explications en cas d'erreur)
@@ -37,11 +42,11 @@ js/difficulte.js        les 3 niveaux de difficulté (I Fondations, II Pratique 
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
 js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
 js/mise-en-page.js      frontispice, titres de section, voyants d'état, typographie française (typo)
-js/icones.js            plus utilisé (à supprimer à l'étape 3)
 fonts/                  polices auto-hébergées (Young Serif, Atkinson Hyperlegible, JetBrains Mono — licence OFL)
 js/util.js              esc(), normaliser(), plurielS()
 data/fiches.json        CONTENU des fiches (aucun code)
 data/reconnaissance.json CONTENU des questions de reconnaissance
+data/pannes.json        CONTENU des cas de panne
 img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg = matériel)
 ```
 
@@ -53,8 +58,9 @@ img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg =
 - **Sécurité d'affichage.** Tout texte injecté dans `innerHTML` passe par `esc()`.
 - **Un écran = une fonction `render…({ vue, definirTitre, id, params })`**, branchée dans le `switch` de `app.js`.
 - **Langue.** Interface en français, tutoiement. Noms de variables et fonctions en français.
-- **Normes.** Repérage : le Dojo indique les deux (IEC 81346 `-QA1`, `-KF1`… et usage français `Q1`, `KM1`…). _Noter ici celui de ton référentiel._ Symboles : IEC 60617. Unités SI, virgule décimale dans les textes.
+- **Normes.** Repérage : l'app indique les deux (IEC 81346 `-QA1`, `-KF1`… et usage français `Q1`, `KM1`…). _Noter ici celui de ton référentiel._ Symboles : IEC 60617. Unités SI, virgule décimale dans les textes.
 - **Cache GitHub Pages (10 min).** Juste après une mise en ligne, le téléphone peut mélanger anciens et nouveaux fichiers JS. Pour une nouvelle fonction partagée, préférer un nouveau fichier plutôt qu'ajouter un export à un fichier existant.
+- **Mode hors ligne.** Tout nouveau fichier (JS, données, image, police) doit être ajouté à la liste `FICHIERS` de `sw.js` ; les tests le vérifient. Pas de numéro de version à changer.
 - **Une fonctionnalité par demande à l'IA, un commit Git dès que ça marche.**
 
 ## Charte « Bakélite & Cuivre »
@@ -74,7 +80,7 @@ Les matières du métier deviennent l'interface.
   - **gaines de conducteurs** comme couleurs de module (brun, gris, bleu, vert-jaune = terre pour la Sécurité) ;
   - formules sur petites **plaques émaillées** ; séparateurs en **fil de cuivre bouclé** ;
   - barre d'onglets en **touches de poste radio** : la touche active reste enfoncée, son voyant s'allume.
-- **Ergonomie** : le Dojo est l'écran d'accueil ; lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ;
+- **Ergonomie** : les Exercices sont l'écran d'accueil ; lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ;
   « Suivant » reste collé au-dessus des onglets (`.action-collee`) ; toutes les cibles font au moins 44 px.
 - **Sobriété** : aucune animation en boucle, animations ≤ 180 ms sur `transform` / `opacity`
   (sauf le balayage de l'aiguille, une fois) ; `prefers-reduced-motion` respecté.
@@ -143,6 +149,35 @@ Les matières du métier deviennent l'interface.
 - `image` : SVG ou photo (`.jpg`/`.webp`, max ~200 Ko). Les visuels `mat-*.svg` sont des illustrations simplifiées : les remplacer par tes propres photos d'armoire (atelier, stage) dès que possible, en gardant le même champ `image`.
 - Une session tire 10 questions au hasard parmi toutes celles du fichier.
 
+## Format d'un cas de panne (`data/pannes.json`)
+
+```json
+{
+  "id": "moteur-grogne",
+  "niveau": 2,
+  "module": "Électrotechnique",
+  "titre": "Le moteur grogne et ne démarre pas",
+  "contexte": "Bon d'intervention : machine, symptômes signalés…",
+  "etapes": [
+    {
+      "situation": "Ce que tu constates à cette étape.",
+      "question": "Ta première action ?",
+      "choix": [
+        { "texte": "Consigner le départ moteur", "verdict": "bon", "explication": "Pourquoi c'est la bonne démarche." },
+        { "texte": "Réarmer et relancer", "verdict": "mauvais", "explication": "Pourquoi ce n'est pas ça." },
+        { "texte": "Surrégler le relais thermique", "verdict": "danger", "explication": "Pourquoi c'est dangereux." }
+      ]
+    }
+  ],
+  "conclusion": { "cause": "…", "remede": "…", "lecon": "…" },
+  "verifie": false
+}
+```
+
+- `verdict` : `bon` (on passe à l'étape suivante), `acceptable` (on passe, avec une remarque), `mauvais` ou `danger`
+  (on lit l'explication, puis on choisit autre chose ; `danger` compte une alerte sécurité). Une seule réponse `bon` par étape.
+- L'ordre des choix est mélangé à l'affichage. XP : niveau × étapes réussies du premier coup, + 20 si intervention sans faute.
+
 ## Calculs Flash (`js/calcul.js`)
 
 Chaque générateur de `GENERATEURS` a un `id`, un `niveau` (1 à 3), un `titre` et une fonction `creer()` qui renvoie
@@ -168,5 +203,11 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 ## Feuille de route
 
 - [x] Étape 1 : socle, module Cours, sauvegarde export/import, installable
-- [x] Étape 2 : Dojo — Reconnaissance visuelle (QCM), Calculs Flash, XP & niveaux
-- [ ] Étape 3 : Cas de panne (arbre de décision), mode hors-ligne (service worker)
+- [x] Étape 2 : Exercices — Reconnaissance visuelle (QCM), Calculs Flash, XP & niveaux
+- [x] Étape 3 : Cas de panne (interventions pas à pas), mode hors ligne (service worker), nom « Elec learning »
+
+## Renommer le dépôt (facultatif)
+
+Le dépôt GitHub s'appelle encore `Dojo-bts`, donc l'adresse reste `…/Dojo-bts/`. Pour la changer : GitHub › Settings › General › Repository name.
+Les données restent sur le téléphone (même domaine `github.io`), mais l'app installée pointe vers l'ancienne adresse :
+exporter la sauvegarde, supprimer l'app de l'écran d'accueil, l'installer depuis la nouvelle adresse, puis importer la sauvegarde.

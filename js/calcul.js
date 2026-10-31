@@ -3,7 +3,7 @@
 // un rappel de méthode, un piège de terrain et les erreurs types qu'il sait reconnaître.
 
 import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
-import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './dojo.js';
+import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau } from './difficulte.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
@@ -527,7 +527,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       mode: 'calcul',
       titre: 'Calculs flash',
       sousTitre: 'Dix calculs, des valeurs différentes à chaque séance. Réponse acceptée à ±2 %.',
-      href: n => `#/dojo/calcul?n=${n}`,
+      href: n => `#/entrainement/calcul?n=${n}`,
       nombre: n => `${GENERATEURS.filter(g => g.niveau === n).length} types de calcul`
     });
     return;
@@ -669,7 +669,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       score: session.score,
       xpGagne: session.xp,
       onRejouer: () => renderCalcul({ vue, definirTitre, auNettoyage, params }),
-      suite: session.score >= 8 && suivantNiveau ? { href: `#/dojo/calcul?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+      suite: session.score >= 8 && suivantNiveau ? { href: `#/entrainement/calcul?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };
 
