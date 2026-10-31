@@ -1,4 +1,4 @@
-// Écran Carnet (profil) : rang, progression, ambiance, sauvegarde (export / import), remise à zéro.
+// Écran Carnet (profil) : plaque de l'opérateur, progression, matière d'affichage, sauvegarde, remise à zéro.
 
 import * as stockage from './storage.js';
 import { chargerFiches } from './cours.js';
@@ -28,7 +28,7 @@ function estInstallee() {
 }
 
 export async function renderProfil({ vue, definirTitre }) {
-  definirTitre('III — Carnet');
+  definirTitre('Carnet');
   const etat = stockage.lire();
   const fiches = await chargerFiches().catch(() => []);
   const nbLues = fiches.filter(f => etat.fichesVues[f.id]).length;
@@ -37,13 +37,13 @@ export async function renderProfil({ vue, definirTitre }) {
   const theme = themeActuel();
 
   vue.innerHTML = `
-    ${frontispice({ surtitre: 'Chapitre III · Registre personnel', titre: 'Carnet', italique: "de l'opérateur" })}
+    ${frontispice({ surtitre: 'Registre personnel', titre: 'Le carnet', italique: "de l'opérateur" })}
     ${stockage.disponible() ? '' : `<p class="note-marge">Le stockage du navigateur est bloqué (navigation privée ?). Rien ne sera enregistré.</p>`}
 
     ${carteNiveau()}
 
     <section>
-      ${titreSection('§ 1', 'Progression')}
+      ${titreSection('01', 'Progression')}
       <div class="corps">
         <div class="compteur"><span>Fiches lues</span><span class="mono">${deuxChiffres(nbLues)}/${deuxChiffres(fiches.length)}</span></div>
         <div class="regle" aria-hidden="true"><div class="regle-remplissage" style="width: ${fiches.length ? Math.round(nbLues / fiches.length * 100) : 0}%"></div></div>
@@ -55,18 +55,18 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('§ 2', 'Ambiance')}
+      ${titreSection('02', 'Matière')}
       <div class="corps">
-        <div class="selecteur" role="group" aria-label="Ambiance d'affichage">
-          <button type="button" data-theme="papier" aria-pressed="${theme === 'papier'}">Papier</button>
-          <button type="button" data-theme="encre" aria-pressed="${theme === 'encre'}">Encre</button>
+        <div class="selecteur" role="group" aria-label="Matière d'affichage">
+          <button type="button" data-theme="bakelite" aria-pressed="${theme === 'bakelite'}">Bakélite</button>
+          <button type="button" data-theme="porcelaine" aria-pressed="${theme === 'porcelaine'}">Porcelaine</button>
         </div>
-        <p class="discret petit espace">Papier pour le jour et l'atelier, Encre pour le soir.</p>
+        <p class="discret petit espace">Bakélite : sombre, économe sur écran OLED. Porcelaine : claire, lisible en plein soleil.</p>
       </div>
     </section>
 
     <section class="sauvegarde">
-      ${titreSection('§ 3', 'Sauvegarde')}
+      ${titreSection('03', 'Sauvegarde')}
       <div class="corps">
         ${ligneEtat(sauvegarde.etat, sauvegarde.texte)}
         <p class="discret petit">Tes données restent sur ce téléphone. Exporte un fichier régulièrement (Fichiers, iCloud, Drive ou mail).</p>
@@ -81,7 +81,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('§ 4', 'Appareil')}
+      ${titreSection('04', 'Appareil')}
       <div class="corps">
         ${estInstallee()
           ? ligneEtat('ok', 'App installée sur l’écran d’accueil.')
@@ -93,7 +93,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('§ 5', 'Remise à zéro')}
+      ${titreSection('05', 'Remise à zéro')}
       <div class="corps">
         <button id="btn-effacer" class="btn danger" type="button">Tout effacer</button>
       </div>

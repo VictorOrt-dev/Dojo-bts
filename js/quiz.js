@@ -29,14 +29,15 @@ export function chargerQuestions() {
 }
 
 export async function renderReco({ vue, definirTitre }) {
-  definirTitre('Reconnaissance visuelle');
+  definirTitre('Reconnaissance');
   const toutes = await chargerQuestions();
 
   const session = {
     questions: melanger(toutes).slice(0, TAILLE_SESSION),
     index: 0,
     score: 0,
-    xp: 0
+    xp: 0,
+    resultats: [] // vrai / faux pour chaque question jouée (bornier)
   };
 
   const afficherQuestion = () => {
@@ -44,12 +45,12 @@ export async function renderReco({ vue, definirTitre }) {
     const choix = melanger([q.nom, ...q.faux]);
 
     vue.innerHTML = `
-      ${enteteSession(session.index + 1, session.score)}
+      ${enteteSession(session.index + 1, session.score, session.resultats)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
         <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
-        <figcaption class="reco-legende">Planche ${deuxChiffres(session.index + 1)} — ${LEGENDES[q.type] ?? ''}</figcaption>
+        <figcaption class="reco-legende">Planche ${deuxChiffres(session.index + 1)} · ${LEGENDES[q.type] ?? ''}</figcaption>
       </figure>
-      <h2 class="question">${esc(q.question)}</h2>
+      <h2 class="question">${esc(typo(q.question))}</h2>
       <div class="choix">
         ${choix.map((c, i) => `<button class="choix-btn" type="button"><span class="choix-touche">${TOUCHES[i]}</span><span>${esc(typo(c))}</span></button>`).join('')}
       </div>
@@ -68,6 +69,8 @@ export async function renderReco({ vue, definirTitre }) {
       else if (i === iChoisi) b.classList.add('faux');
     });
 
+    session.resultats.push(juste);
+    vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : 'faux'}`;
     noterReponse('reco', q.id, juste);
     let gain = 0;
     if (juste) {
@@ -82,15 +85,15 @@ export async function renderReco({ vue, definirTitre }) {
     zone.innerHTML = `
       <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${juste
-          ? `<p class="verdict"><span class="tampon">Juste</span><span class="gain">+${gain} XP</span></p>`
-          : `<p class="verdict"><span class="tampon">Faux</span></p>
+          ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>`
+          : `<p class="verdict"><span class="tampon">Raté.</span></p>
              <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>`}
         <dl class="fiche-technique">
           <dt>Repérage</dt><dd>${esc(typo(q.reperage))}</dd>
           <dt>Rôle</dt><dd>${esc(typo(q.role))}</dd>
         </dl>
-        ${q.verifie ? '' : '<p class="note-marge">Note — à vérifier avec ton cours.</p>'}
-        <div class="actions"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
+        ${q.verifie ? '' : '<p class="note-marge">Contenu à vérifier avec ton cours.</p>'}
+        <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

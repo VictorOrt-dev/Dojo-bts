@@ -23,20 +23,21 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 ```
 index.html              coquille : barre du haut, zone #vue, onglets
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
-css/style.css           tout le style ; jetons Papier / Encre en tête de fichier
-js/app.js               routeur par hash : #/cours, #/fiche/<id>, #/dojo, #/dojo/reco, #/dojo/calcul, #/profil
+css/style.css           tout le style ; jetons Bakélite / Porcelaine en tête de fichier
+js/app.js               routeur par hash : #/dojo (accueil), #/dojo/reco, #/dojo/calcul, #/cours, #/fiche/<id>, #/profil
 js/storage.js           SEUL fichier qui touche localStorage (clé "dojo:v1")
 js/cours.js             liste + détail des fiches
 js/profil.js            progression, export/import, remise à zéro
-js/dojo.js              accueil du Dojo, carte de niveau, bilan de session, toast
+js/dojo.js              accueil (Dojo), plaque de l'opérateur, en-tête de séance, rapport, toast
+js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, fil de cuivre, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance visuelle (QCM sur image)
-js/calcul.js            mode Calculs Flash (générateurs, chrono 30 s, tolérance ±2 %)
+js/calcul.js            mode Calculs Flash (générateurs, clavier à l'écran, chrono 30 s, tolérance ±2 %)
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
-js/theme.js             ambiance Papier (défaut) / Encre, mémorisée dans les préférences
-js/mise-en-page.js      frontispice, titres de section, lignes d'état, typographie française (typo)
-js/icones.js            plus utilisé depuis la charte « Carnet d'atelier » (à supprimer à l'étape 3)
-fonts/                  polices auto-hébergées (Cormorant Garamond, Source Serif 4, JetBrains Mono — licence OFL)
+js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
+js/mise-en-page.js      frontispice, titres de section, voyants d'état, typographie française (typo)
+js/icones.js            plus utilisé (à supprimer à l'étape 3)
+fonts/                  polices auto-hébergées (Young Serif, Atkinson Hyperlegible, JetBrains Mono — licence OFL)
 js/util.js              esc(), normaliser(), plurielS()
 data/fiches.json        CONTENU des fiches (aucun code)
 data/reconnaissance.json CONTENU des questions de reconnaissance
@@ -55,20 +56,29 @@ img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg =
 - **Cache GitHub Pages (10 min).** Juste après une mise en ligne, le téléphone peut mélanger anciens et nouveaux fichiers JS. Pour une nouvelle fonction partagée, préférer un nouveau fichier plutôt qu'ajouter un export à un fichier existant.
 - **Une fonctionnalité par demande à l'IA, un commit Git dès que ça marche.**
 
-## Charte graphique « Carnet d'atelier » (éditorial brut)
+## Charte « Bakélite & Cuivre »
 
-- **Zéro carte** : aucun coin arrondi, aucune ombre douce, aucun dégradé. La structure vient des filets de 1 px
-  (`--filet` fin, `--encre` pour les ruptures fortes), de la gouttière numérotée (`--gouttiere`) et des grands blancs.
-- **Encre & matière** : fond `--fond` papier minéral (`#EEE8DC`) ou encre (`#121110`) ; texte `--encre`.
-  **Une seule couleur d'accent**, le vermillon `--accent`, posé comme un tampon : réponse fausse, chrono critique,
-  note « à vérifier », numéros de pièges, onglet actif. Jamais décoratif.
-- **Typographie** : Cormorant Garamond (titres de chapitre, italique pour l'emphase) · Source Serif 4 (texte des fiches) ·
-  JetBrains Mono (chiffres, unités, XP, étiquettes en capitales espacées). Passer tout texte de contenu par `typo()`
-  (espaces insécables français).
-- **Composants** : `frontispice()`, `titreSection()`, `.ligne` (sommaire numéroté), `.btn` (bloc rectangulaire, `.principal` plein encre,
-  `.danger` vermillon), `.tampon`, `.note-marge`, `.regle` (règle graduée), `.planche` (papier millimétré pour les symboles), `.selecteur`.
-- **Retour tactile** : inversion instantanée encre/papier au toucher, sans animation.
-- **Contrastes** vérifiés WCAG : AAA pour le texte, AA pour le vermillon, dans les deux ambiances.
+Les matières du métier deviennent l'interface.
+
+- **Matières** : fond bakélite `#140E0A` (quasi noir, économe sur OLED) avec un grain fin ; texte porcelaine `#F1EADF` ;
+  **cuivre** `--cuivre` pour l'action (boutons, voyant de l'onglet, score) ; **vert-de-gris** `--vert-de-gris` (cuivre oxydé) pour
+  « juste » ; **rouge fusible** `--fusible` pour « raté » et le chrono critique. Matière **Porcelaine** claire pour le plein soleil.
+- **Typographie** : Young Serif (titres, chaleureux, début XXᵉ) · Atkinson Hyperlegible (texte et interface, conçue pour la
+  lisibilité maximale) · JetBrains Mono (chiffres, unités, XP ; lueur de tube Nixie sur l'afficheur des calculs).
+  Passer tout texte de contenu par `typo()` (espaces insécables).
+- **Pièces signature** :
+  - plaque signalétique émaillée avec vis et **galvanomètre** dont l'aiguille balaie jusqu'à l'XP (`atelier.js`) ;
+  - **bornier** : une borne par question, reliée par le fil de cuivre, qui s'allume juste / raté ;
+  - **mèche** : le chrono est un fil qui se consume, braise au bout ;
+  - **clavier en bakélite** (pavé numérique, grande touche Valider) à la place du clavier iOS ;
+  - **gaines de conducteurs** comme couleurs de module (brun, gris, bleu, vert-jaune = terre pour la Sécurité) ;
+  - formules sur petites **plaques émaillées** ; séparateurs en **fil de cuivre bouclé** ;
+  - barre d'onglets en **touches de poste radio** : la touche active reste enfoncée, son voyant s'allume.
+- **Ergonomie** : le Dojo est l'écran d'accueil ; lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ;
+  « Suivant » reste collé au-dessus des onglets (`.action-collee`) ; toutes les cibles font au moins 44 px.
+- **Sobriété** : aucune animation en boucle hors chrono critique, animations ≤ 180 ms sur `transform` / `opacity`
+  (sauf le balayage de l'aiguille, une fois) ; `prefers-reduced-motion` respecté.
+- **Contrastes** vérifiés WCAG : AAA pour le texte dans les deux matières, AA minimum pour les couleurs d'état.
 
 ## Format d'une fiche (`data/fiches.json`)
 

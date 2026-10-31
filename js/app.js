@@ -1,5 +1,5 @@
 // Point d'entrée : routeur par hash.
-//   #/cours  #/fiche/<id>  #/dojo  #/dojo/reco  #/dojo/calcul  #/profil
+//   #/dojo (accueil)  #/dojo/reco  #/dojo/calcul  #/cours  #/fiche/<id>  #/profil
 // Chaque écran est une fonction render*(ctx) qui remplit l'élément #vue.
 
 import { renderCours, renderFiche } from './cours.js';
@@ -23,7 +23,7 @@ function definirTitre(texte) {
 }
 
 function lireHash() {
-  const [chemin, requete = ''] = (location.hash.slice(2) || 'cours').split('?');
+  const [chemin, requete = ''] = (location.hash.slice(2) || 'dojo').split('?');
   const [page, id] = chemin.split('/');
   return { page, id: id && decodeURIComponent(id), params: new URLSearchParams(requete) };
 }
@@ -73,7 +73,7 @@ async function router() {
         else location.replace('#/dojo');
         break;
       case 'profil': await renderProfil(ctx); break;
-      default: location.replace('#/cours');
+      default: location.replace('#/dojo');
     }
   } catch (err) {
     renderErreur(err);
@@ -82,7 +82,7 @@ async function router() {
 
 boutonRetour.addEventListener('click', () => {
   if (navigationInterne) history.back();
-  else location.assign(pageParente(lireHash()) ?? '#/cours');
+  else location.assign(pageParente(lireHash()) ?? '#/dojo');
 });
 
 window.addEventListener('hashchange', () => {

@@ -3,10 +3,12 @@
 
 import * as stockage from './storage.js';
 import { frontispice, titreSection, deuxChiffres, typo } from './mise-en-page.js';
+import { fil } from './atelier.js';
 import { esc, normaliser } from './util.js';
 
 // Le champ "module" de chaque fiche doit correspondre exactement à un "nom" ci-dessous.
-// "code" = repère court, affiché en capitales mono comme une étiquette d'inventaire.
+// "code" = repère court ; chaque module prend la couleur d'une gaine de conducteur
+// (brun = phase, gris = phase, bleu = neutre, vert-jaune = terre de protection pour la Sécurité).
 export const MODULES = [
   { nom: 'Électrotechnique', code: 'ELT' },
   { nom: 'Automatismes', code: 'AUT' },
@@ -46,32 +48,34 @@ function texteRecherche(fiche) {
 
 // ---------- Sommaire des fiches ----------
 
+const gaine = code => `<span class="gaine gaine-${code}" aria-hidden="true"></span>`;
+
 export async function renderCours({ vue, definirTitre, params }) {
-  definirTitre('I — Cours');
+  definirTitre('Cours');
   const fiches = await chargerFiches();
   const moduleActif = params.get('m') ?? '';
   const recherche = params.get('q') ?? '';
   const vues = stockage.lire().fichesVues;
   const nbLues = fiches.filter(f => vues[f.id]).length;
 
-  const filtre = (nom, libelle, nb) => {
-    const href = nom ? `#/cours?m=${encodeURIComponent(nom)}` : '#/cours';
-    const actif = nom === moduleActif ? ' aria-current="true"' : '';
-    return `<a class="filtre" href="${href}"${actif}>${esc(libelle)}<sup>${deuxChiffres(nb)}</sup></a>`;
+  const filtre = (mod, libelle, nb) => {
+    const href = mod ? `#/cours?m=${encodeURIComponent(mod.nom)}` : '#/cours';
+    const actif = (mod?.nom ?? '') === moduleActif ? ' aria-current="true"' : '';
+    return `<a class="filtre" href="${href}"${actif}>${mod ? gaine(mod.code) : ''}${esc(libelle)}<sup>${nb}</sup></a>`;
   };
 
   vue.innerHTML = `
     ${frontispice({
-      surtitre: `Chapitre I · ${deuxChiffres(fiches.length)} fiches · ${deuxChiffres(nbLues)} lues`,
-      titre: 'Fiches',
+      surtitre: `${deuxChiffres(nbLues)} lues sur ${deuxChiffres(fiches.length)}`,
+      titre: 'Les fiches',
       italique: 'de révision'
     })}
     <nav class="filtres" aria-label="Modules">
-      ${filtre('', 'Tout', fiches.length)}
-      ${MODULES.map(m => filtre(m.nom, m.nom, fiches.filter(f => f.module === m.nom).length)).join('')}
+      ${filtre(null, 'Toutes', fiches.length)}
+      ${MODULES.map(m => filtre(m, m.nom, fiches.filter(f => f.module === m.nom).length)).join('')}
     </nav>
     <input id="recherche" class="recherche" type="search" enterkeyhint="search"
-           placeholder="Rechercher : cos φ, VAT, masque…" value="${esc(recherche)}">
+           placeholder="cos φ, VAT, masque…" aria-label="Rechercher dans les fiches" value="${esc(recherche)}">
     <div id="liste"></div>`;
 
   const champ = vue.querySelector('#recherche');
@@ -81,7 +85,7 @@ export async function renderCours({ vue, definirTitre, params }) {
       (!moduleActif || f.module === moduleActif) && (!q || texteRecherche(f).includes(q)));
 
     vue.querySelector('#liste').innerHTML = resultat.length
-      ? resultat.map(f => ligneFiche(f, fiches.indexOf(f) + 1, Boolean(vues[f.id]))).join('')
+      ? resultat.map(f => ligneFiche(f, Boolean(vues[f.id]))).join('')
       : `<p class="vide">Aucune fiche${q ? ' pour cette recherche' : ' dans ce module pour l’instant'}.</p>`;
   };
 
@@ -97,16 +101,15 @@ export async function renderCours({ vue, definirTitre, params }) {
   afficherListe();
 }
 
-function ligneFiche(fiche, numero, lue) {
+function ligneFiche(fiche, lue) {
   const mod = moduleDe(fiche.module);
   return `
     <a class="ligne ligne-fiche" href="#/fiche/${encodeURIComponent(fiche.id)}">
-      <span class="ligne-num">${deuxChiffres(numero)}</span>
       <div>
+        <p class="ligne-meta">${gaine(mod.code)}${esc(mod.nom)}</p>
         <h2 class="ligne-titre">${esc(typo(fiche.titre))}</h2>
-        <p class="ligne-meta">${mod.code} · ${deuxChiffres(fiche.definitions.length)} déf. · ${deuxChiffres(fiche.formules.length)} form. · ${deuxChiffres(fiche.pieges.length)} pièges</p>
       </div>
-      <span class="ligne-fin">${lue ? '<span class="etat-lu">Lue</span>' : '→'}</span>
+      <span class="ligne-fin">${lue ? '<span class="etat-lu">Lue</span>' : 'À lire'}</span>
     </a>`;
 }
 
@@ -120,13 +123,13 @@ export async function renderFiche({ vue, definirTitre, id }) {
     vue.innerHTML = `
       ${frontispice({ surtitre: 'Erreur de renvoi', titre: 'Fiche', italique: 'introuvable' })}
       <p class="vide">Cette fiche n'existe pas (ou plus).</p>
-      <a class="btn" href="#/cours">Retour au sommaire</a>`;
+      <a class="btn pousse-bas" href="#/cours">Retour aux fiches</a>`;
     return;
   }
 
   const mod = moduleDe(fiche.module);
   const numero = fiches.indexOf(fiche) + 1;
-  definirTitre(`${mod.code} · Fiche ${deuxChiffres(numero)}`);
+  definirTitre(`Fiche ${deuxChiffres(numero)}`);
   stockage.modifier(e => { e.fichesVues[fiche.id] = Date.now(); });
 
   // Fiches précédente / suivante dans le même module.
@@ -135,27 +138,28 @@ export async function renderFiche({ vue, definirTitre, id }) {
   const prec = memeModule[i - 1];
   const suiv = memeModule[i + 1];
   const renvoi = (f, sens) => f
-    ? `<a href="#/fiche/${encodeURIComponent(f.id)}"><p class="surtitre">${sens === 'prec' ? '← Précédente' : 'Suivante →'}</p><p class="fiche-nav-titre">${esc(f.titre)}</p></a>`
+    ? `<a href="#/fiche/${encodeURIComponent(f.id)}"><p class="surtitre">${sens === 'prec' ? '← Précédente' : 'Suivante →'}</p><p class="fiche-nav-titre">${esc(typo(f.titre))}</p></a>`
     : '<span></span>';
 
   vue.innerHTML = `
     <article class="fiche">
-      ${frontispice({
-        surtitre: `${mod.code} — ${mod.nom} · Fiche ${deuxChiffres(numero)}/${deuxChiffres(fiches.length)}`,
-        titre: typo(fiche.titre)
-      })}
-      ${fiche.verifie ? '' : '<p class="note-marge">Note — contenu pas encore vérifié. Relis-le avec ton cours, puis passe <code>"verifie": true</code> dans fiches.json.</p>'}
+      <header class="frontispice">
+        <p class="fiche-module">${gaine(mod.code)}${esc(mod.nom)}</p>
+        <h2 class="titre-chapitre">${esc(typo(fiche.titre))}</h2>
+      </header>
+      ${fiche.verifie ? '' : '<p class="note-marge">Contenu pas encore vérifié. Relis-le avec ton cours, puis passe <code>"verifie": true</code> dans fiches.json.</p>'}
 
       <section>
-        ${titreSection('§ 1', 'Définitions clés')}
-        <dl class="corps">
+        ${titreSection('01', 'Définitions clés')}
+        <dl>
           ${fiche.definitions.map(d => `<dt>${esc(typo(d.terme))}</dt><dd>${esc(typo(d.def))}</dd>`).join('')}
         </dl>
       </section>
 
+      ${fil()}
       <section>
-        ${titreSection('§ 2', 'Formules & lois')}
-        <div class="corps">
+        ${titreSection('02', 'Formules & lois')}
+        <div class="formules">
           ${fiche.formules.map(f => `
             <div class="formule">
               <p class="formule-nom">${esc(f.nom)}</p>
@@ -165,9 +169,10 @@ export async function renderFiche({ vue, definirTitre, id }) {
         </div>
       </section>
 
+      ${fil()}
       <section class="bloc-pieges">
-        ${titreSection('§ 3', 'Pièges de terrain')}
-        <ol class="pieges corps">
+        ${titreSection('03', 'Pièges de terrain')}
+        <ol class="pieges">
           ${fiche.pieges.map(p => `<li><span>${esc(typo(p))}</span></li>`).join('')}
         </ol>
       </section>

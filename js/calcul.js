@@ -199,53 +199,83 @@ export function creerSession() {
 let sessionCourante = null;
 export const sessionEnCours = () => sessionCourante; // utilisé par les tests automatisés
 
+// Clavier à l'écran : remplace le clavier iOS, qui masquerait l'énoncé et le chrono.
+// Disposition d'un pavé numérique : Valider est la grande touche verticale sous le pouce droit.
+const TOUCHES_CLAVIER = ['7', '8', '9', '⌫', '4', '5', '6', '1', '2', '3', '0', ','];
+const LONGUEUR_MAX = 9;
+
 export function renderCalcul({ vue, definirTitre, auNettoyage }) {
-  definirTitre('Calculs Flash');
+  definirTitre('Calculs flash');
   const session = sessionCourante = creerSession();
+  session.resultats = [];
   let minuteur = null;
+  let saisie = '';
   const arreterMinuteur = () => { clearInterval(minuteur); minuteur = null; };
-  auNettoyage(arreterMinuteur); // stoppe le chrono si on quitte l'écran
+  const exerciceCourant = () => session.exercices[session.index];
+
+  const taper = touche => {
+    if (touche === '⌫') saisie = saisie.slice(0, -1);
+    else if (touche === ',') { if (!saisie.includes(',') && saisie.length < LONGUEUR_MAX) saisie = (saisie || '0') + ','; }
+    else if (saisie.length < LONGUEUR_MAX) saisie = saisie === '0' ? touche : saisie + touche;
+    vue.querySelector('#reponse').textContent = saisie;
+    vue.querySelector('#erreur-saisie').textContent = '';
+  };
+
+  const valider = () => {
+    const valeur = lireNombre(saisie);
+    if (Number.isNaN(valeur)) {
+      vue.querySelector('#erreur-saisie').textContent = 'Compose ta réponse sur le clavier.';
+      return;
+    }
+    terminer(exerciceCourant(), valeur);
+  };
+
+  // Clavier physique (ordinateur, clavier Bluetooth) en plus du clavier à l'écran.
+  const surTouche = ev => {
+    const ex = exerciceCourant();
+    if (!ex || ex.termine || ex.choix || ev.metaKey || ev.ctrlKey) return;
+    if (/^[0-9]$/.test(ev.key)) taper(ev.key);
+    else if (ev.key === ',' || ev.key === '.') taper(',');
+    else if (ev.key === 'Backspace') taper('⌫');
+    else if (ev.key === 'Enter') valider();
+    else return;
+    ev.preventDefault();
+  };
+  document.addEventListener('keydown', surTouche);
+  auNettoyage(() => { arreterMinuteur(); document.removeEventListener('keydown', surTouche); });
 
   const afficherExercice = () => {
-    const ex = session.exercices[session.index];
+    const ex = exerciceCourant();
+    saisie = '';
     vue.innerHTML = `
-      ${enteteSession(session.index + 1, session.score)}
-      <div class="chrono">
-        <div class="chrono-piste"><div class="chrono-barre"></div></div>
+      ${enteteSession(session.index + 1, session.score, session.resultats)}
+      <div class="meche chrono">
+        <div class="meche-piste"><div class="chrono-barre"></div></div>
         <span class="chrono-valeur"><span id="secondes">${DUREE}</span><small>s</small></span>
       </div>
       <section class="exercice">
         <p class="surtitre">${esc(ex.generateur.titre)}</p>
         <p class="enonce">${esc(typo(ex.enonce))}</p>
         ${ex.aide ? `<p class="aide">${esc(typo(ex.aide))}</p>` : ''}
+      </section>
+      <div class="pousse-bas">
         ${ex.choix
           ? `<div class="choix choix-2">${ex.choix.map((c, i) => `<button class="choix-btn" type="button" data-valeur="${esc(c)}"><span class="choix-touche">${'AB'[i]}</span><span>${esc(c)}</span></button>`).join('')}</div>`
-          : `<form id="saisie" class="saisie" autocomplete="off">
-               <div class="afficheur">
-                 <input id="reponse" type="text" inputmode="decimal" enterkeyhint="done" placeholder="0,00" aria-label="Ta réponse en ${esc(ex.unite)}">
-                 <span class="unite">${esc(ex.unite)}</span>
-               </div>
-               <button class="btn valider" type="submit">Valider</button>
-             </form>`}
+          : `<div class="nixie"><output id="reponse" class="nixie-valeur" aria-live="polite"></output><span class="unite">${esc(ex.unite)}</span></div>
+             <div id="saisie" class="clavier">
+               ${TOUCHES_CLAVIER.map(t => `<button class="btn${t === '⌫' ? ' effacer' : t === '0' ? ' zero' : ''}" type="button" data-touche="${t}" aria-label="${t === '⌫' ? 'Effacer' : t}">${t}</button>`).join('')}
+               <button class="btn valider" type="button">Valider</button>
+             </div>`}
         <p id="erreur-saisie" class="erreur-saisie" role="alert"></p>
-      </section>
+      </div>
       <div id="correction"></div>`;
 
     if (ex.choix) {
       vue.querySelectorAll('.choix-btn').forEach((b, i) =>
         b.addEventListener('click', () => terminer(ex, ex.choix[i])));
     } else {
-      const champ = vue.querySelector('#reponse');
-      vue.querySelector('#saisie').addEventListener('submit', ev => {
-        ev.preventDefault();
-        const valeur = lireNombre(champ.value);
-        if (Number.isNaN(valeur)) {
-          vue.querySelector('#erreur-saisie').textContent = 'Entre un nombre, par exemple 12,5';
-          return;
-        }
-        terminer(ex, valeur);
-      });
-      champ.focus();
+      vue.querySelectorAll('[data-touche]').forEach(b => b.addEventListener('click', () => taper(b.dataset.touche)));
+      vue.querySelector('.clavier .valider').addEventListener('click', valider);
     }
 
     const chrono = vue.querySelector('.chrono');
@@ -262,7 +292,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
     window.scrollTo(0, 0);
   };
 
-  // valeur : nombre saisi, choix cliqué, ou null si le temps est écoulé.
+  // valeur : nombre saisi, choix touché, ou null si le temps est écoulé.
   const terminer = (ex, valeur) => {
     if (ex.termine) return;
     ex.termine = true;
@@ -270,11 +300,14 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
     const duree = (Date.now() - ex.debut) / 1000;
     const juste = valeur !== null && (ex.choix ? valeur === ex.reponse : estJuste(valeur, ex.reponse));
 
-    vue.querySelectorAll('.exercice input, .exercice button').forEach(el => { el.disabled = true; });
-    vue.querySelector('#reponse')?.blur(); // range le clavier pour laisser voir la correction
+    session.resultats.push(juste);
+    vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : 'faux'}`;
+    vue.querySelector('.clavier')?.remove(); // le clavier laisse la place à la correction
+    vue.querySelector('.nixie')?.classList.add(juste ? 'juste' : 'faux');
     vue.querySelector('#erreur-saisie').textContent = '';
     if (ex.choix) {
       vue.querySelectorAll('.choix-btn').forEach(b => {
+        b.disabled = true;
         if (b.dataset.valeur === ex.reponse) b.classList.add('juste');
         else if (b.dataset.valeur === valeur) b.classList.add('faux');
       });
@@ -292,20 +325,20 @@ export function renderCalcul({ vue, definirTitre, auNettoyage }) {
 
     const attendu = ex.choix ? ex.reponse : `${nb(ex.reponse)} ${ex.unite}`;
     let verdict;
-    if (juste) verdict = `<p class="verdict"><span class="tampon">Juste</span><span class="gain">+${gain} XP${rapide ? ' · rapide' : ''}</span></p>`;
-    else if (valeur === null) verdict = `<p class="verdict"><span class="tampon">Temps dépassé</span></p>
-      <p class="attendu">Il fallait trouver <strong class="mono">${esc(attendu)}</strong>.</p>`;
-    else verdict = `<p class="verdict"><span class="tampon">Faux</span></p>
-      <p class="attendu">Ta réponse : <strong class="mono">${esc(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`)}</strong> — il fallait <strong class="mono">${esc(attendu)}</strong>.</p>`;
+    if (juste) verdict = `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP${rapide ? ' · rapide' : ''}</span></p>`;
+    else if (valeur === null) verdict = `<p class="verdict"><span class="tampon">Temps dépassé.</span></p>
+      <p class="attendu">Il fallait trouver <strong class="mono">${esc(typo(attendu))}</strong>.</p>`;
+    else verdict = `<p class="verdict"><span class="tampon">Raté.</span></p>
+      <p class="attendu">Ta réponse : <strong class="mono">${esc(typo(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`))}</strong> — il fallait <strong class="mono">${esc(typo(attendu))}</strong>.</p>`;
 
     const derniere = session.index === session.exercices.length - 1;
     const zone = vue.querySelector('#correction');
     zone.innerHTML = `
       <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${verdict}
-        <p class="surtitre">Développement</p>
-        <p class="solution">${esc(ex.solution)}</p>
-        <div class="actions"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button></div>
+        <p class="surtitre">Le calcul posé</p>
+        <p class="solution">${esc(typo(ex.solution))}</p>
+        <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });

@@ -11,7 +11,7 @@ function etatParDefaut() {
     fichesVues: {},          // { idFiche: timestamp de dernière lecture }
     stats: {},               // utilisé à l'étape 2 (résultats du Dojo)
     derniereSauvegarde: null, // timestamp du dernier export
-    preferences: { ambiance: 'papier' }
+    preferences: { matiere: 'bakelite' }
   };
 }
 

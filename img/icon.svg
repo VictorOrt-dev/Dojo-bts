@@ -1,6 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#EEE8DC"/>
-  <rect x="56" y="56" width="400" height="400" fill="none" stroke="#1B1915" stroke-width="6"/>
-  <text x="246" y="372" text-anchor="middle" font-family="'Cormorant Garamond', Georgia, serif" font-weight="600" font-size="330" fill="#1B1915">D</text>
-  <rect x="380" y="92" width="36" height="36" fill="#B33A1C"/>
+  <defs>
+    <radialGradient id="bouton" cx="0.4" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#3A2A1F"/>
+      <stop offset="1" stop-color="#120B07"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#140E0A"/>
+  <circle cx="256" cy="256" r="178" fill="#8E5229"/>
+  <circle cx="256" cy="256" r="166" fill="#E0915A"/>
+  <circle cx="256" cy="256" r="146" fill="url(#bouton)"/>
+  <text x="256" y="322" text-anchor="middle" font-family="'Young Serif', Georgia, serif" font-size="190" fill="#F1EADF">D</text>
+  <circle cx="256" cy="74" r="10" fill="#E0915A"/>
 </svg>

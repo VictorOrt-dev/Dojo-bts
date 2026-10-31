@@ -1,114 +1,101 @@
-// Accueil du Dojo + éléments d'interface partagés par les modes d'entraînement.
+// Accueil du Dojo (écran d'accueil de l'app) + éléments partagés par les modes d'entraînement.
 
 import { NIVEAUX, BAREME, lireXP, niveauPour, statsMode } from './xp.js';
-import { frontispice, titreSection, deuxChiffres, ROMAINS } from './mise-en-page.js';
+import { plaqueOperateur, bornier, salutation } from './atelier.js';
+import { deuxChiffres } from './mise-en-page.js';
 import { esc } from './util.js';
 
 export const TAILLE_SESSION = 10;
 export { deuxChiffres };
 
-// Rang de l'opérateur : nom en italique, XP en mono, règle graduée vers le rang suivant.
+// Plaque signalétique de l'opérateur (rang, XP, galvanomètre).
 export function carteNiveau() {
   const xp = lireXP();
-  const n = niveauPour(xp);
-  const rangs = NIVEAUX.map((_, i) => i === n.rang ? `<b>${ROMAINS[i]}</b>` : ROMAINS[i]).join(' · ');
-  const suite = n.suivant
-    ? `Encore <span class="mono">${n.reste}</span> XP avant le rang de ${esc(n.suivant.nom)}.`
-    : 'Rang le plus haut atteint.';
-  return `
-    <section class="niveau">
-      <div>
-        <p class="rangs" aria-label="Rang ${n.rang + 1} sur ${NIVEAUX.length}">RANG ${rangs}</p>
-        <p class="niveau-nom">${esc(n.nom)}</p>
-      </div>
-      <p class="niveau-xp"><span class="valeur">${String(xp).padStart(4, '0')}</span><span class="unite-xp">XP</span></p>
-      <div class="regle" aria-hidden="true"><div class="regle-remplissage" style="width: ${Math.round(n.progression * 100)}%"></div></div>
-      <p class="niveau-suite">${suite}</p>
-    </section>`;
+  const sessions = statsMode('reco').sessions + statsMode('calcul').sessions;
+  return plaqueOperateur({ xp, n: niveauPour(xp), total: NIVEAUX.length, sessions });
 }
 
 function record(mode) {
   const s = statsMode(mode);
-  return s.sessions ? `Rec. ${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '—';
+  return s.sessions ? `${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '';
 }
 
 export function renderDojo({ vue, definirTitre }) {
-  definirTitre('II — Dojo');
+  definirTitre('Dojo');
+  const { mot, jour } = salutation();
+  const n = niveauPour(lireXP());
   vue.innerHTML = `
-    ${frontispice({ surtitre: 'Chapitre II · Le Dojo', titre: 'Entraînement', italique: 'quotidien' })}
+    <header class="salut">
+      <p class="salut-date">${esc(jour)}</p>
+      <h2 class="salut-titre">${mot}, <em>${esc(n.nom.toLowerCase())}.</em></h2>
+    </header>
 
     ${carteNiveau()}
 
-    <section>
-      ${titreSection('§ 1', "Exercices")}
-      <a class="ligne" href="#/dojo/reco">
-        <span class="ligne-num">A.</span>
-        <div>
-          <h2 class="ligne-titre">Reconnaissance</h2>
-          <p class="ligne-meta">Symboles IEC · matériel d'armoire · ${TAILLE_SESSION} planches</p>
-        </div>
-        <span class="ligne-fin">${record('reco')}</span>
+    <nav class="modes pousse-bas" aria-label="Exercices">
+      <a class="mode" href="#/dojo/reco">
+        <span class="mode-bouton">A</span>
+        <span><span class="mode-titre">Reconnaissance</span><span class="mode-desc">Symboles et matériel</span></span>
+        <span class="mode-record">${record('reco')}</span>
       </a>
-      <a class="ligne" href="#/dojo/calcul">
-        <span class="ligne-num">B.</span>
-        <div>
-          <h2 class="ligne-titre">Calculs flash</h2>
-          <p class="ligne-meta">${TAILLE_SESSION} calculs · 30 s chacun · tolérance ±2 %</p>
-        </div>
-        <span class="ligne-fin">${record('calcul')}</span>
+      <a class="mode" href="#/dojo/calcul">
+        <span class="mode-bouton">B</span>
+        <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">30 s par calcul · ±2 %</span></span>
+        <span class="mode-record">${record('calcul')}</span>
       </a>
-      <div class="ligne inactif">
-        <span class="ligne-num">C.</span>
-        <div>
-          <h2 class="ligne-titre">Cas de panne</h2>
-          <p class="ligne-meta">Diagnostic pas à pas</p>
-        </div>
-        <span class="ligne-fin">À venir</span>
+      <div class="mode inactif">
+        <span class="mode-bouton">C</span>
+        <span><span class="mode-titre">Cas de panne</span><span class="mode-desc">Bientôt à l'atelier</span></span>
+        <span class="mode-record"></span>
       </div>
-    </section>
+    </nav>
 
-    <section>
-      ${titreSection('§ 2', 'Barème')}
-      <table class="tableau corps">
+    <details class="notice">
+      <summary>Notice · barème</summary>
+      <table class="tableau">
         <tr><td>Bonne réponse</td><td>+${BAREME.bonneReponse} XP</td></tr>
         <tr><td>Calcul juste en moins de ${BAREME.seuilRapidite} s</td><td>+${BAREME.bonusRapidite} XP</td></tr>
-        <tr><td>Session sans faute</td><td>+${BAREME.sessionParfaite} XP</td></tr>
-        ${NIVEAUX.map((n, i) => `<tr><td>Rang ${ROMAINS[i]} · <em>${esc(n.nom)}</em></td><td>${n.seuil} XP</td></tr>`).join('')}
+        <tr><td>Séance sans faute</td><td>+${BAREME.sessionParfaite} XP</td></tr>
+        ${NIVEAUX.map(niv => `<tr><td>${esc(niv.nom)}</td><td>${niv.seuil} XP</td></tr>`).join('')}
       </table>
-    </section>`;
+    </details>`;
 }
 
-// En-tête d'une session : "Question 03/10" + score.
-export function enteteSession(numero, score) {
-  return `<div class="session-entete"><span>Question ${deuxChiffres(numero)}/${TAILLE_SESSION}</span><span class="session-score">Score ${deuxChiffres(score)}</span></div>`;
+// En-tête d'une séance : numéro, score, et le bornier (une borne par question).
+export function enteteSession(numero, score, resultats = []) {
+  return `
+    <div class="session-entete">
+      <div class="session-chiffres"><span>Question ${deuxChiffres(numero)}/${TAILLE_SESSION}</span><span class="session-score">Score ${deuxChiffres(score)}</span></div>
+      ${bornier(numero - 1, resultats, TAILLE_SESSION)}
+    </div>`;
 }
 
-// Écran de fin de session.
+// Rapport de fin de séance.
 export function afficherBilan(vue, { score, xpGagne, onRejouer }) {
   const parfait = score === TAILLE_SESSION;
-  const message = parfait ? 'Sans faute.' : score >= 7 ? 'Travail solide.' : score >= 4 ? 'Ça vient, continue.' : 'Relis les fiches, puis reviens.';
+  const message = parfait ? 'Sans faute.' : score >= 7 ? 'Belle séance.' : score >= 4 ? 'Ça vient, continue.' : 'Relis les fiches, puis reviens.';
   vue.innerHTML = `
     <section class="bilan">
-      <p class="surtitre">Rapport de session</p>
+      <p class="surtitre">Rapport de séance</p>
       <p class="bilan-score">${deuxChiffres(score)}<small>/${TAILLE_SESSION}</small></p>
       <p class="bilan-message">${message}</p>
-      <p class="bilan-xp">+${xpGagne} XP${parfait ? ' · dont bonus sans faute' : ''}</p>
+      <p class="bilan-xp">+${xpGagne} XP${parfait ? ' · bonus sans faute' : ''}</p>
     </section>
     ${carteNiveau()}
-    <div class="actions">
-      <button id="rejouer" class="btn principal" type="button">Rejouer</button>
+    <div class="actions pousse-bas">
+      <button id="rejouer" class="btn principal" type="button">Une autre séance</button>
       <a class="btn" href="#/dojo">Retour au Dojo</a>
     </div>`;
   vue.querySelector('#rejouer').addEventListener('click', onRejouer);
   window.scrollTo(0, 0);
 }
 
-// Message bref épinglé en haut de l'écran (ex. nouveau rang).
+// Message bref, comme une étiquette qu'on vient de poser (ex. nouveau rang).
 export function afficherToast(texte) {
   const toast = document.createElement('div');
   toast.className = 'toast';
   toast.setAttribute('role', 'status');
-  toast.innerHTML = `<span class="marque-etat marque-attention" aria-hidden="true"></span><span>${esc(texte)}</span>`;
+  toast.innerHTML = `<span class="marque-etat" aria-hidden="true"></span><span>${esc(texte)}</span>`;
   document.body.append(toast);
   setTimeout(() => toast.remove(), 3200);
 }
