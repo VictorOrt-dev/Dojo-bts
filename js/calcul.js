@@ -17,7 +17,7 @@ const RHO_CUIVRE = 0.0225;      // Ω·mm²/m : valeur conventionnelle du cuivre
 const nb = (x, decimales = 2) => x.toLocaleString('fr-FR', { maximumFractionDigits: decimales });
 const tanDe = cos => Math.tan(Math.acos(cos));
 
-// Un exercice = { enonce, aide?, unite, reponse (nombre), solution, explication, piege, erreurs, donnees }
+// Un exercice = { enonce, aide?, unite, reponse (nombre), tolerance?, solution, explication, piege, erreurs, donnees }
 //            ou { enonce, choix: [...], reponse (un des choix), solution, explication, piege, donnees } pour un QCM.
 // erreurs : [{ valeur, message }] — si la réponse donnée tombe à ±2 % d'une de ces valeurs, le message s'affiche.
 export const GENERATEURS = [
@@ -134,33 +134,46 @@ export const GENERATEURS = [
   },
 
   {
-    id: 'resistances',
+    id: 'tension-attendue',
     niveau: 1,
-    titre: 'Associations de résistances',
+    titre: 'Tension attendue au récepteur',
     creer() {
-      const [R1, R2] = melanger([10, 22, 47, 100, 220]).slice(0, 2);
-      const serie = R1 + R2;
-      const parallele = R1 * R2 / (R1 + R2);
       return parmi([
-        () => ({
-          enonce: `Deux résistances de ${nb(R1)} Ω et ${nb(R2)} Ω sont montées en série. Résistance équivalente ?`,
-          unite: 'Ω', reponse: serie, donnees: { R1, R2, montage: 'serie' },
-          solution: `Req = R1 + R2 = ${nb(R1)} + ${nb(R2)} = ${nb(serie)} Ω`,
-          explication: 'En série, le courant traverse les résistances l\'une après l\'autre : les résistances s\'additionnent. Req est plus grande que la plus grande des deux.',
-          piege: 'Ne pas confondre avec le parallèle. Vérifie l\'ordre de grandeur : en série, le résultat dépasse chacune des résistances.',
-          erreurs: [{ valeur: parallele, message: "Ça, c'est la formule du parallèle. En série, les résistances s'additionnent." }]
-        }),
-        () => ({
-          enonce: `Deux résistances de ${nb(R1)} Ω et ${nb(R2)} Ω sont montées en parallèle. Résistance équivalente ?`,
-          unite: 'Ω', reponse: parallele, donnees: { R1, R2, montage: 'parallele' },
-          solution: `Req = R1 × R2 / (R1 + R2) = ${nb(R1 * R2, 0)} / ${nb(serie)} = ${nb(parallele)} Ω`,
-          explication: 'En parallèle, le courant a plusieurs chemins : la résistance équivalente diminue. 1/Req = 1/R1 + 1/R2, soit pour deux résistances Req = R1 × R2 / (R1 + R2) (« produit sur somme »).',
-          piege: 'Req est toujours plus petite que la plus petite des résistances : si ton résultat est plus grand, il y a une erreur.',
-          erreurs: [
-            { valeur: serie, message: 'Tu as additionné comme en série. En parallèle : Req = R1 × R2 / (R1 + R2).' },
-            { valeur: (R1 + R2) / 2, message: 'La moyenne ne marche pas : en parallèle, Req est plus petite que la plus petite des deux.' }
-          ]
-        })
+        () => {
+          const depart = parmi([229, 231, 233, 235]);
+          const chute = parmi([4.6, 6.9, 9.2, 11.5, 13.8]);
+          const arrivee = depart - chute;
+          return {
+            enonce: `Charge en marche, tu mesures ${nb(depart)} V au tableau et ${nb(arrivee)} V aux bornes du récepteur. Chute de tension en % (par rapport à 230 V) ?`,
+            unite: '%', reponse: chute / 230 * 100, donnees: { type: 'mesure', depart, arrivee },
+            solution: `ΔU = ${nb(depart)} − ${nb(arrivee)} = ${nb(chute)} V ; ΔU % = ${nb(chute)} / 230 × 100 = ${nb(chute / 230 * 100)} %`,
+            explication: 'Deux mesures en charge, au départ et à l\'arrivée, donnent directement la chute de tension réelle de la ligne : ΔU = U départ − U arrivée, rapportée à la tension nominale (230 V). Repère NF C 15-100 (réseau public BT) : 3 % pour l\'éclairage, 5 % pour les autres usages.',
+            piege: 'Mesurer à vide : sans courant, il n\'y a pas de chute, et les deux valeurs sont identiques. La mesure ne vaut qu\'avec le récepteur en marche.',
+            erreurs: [
+              { valeur: chute, message: 'Tu as donné la chute en volts : divise par 230 et multiplie par 100 pour l\'avoir en %.' },
+              { valeur: arrivee / 230 * 100, message: 'Ça, c\'est la tension restante en % de 230 V, pas la chute.' }
+            ]
+          };
+        },
+        () => {
+          const { S, I } = parmi([{ S: 1.5, I: 10 }, { S: 2.5, I: 16 }, { S: 2.5, I: 20 }, { S: 4, I: 25 }]);
+          const L = parmi([20, 25, 30, 40]);
+          const depart = parmi([230, 232, 234]);
+          const du = 2 * RHO_CUIVRE * L * I / S;
+          return {
+            enonce: `Tu mesures ${depart} V au départ d'un circuit monophasé : câble cuivre ${nb(S)} mm², ${L} m, récepteur de ${I} A en marche. Quelle tension dois-tu lire aux bornes du récepteur ?`,
+            aide: 'ρ cuivre = 0,0225 Ω·mm²/m · cos φ = 1 · réponse au volt près',
+            unite: 'V', reponse: depart - du, tolerance: 0.004, donnees: { type: 'estimation', S, I, L, depart },
+            solution: `ΔU = 2 × ρ × L × I / S = 2 × 0,0225 × ${L} × ${I} / ${nb(S)} = ${nb(du)} V ; U attendue = ${depart} − ${nb(du)} = ${nb(depart - du)} V`,
+            explication: 'Avant de mesurer, calcule ce que tu devrais lire : U attendue = U départ − ΔU, avec ΔU = 2 × ρ × L × I / S en monophasé. Si la mesure est nettement plus basse que la valeur attendue, cherche une résistance en trop : connexion desserrée, borne oxydée, section plus faible que prévu.',
+            piege: 'Une chute anormale localisée vient souvent d\'un seul point de connexion qui chauffe : la caméra thermique ou une mesure de tension borne par borne le trouve vite.',
+            erreurs: [
+              { valeur: depart - du / 2, message: 'Tu n\'as compté qu\'un seul conducteur : en monophasé, le courant fait l\'aller et le retour (facteur 2).' },
+              { valeur: du, message: 'Tu as donné la chute ΔU, pas la tension que tu dois lire au récepteur.' },
+              { valeur: depart + du, message: 'La chute se retranche de la tension de départ, elle ne s\'ajoute pas.' }
+            ]
+          };
+        }
       ])();
     }
   },
@@ -348,6 +361,35 @@ export const GENERATEURS = [
     }
   },
 
+  {
+    id: 'charge-moteur',
+    niveau: 2,
+    titre: 'Courant mesuré et plaque moteur',
+    creer() {
+      const moteur = parmi([{ P: 4, I: 8.2 }, { P: 5.5, I: 11 }, { P: 7.5, I: 14.8 }, { P: 11, I: 21.5 }]);
+      const plaque = parmi([
+        { tensions: '230/400 V', courants: [moteur.I * RACINE3, moteur.I], In: moteur.I, autre: moteur.I * RACINE3, couplage: 'étoile' },
+        { tensions: '400/690 V', courants: [moteur.I, moteur.I / RACINE3], In: moteur.I, autre: moteur.I / RACINE3, couplage: 'triangle' }
+      ]);
+      const taux = parmi([0.55, 0.7, 0.85, 0.95, 1.08]);
+      const mesures = [1.01, 0.98, 1.0].map(k => Math.round(moteur.I * taux * k * 10) / 10);
+      const moyenne = mesures.reduce((a, b) => a + b, 0) / 3;
+      const reponse = moyenne / plaque.In * 100;
+      const lecture = `${nb(plaque.courants[0], 1)}/${nb(plaque.courants[1], 1)} A`;
+      return {
+        enonce: `Plaque moteur : ${nb(moteur.P)} kW, ${plaque.tensions}, ${lecture}. Réseau 400 V. À la pince, tu mesures ${mesures.map(m => nb(m, 1)).join(' A, ')} A. Charge du moteur en % de son In ?`,
+        unite: '%', reponse, donnees: { In: plaque.In, mesures },
+        solution: `Sur 400 V, le moteur est couplé en ${plaque.couplage} : In = ${nb(plaque.In, 1)} A. I moyen = (${mesures.map(m => nb(m, 1)).join(' + ')}) / 3 = ${nb(moyenne)} A ; charge = ${nb(moyenne)} / ${nb(plaque.In, 1)} × 100 = ${nb(reponse, 1)} %`,
+        explication: 'Sur la plaque, chaque courant correspond à une tension : on prend celui de la tension du réseau (ici 400 V). Comparer le courant mesuré à cet In dit tout de suite si le moteur est sain : durablement au-dessus de 100 %, il chauffe (surcharge mécanique, tension basse, déséquilibre) ; très en dessous de 50 %, il est surdimensionné et son cos φ se dégrade.',
+        piege: 'Lire le mauvais courant sur la plaque, ou mesurer en sortie de variateur avec une pince non TRMS : elle sous-estime nettement le courant sur une forme d\'onde déformée.',
+        erreurs: [
+          { valeur: moyenne / plaque.autre * 100, message: 'Tu as pris l\'autre courant de la plaque : sur un réseau 400 V, c\'est celui qui correspond à 400 V qui compte.' },
+          { valeur: plaque.In / moyenne * 100, message: 'Rapport inversé : charge = I mesuré / In × 100.' }
+        ]
+      };
+    }
+  },
+
   // ---------------------------------------------------------------- Niveau III · Cas complexes
   {
     id: 'chute-tri',
@@ -474,6 +516,47 @@ export const GENERATEURS = [
         })
       ])();
     }
+  },
+
+  {
+    id: 'desequilibre',
+    niveau: 3,
+    titre: 'Déséquilibre entre phases',
+    creer() {
+      const ecarts = parmi([[1.02, 0.95, 1.01], [1.05, 0.97, 0.99], [0.96, 1.03, 1.04], [1.0, 1.06, 0.93]]);
+      const pct = valeurs => {
+        const moy = valeurs.reduce((a, b) => a + b, 0) / 3;
+        return { moy, ecart: Math.max(...valeurs.map(v => Math.abs(v - moy))), etendue: Math.max(...valeurs) - Math.min(...valeurs) };
+      };
+      const methode = 'Déséquilibre (%) = écart maximal à la moyenne / moyenne × 100 : c\'est la définition la plus utilisée sur le terrain (NEMA MG1).';
+      return parmi([
+        () => {
+          const base = parmi([12, 18, 25, 32]);
+          const I = ecarts.map(k => Math.round(base * k * 10) / 10);
+          const { moy, ecart, etendue } = pct(I);
+          return {
+            enonce: `À la pince, sur les trois phases d'un moteur : ${I.map(v => nb(v, 1)).join(' A, ')} A. Déséquilibre de courant en % ?`,
+            unite: '%', reponse: ecart / moy * 100, donnees: { valeurs: I },
+            solution: `I moyen = ${nb(moy)} A ; écart maximal = ${nb(ecart)} A ; déséquilibre = ${nb(ecart)} / ${nb(moy)} × 100 = ${nb(ecart / moy * 100)} %`,
+            explication: `${methode} Quelques % de déséquilibre de courant sont courants ; au-delà d'une dizaine de %, on cherche la cause.`,
+            piege: 'Pour savoir d\'où vient un déséquilibre de courant, permute les trois phases au départ moteur (consigné) : s\'il suit la phase, c\'est le réseau ; s\'il reste sur la même borne du moteur, c\'est le moteur ou sa liaison.',
+            erreurs: [{ valeur: etendue / moy * 100, message: 'Tu as pris l\'écart entre la plus grande et la plus petite valeur : on compare l\'écart maximal à la MOYENNE.' }]
+          };
+        },
+        () => {
+          const U = ecarts.map(k => Math.round(400 * (1 + (k - 1) / 4)));
+          const { moy, ecart, etendue } = pct(U);
+          return {
+            enonce: `Tensions entre phases au départ d'un moteur : ${U.join(' V, ')} V. Déséquilibre de tension en % ?`,
+            unite: '%', reponse: ecart / moy * 100, donnees: { valeurs: U },
+            solution: `U moyenne = ${nb(moy)} V ; écart maximal = ${nb(ecart)} V ; déséquilibre = ${nb(ecart)} / ${nb(moy)} × 100 = ${nb(ecart / moy * 100)} %`,
+            explication: `${methode} Un faible déséquilibre de tension crée un déséquilibre de courant bien plus fort (de l'ordre de 6 à 10 fois) : au-delà d'environ 1 %, le moteur chauffe et doit être déclassé.`,
+            piege: 'Un déséquilibre de tension vient souvent d\'un récepteur monophasé important branché sur une seule phase, ou d\'une connexion qui chauffe en amont.',
+            erreurs: [{ valeur: etendue / moy * 100, message: 'Tu as pris l\'écart entre la plus grande et la plus petite tension : on compare l\'écart maximal à la MOYENNE.' }]
+          };
+        }
+      ])();
+    }
   }
 ];
 
@@ -483,13 +566,14 @@ export function lireNombre(texte) {
   return /^-?(\d+\.?\d*|\.\d+)$/.test(t) ? Number(t) : NaN;
 }
 
-export function estJuste(valeur, attendu) {
-  return Math.abs(valeur - attendu) <= TOLERANCE * Math.abs(attendu);
+// tolerance : relative (0,02 = ±2 %) ; un exercice peut fixer la sienne (ex. tension au volt près).
+export function estJuste(valeur, attendu, tolerance = TOLERANCE) {
+  return Math.abs(valeur - attendu) <= tolerance * Math.abs(attendu);
 }
 
 // Devine l'erreur la plus probable derrière une mauvaise réponse numérique (ou null).
 export function diagnostiquer(ex, valeur) {
-  for (const e of ex.erreurs ?? []) if (estJuste(valeur, e.valeur)) return e.message;
+  for (const e of ex.erreurs ?? []) if (estJuste(valeur, e.valeur, ex.tolerance)) return e.message;
   const facteur = f => estJuste(valeur, ex.reponse * f) || estJuste(valeur, ex.reponse / f);
   if (facteur(1000)) return 'Ton résultat est 1 000 fois trop grand ou trop petit : vérifie les unités (W / kW, A / kA, Wh / kWh, mA / A).';
   if (facteur(10)) return 'Ton résultat est décalé d\'un facteur 10 : vérifie la position de la virgule.';
@@ -526,7 +610,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     renderChoixNiveau(vue, {
       mode: 'calcul',
       titre: 'Calculs flash',
-      sousTitre: 'Dix calculs, des valeurs différentes à chaque séance. Réponse acceptée à ±2 %.',
+      sousTitre: 'Dix calculs, des valeurs différentes à chaque séance. Réponse acceptée à ±2 % (au volt près pour une tension à lire).',
       href: n => `#/entrainement/calcul?n=${n}`,
       nombre: n => `${GENERATEURS.filter(g => g.niveau === n).length} types de calcul`
     });
@@ -605,7 +689,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
   const terminer = (ex, valeur) => {
     if (ex.termine) return;
     ex.termine = true;
-    const juste = ex.choix ? valeur === ex.reponse : estJuste(valeur, ex.reponse);
+    const juste = ex.choix ? valeur === ex.reponse : estJuste(valeur, ex.reponse, ex.tolerance);
 
     session.resultats.push(juste);
     vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : 'faux'}`;

@@ -12,12 +12,17 @@
     <line x1="77" y1="30" x2="87" y2="30"/><line x1="105" y1="30" x2="115" y2="30"/><line x1="133" y1="30" x2="143" y2="30"/>
     <line x1="77" y1="170" x2="87" y2="170"/><line x1="105" y1="170" x2="115" y2="170"/><line x1="133" y1="170" x2="143" y2="170"/>
   </g>
-  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle" fill="#374151" font-size="8">
-    <text x="82" y="49">1/L1</text><text x="110" y="49">3/L2</text><text x="138" y="49">5/L3</text><text x="166" y="49">A1</text>
-    <text x="82" y="157">2/T1</text><text x="110" y="157">4/T2</text><text x="138" y="157">6/T3</text><text x="166" y="157">A2</text>
-  </g>
   <rect x="88" y="66" width="64" height="50" rx="4" fill="#eef0f2" stroke="#9aa1a9" stroke-width="1.5"/>
   <rect x="108" y="74" width="24" height="34" rx="2" fill="#6b7280"/>
   <line x1="112" y1="91" x2="128" y2="91" stroke="#d1d5db" stroke-width="2"/>
-  <text x="120" y="134" font-family="Arial, Helvetica, sans-serif" font-size="10" fill="#1f2937" text-anchor="middle">13 NO 14</text>
+
+  <rect x="71" y="42" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="99" y="42" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="127" y="42" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="155" y="42" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="71" y="150" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="99" y="150" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="127" y="150" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="155" y="150" width="22" height="9" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
+  <rect x="96" y="126" width="48" height="11" rx="1.5" fill="#EEF0F2" stroke="#9AA1A9" stroke-width="1"/>
 </svg>

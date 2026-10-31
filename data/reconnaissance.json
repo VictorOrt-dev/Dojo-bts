@@ -8,13 +8,13 @@
     "nom": "Contact à fermeture (NO)",
     "faux": [
       "Contact à ouverture (NF)",
-      "Sectionneur",
-      "Contact temporisé au travail"
+      "Contact de sectionneur",
+      "Contact temporisé (travail)"
     ],
     "pourquoiPas": {
-      "Contact à ouverture (NF)": "Un contact NF a un petit trait horizontal sur la borne fixe, et la lame vient s'y appuyer : ici, la lame ne touche rien.",
-      "Sectionneur": "Le sectionneur porte un petit trait perpendiculaire au bout de la borne fixe. Ici, la borne fixe est nue.",
-      "Contact temporisé au travail": "Un contact temporisé porte en plus un petit arc de cercle (le « parachute ») accroché à la lame."
+      "Contact à ouverture (NF)": "Sur un NF, la lame s'appuie au repos sur un petit trait latéral de la borne fixe. Ici, elle est écartée : le contact est ouvert au repos.",
+      "Contact de sectionneur": "Le sectionneur porte un petit trait perpendiculaire au bout de la borne fixe. Ici, la borne fixe est nue.",
+      "Contact temporisé (travail)": "Un contact temporisé porte en plus un arc de cercle (le « parachute ») accroché à la lame."
     },
     "explication": "Au repos, la lame est écartée de la borne fixe : le circuit est ouvert. Il se ferme quand l'appareil est actionné. C'est le contact « normalement ouvert ». Repère visuel : la lame part en biais et ne touche rien.",
     "reperage": "Porte le repère de l'appareil qui le manœuvre (ex. -QA1 / KM1). Contacts auxiliaires NO : bornes finissant par 3-4 (13-14, 23-24…).",
@@ -30,13 +30,13 @@
     "nom": "Contact à ouverture (NF)",
     "faux": [
       "Contact à fermeture (NO)",
-      "Disjoncteur",
-      "Contact temporisé au repos"
+      "Contact de disjoncteur",
+      "Contact temporisé (repos)"
     ],
     "pourquoiPas": {
       "Contact à fermeture (NO)": "Sur un NO, la lame est écartée et ne touche rien. Ici, elle s'appuie sur le petit trait de la borne fixe : le contact est fermé au repos.",
-      "Disjoncteur": "Le disjoncteur se reconnaît à une croix (×) sur la borne fixe.",
-      "Contact temporisé au repos": "Il faudrait un arc de cercle (parachute) accroché à la lame pour indiquer la temporisation."
+      "Contact de disjoncteur": "La fonction disjoncteur se dessine par une croix (×) sur la borne fixe.",
+      "Contact temporisé (repos)": "Il faudrait un arc de cercle (parachute) accroché à la lame pour indiquer la temporisation."
     },
     "explication": "Au repos, la lame s'appuie sur la borne fixe (le petit trait horizontal) : le courant passe. Il s'ouvre quand l'appareil est actionné. C'est le contact « normalement fermé », celui des arrêts et des sécurités.",
     "reperage": "Porte le repère de l'appareil qui le manœuvre. Contacts auxiliaires NF : bornes finissant par 1-2 (11-12, 21-22…).",
@@ -49,18 +49,18 @@
     "type": "symbole",
     "image": "img/reco/sym-bobine.svg",
     "question": "Que représente ce symbole ?",
-    "nom": "Bobine de contacteur ou de relais",
+    "nom": "Bobine de contacteur",
     "faux": [
-      "Fusible",
-      "Résistance chauffante",
-      "Voyant lumineux"
+      "Résistance de chauffage",
+      "Fusible (cartouche)",
+      "Voyant de signalisation"
     ],
     "pourquoiPas": {
-      "Fusible": "Le fusible est un rectangle traversé de bout en bout par le conducteur.",
-      "Résistance chauffante": "La résistance est un rectangle plus allongé et ne porte pas les repères A1-A2, propres aux bobines.",
-      "Voyant lumineux": "Le voyant est un cercle barré d'une croix."
+      "Résistance de chauffage": "Une résistance se dessine en rectangle allongé dans le sens du conducteur. La bobine est un rectangle posé en travers, plus large que haut.",
+      "Fusible (cartouche)": "Le fusible est un rectangle traversé de bout en bout par le conducteur.",
+      "Voyant de signalisation": "Le voyant est un cercle barré d'une croix."
     },
-    "explication": "Un rectangle avec les bornes A1 et A2 : c'est la bobine (l'électro-aimant) d'un contacteur ou d'un relais. Les repères A1-A2 suffisent à l'identifier sur un schéma de commande.",
+    "explication": "Un rectangle posé en travers du conducteur, plus large que haut : c'est la bobine (l'électro-aimant) d'un contacteur ou d'un relais. Sur le schéma réel, ses bornes sont repérées A1 et A2.",
     "reperage": "Bornes A1-A2. Repère de l'appareil : -QA (contacteur de puissance) ou -KF (relais auxiliaire) en IEC 81346 ; KM ou KA en usage français.",
     "role": "Électro-aimant : quand elle est alimentée, elle attire l'armature mobile et fait basculer tous les contacts de l'appareil.",
     "verifie": false
@@ -73,14 +73,14 @@
     "question": "Que représente ce symbole ?",
     "nom": "Moteur asynchrone triphasé",
     "faux": [
-      "Génératrice à courant continu",
+      "Moteur à courant continu",
       "Transformateur triphasé",
-      "Moteur à courant continu"
+      "Génératrice triphasée"
     ],
     "pourquoiPas": {
-      "Génératrice à courant continu": "Une génératrice porte la lettre G dans le cercle, pas M.",
+      "Moteur à courant continu": "Un moteur à courant continu porte le signe « = » (ou ⎓) sous le M, pas « 3~ ».",
       "Transformateur triphasé": "Un transformateur se dessine avec deux cercles qui se chevauchent.",
-      "Moteur à courant continu": "Un moteur à courant continu porte le signe « = » (ou ⎓) sous le M, pas « 3~ »."
+      "Génératrice triphasée": "Une génératrice porte la lettre G dans le cercle, pas M."
     },
     "explication": "Un cercle avec M = moteur. Le « 3~ » indique qu'il est alimenté en alternatif triphasé : les trois traits du haut sont les trois phases U, V, W.",
     "reperage": "-MA en IEC 81346 ; M en usage français. Bornes de raccordement U, V, W.",
@@ -93,16 +93,16 @@
     "type": "symbole",
     "image": "img/reco/sym-fusible.svg",
     "question": "Que représente ce symbole ?",
-    "nom": "Fusible",
+    "nom": "Fusible de protection",
     "faux": [
-      "Résistance",
-      "Bobine de contacteur",
-      "Sectionneur"
+      "Résistance de charge",
+      "Bobine de relais",
+      "Shunt d'ampèremètre"
     ],
     "pourquoiPas": {
-      "Résistance": "La résistance est un rectangle simple : le conducteur s'arrête à ses bords et ne le traverse pas.",
-      "Bobine de contacteur": "La bobine est un rectangle repéré A1-A2, sans conducteur qui le traverse.",
-      "Sectionneur": "Le sectionneur est un contact avec une lame et un petit trait sur la borne fixe."
+      "Résistance de charge": "La résistance est un rectangle simple : le conducteur s'arrête à ses bords, il ne le traverse pas.",
+      "Bobine de relais": "La bobine est un rectangle posé en travers du conducteur, sans trait qui le traverse.",
+      "Shunt d'ampèremètre": "Un shunt est une résistance de mesure : rectangle simple, avec en plus deux bornes de mesure de tension."
     },
     "explication": "Le rectangle traversé de bout en bout par le conducteur, c'est le fusible : le trait central représente l'élément qui fond.",
     "reperage": "-FA en IEC 81346 ; F ou FU en usage français.",
@@ -115,16 +115,16 @@
     "type": "symbole",
     "image": "img/reco/sym-voyant.svg",
     "question": "Que représente ce symbole ?",
-    "nom": "Voyant lumineux (lampe de signalisation)",
+    "nom": "Voyant lumineux",
     "faux": [
-      "Moteur",
-      "Bobine de contacteur",
-      "Point de connexion"
+      "Avertisseur sonore",
+      "Moteur monophasé",
+      "Point de jonction"
     ],
     "pourquoiPas": {
-      "Moteur": "Un moteur est un cercle avec la lettre M, pas une croix.",
-      "Bobine de contacteur": "La bobine est un rectangle repéré A1-A2.",
-      "Point de connexion": "Une connexion se dessine par un petit point plein sur les conducteurs."
+      "Avertisseur sonore": "Un avertisseur sonore (klaxon, sirène) se dessine avec un pavillon ou un demi-cercle, pas un cercle barré d'une croix.",
+      "Moteur monophasé": "Un moteur est un cercle avec la lettre M, pas une croix.",
+      "Point de jonction": "Une jonction se dessine par un petit point plein sur les conducteurs."
     },
     "explication": "Un cercle barré d'une croix : c'est une lampe, utilisée en armoire comme voyant de signalisation (marche, défaut, sous tension). Sa couleur suit l'IEC 60204-1 : rouge = urgence, jaune = anormal, vert = normal, bleu = action obligatoire, blanc = neutre.",
     "reperage": "-PF en IEC 81346 (P = présenter une information) ; H en usage français (H1, H2…).",
@@ -139,14 +139,14 @@
     "question": "Que représente ce symbole ?",
     "nom": "Transformateur",
     "faux": [
-      "Moteur",
-      "Deux voyants en série",
-      "Bobine d'inductance (self)"
+      "Self de lissage",
+      "Moteur Dahlander",
+      "Relais bistable"
     ],
     "pourquoiPas": {
-      "Moteur": "Un moteur est un seul cercle avec la lettre M.",
-      "Deux voyants en série": "Les voyants sont barrés d'une croix, et deux voyants seraient dessinés séparément.",
-      "Bobine d'inductance (self)": "Une inductance se dessine par une suite de demi-boucles (ou un rectangle plein), pas par deux cercles."
+      "Self de lissage": "Une inductance se dessine par une suite de demi-boucles (ou un rectangle plein), pas par deux cercles.",
+      "Moteur Dahlander": "Un moteur, même à deux vitesses, est un seul cercle avec la lettre M.",
+      "Relais bistable": "Un relais bistable se dessine avec une bobine rectangulaire (souvent deux), pas des cercles."
     },
     "explication": "Deux cercles qui se chevauchent : un enroulement primaire et un enroulement secondaire couplés magnétiquement. En armoire, on le trouve souvent pour fabriquer la tension de commande (400 V → 24 V).",
     "reperage": "-TA en IEC 81346 (T = transformer l'énergie) ; T en usage français (T1).",
@@ -159,18 +159,18 @@
     "type": "materiel",
     "image": "img/reco/mat-disjoncteur-modulaire.svg",
     "question": "Quel est ce matériel ?",
-    "nom": "Disjoncteur divisionnaire (modulaire)",
+    "nom": "Disjoncteur modulaire",
     "faux": [
       "Interrupteur différentiel",
       "Contacteur modulaire",
-      "Télérupteur"
+      "Télérupteur modulaire"
     ],
     "pourquoiPas": {
-      "Interrupteur différentiel": "Un interrupteur différentiel porte un bouton « T » (test) et une sensibilité en mA (30 mA), pas une courbe « C16 ».",
-      "Contacteur modulaire": "Un contacteur modulaire n'a pas de manette de réarmement ni de calibre de protection.",
-      "Télérupteur": "Un télérupteur est commandé par impulsions et ne porte pas de courbe de déclenchement."
+      "Interrupteur différentiel": "Un interrupteur différentiel porte un bouton de test « T » bien visible, absent ici.",
+      "Contacteur modulaire": "Un contacteur modulaire a des bornes de bobine A1-A2 en façade et pas de manette de réarmement.",
+      "Télérupteur modulaire": "Un télérupteur a un petit levier de commande manuelle, pas une large manette, et ne protège pas."
     },
-    "explication": "Manette de réarmement + marquage « C16 » (courbe C, 16 A) : c'est un disjoncteur modulaire sur rail DIN. Il protège un circuit contre les surcharges et les courts-circuits.",
+    "explication": "Une manette de réarmement, un voyant de position et un format modulaire sur rail DIN : c'est un disjoncteur divisionnaire. Sur l'appareil réel, son marquage (ex. C16) donne la courbe et le calibre.",
     "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
     "role": "Protège un circuit contre les surcharges (déclencheur thermique) et les courts-circuits (déclencheur magnétique). Se réarme après déclenchement.",
     "verifie": false
@@ -183,16 +183,16 @@
     "question": "Quel est ce matériel ?",
     "nom": "Contacteur tripolaire",
     "faux": [
-      "Relais thermique",
-      "Disjoncteur moteur",
+      "Relais thermique à bilame",
+      "Disjoncteur-moteur rotatif",
       "Sectionneur porte-fusibles"
     ],
     "pourquoiPas": {
-      "Relais thermique": "Le relais thermique porte une molette de réglage et un bouton RESET, et ses contacts sont 95-96 / 97-98.",
-      "Disjoncteur moteur": "Le disjoncteur moteur a une manette rotative et une plage de réglage en ampères.",
-      "Sectionneur porte-fusibles": "Un sectionneur porte-fusibles s'ouvre pour laisser voir les cartouches fusibles."
+      "Relais thermique à bilame": "Le relais thermique porte une molette de réglage et un bouton de réarmement, et s'enfiche sous le contacteur par des broches.",
+      "Disjoncteur-moteur rotatif": "Le disjoncteur moteur a une manette rotative et une molette de réglage du courant.",
+      "Sectionneur porte-fusibles": "Un sectionneur porte-fusibles s'ouvre pour laisser voir les cartouches ; il n'a ni bobine ni fenêtre."
     },
-    "explication": "Trois pôles de puissance (1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3), une bobine A1-A2 et un contact auxiliaire 13-14 : c'est la signature d'un contacteur.",
+    "explication": "Trois pôles de puissance en haut et en bas, deux petites bornes de bobine à part, une fenêtre qui laisse voir la partie mobile : c'est la signature d'un contacteur. Sur l'appareil réel, tu lirais 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3, la bobine A1-A2 et un contact auxiliaire 13-14.",
     "reperage": "-QA en IEC 81346 ; KM en usage français. Bobine A1-A2, pôles 1-2 / 3-4 / 5-6, contact auxiliaire 13-14.",
     "role": "Établit et coupe à distance l'alimentation d'un récepteur (moteur…), commandé par sa bobine. Il ne protège pas : il faut l'associer à un disjoncteur moteur ou à un relais thermique.",
     "verifie": false
@@ -203,16 +203,16 @@
     "type": "materiel",
     "image": "img/reco/mat-arret-urgence.svg",
     "question": "Quel est ce matériel ?",
-    "nom": "Arrêt d'urgence « coup de poing »",
+    "nom": "Arrêt d'urgence à accrochage",
     "faux": [
-      "Bouton d'arrêt normal",
-      "Bouton de réarmement",
-      "Interrupteur à clé"
+      "Bouton d'arrêt à impulsion",
+      "Bouton de réarmement lumineux",
+      "Commutateur à clé rotatif"
     ],
     "pourquoiPas": {
-      "Bouton d'arrêt normal": "Un arrêt normal n'est pas rouge sur fond jaune et ne reste pas verrouillé une fois enfoncé.",
-      "Bouton de réarmement": "Un bouton de réarmement est généralement bleu.",
-      "Interrupteur à clé": "Il aurait une serrure, pas une tête en champignon."
+      "Bouton d'arrêt à impulsion": "Un arrêt normal n'est pas rouge sur fond jaune et ne reste pas verrouillé une fois enfoncé.",
+      "Bouton de réarmement lumineux": "Un bouton de réarmement est généralement bleu et revient seul en position.",
+      "Commutateur à clé rotatif": "Il aurait une serrure, pas une tête en champignon."
     },
     "explication": "Tête rouge en champignon sur fond jaune, déverrouillage par rotation : c'est l'arrêt d'urgence (ISO 13850). Il reste enfoncé jusqu'au déverrouillage volontaire.",
     "reperage": "-SF en IEC 81346 ; S ou AU en usage français. Contact NF à manœuvre positive d'ouverture.",
@@ -227,16 +227,16 @@
     "question": "Quel est ce matériel ?",
     "nom": "Relais thermique de protection",
     "faux": [
-      "Disjoncteur moteur",
-      "Contacteur auxiliaire",
+      "Disjoncteur moteur à molette",
+      "Contacteur auxiliaire 4 pôles",
       "Bloc de contacts temporisés"
     ],
     "pourquoiPas": {
-      "Disjoncteur moteur": "Le disjoncteur moteur se monte seul, avec une manette de commande ; le relais thermique se monte sous le contacteur et n'a pas de manette.",
-      "Contacteur auxiliaire": "Un contacteur auxiliaire a une bobine A1-A2, pas de molette de réglage en ampères.",
-      "Bloc de contacts temporisés": "Un bloc temporisé se règle en secondes, pas en ampères."
+      "Disjoncteur moteur à molette": "Le disjoncteur moteur se monte seul sur le rail, avec une manette de commande ; le relais thermique s'enfiche sous un contacteur.",
+      "Contacteur auxiliaire 4 pôles": "Un contacteur auxiliaire a une bobine et pas de molette de réglage.",
+      "Bloc de contacts temporisés": "Un bloc temporisé se clipse en façade d'un contacteur et se règle en secondes ; il n'a pas de broches de puissance."
     },
-    "explication": "Molette de réglage en ampères (9–13 A), bouton RESET, contacts 95-96 et 97-98, et trois broches qui s'enfichent sous un contacteur : c'est un relais thermique. Il surveille le courant du moteur et agit sur la commande, pas directement sur la puissance.",
+    "explication": "Une molette de réglage graduée, un bouton de réarmement, et trois broches qui s'enfichent directement sous un contacteur : c'est un relais thermique. Sur l'appareil réel, la molette est graduée en ampères et les contacts sont repérés 95-96 et 97-98.",
     "reperage": "F en usage français (souvent F2 ou FR). En IEC 81346, la lettre varie selon les référentiels (-FA, -BB…) : vérifie celle de ton cours. Contacts 95-96 (NF) et 97-98 (NO).",
     "role": "Protège le moteur contre les surcharges : réglé sur l'In du moteur, il ouvre son contact 95-96 placé dans le circuit de commande, ce qui fait retomber le contacteur. Il ne protège pas contre les courts-circuits.",
     "verifie": false
@@ -250,15 +250,15 @@
     "nom": "Disjoncteur moteur magnéto-thermique",
     "faux": [
       "Interrupteur-sectionneur rotatif",
-      "Contacteur",
-      "Relais thermique"
+      "Contacteur avec relais thermique",
+      "Relais thermique à réarmement"
     ],
     "pourquoiPas": {
-      "Interrupteur-sectionneur rotatif": "Un interrupteur-sectionneur n'a pas de plage de réglage en ampères : il ne protège pas.",
-      "Contacteur": "Un contacteur n'a pas de manette : il est commandé par sa bobine A1-A2.",
-      "Relais thermique": "Le relais thermique n'a pas de manette de commande et ne coupe pas lui-même la puissance."
+      "Interrupteur-sectionneur rotatif": "Un interrupteur-sectionneur n'a pas de molette de réglage du courant : il ne protège pas.",
+      "Contacteur avec relais thermique": "Cet ensemble se reconnaît à ses deux blocs empilés et à sa bobine ; il n'a pas de manette.",
+      "Relais thermique à réarmement": "Le relais thermique n'a pas de manette de commande et ne coupe pas lui-même la puissance."
     },
-    "explication": "Manette rotative I/O + molette de réglage en ampères (2,5–4 A) : c'est un disjoncteur moteur. Il regroupe la protection magnétique (courts-circuits) et thermique (surcharges) dans un seul appareil.",
+    "explication": "Une manette rotative de commande + une molette de réglage graduée : c'est un disjoncteur moteur. Il regroupe la protection magnétique (courts-circuits) et thermique (surcharges) dans un seul appareil ; sur l'appareil réel, la molette indique une plage en ampères.",
     "reperage": "-QA en IEC 81346 ; Q en usage français. Pôles 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3.",
     "role": "Protège le moteur contre les courts-circuits (magnétique) et les surcharges (thermique). La molette se règle sur l'intensité nominale de la plaque moteur.",
     "verifie": false
@@ -272,13 +272,13 @@
     "nom": "Sectionneur",
     "faux": [
       "Disjoncteur",
-      "Contact à fermeture (NO)",
-      "Contact à ouverture (NF)"
+      "Interrupteur",
+      "Contacteur"
     ],
     "pourquoiPas": {
-      "Disjoncteur": "Le disjoncteur porte une croix (×) sur la borne fixe, pas un trait perpendiculaire.",
-      "Contact à fermeture (NO)": "Un contact NO simple n'a rien au bout de sa borne fixe.",
-      "Contact à ouverture (NF)": "Sur un NF, la lame est fermée au repos contre un trait latéral."
+      "Disjoncteur": "La fonction disjoncteur se dessine par une croix (×) sur la borne fixe, pas par un trait perpendiculaire.",
+      "Interrupteur": "Le trait perpendiculaire au bout de la borne fixe désigne précisément la fonction sectionnement, pas un simple interrupteur.",
+      "Contacteur": "La fonction contacteur se dessine par un petit demi-cercle sur la borne fixe."
     },
     "explication": "Un contact ouvert avec un petit trait perpendiculaire au bout de la borne fixe : c'est la fonction sectionnement. Le sectionneur isole une installation pour travailler dessus en sécurité.",
     "reperage": "-QB en IEC 81346 (Q = commuter l'énergie, B = sectionnement) ; Q en usage français (Q1, souvent associé aux fusibles).",
@@ -295,12 +295,12 @@
     "faux": [
       "Sectionneur",
       "Contacteur",
-      "Fusible"
+      "Interrupteur"
     ],
     "pourquoiPas": {
       "Sectionneur": "Le sectionneur a un petit trait perpendiculaire sur la borne fixe, pas une croix.",
-      "Contacteur": "Le contact de puissance d'un contacteur porte un petit demi-cercle (fonction contacteur), pas une croix.",
-      "Fusible": "Le fusible est un rectangle traversé par le conducteur."
+      "Contacteur": "La fonction contacteur se dessine par un petit demi-cercle sur la borne fixe.",
+      "Interrupteur": "Un interrupteur n'a pas de pouvoir de coupure en court-circuit : la croix est réservée à la fonction disjoncteur."
     },
     "explication": "La croix (×) sur la borne fixe désigne la fonction disjoncteur : l'appareil est capable d'ouvrir un courant de court-circuit. En schéma développé, on ajoute souvent les déclencheurs thermique et magnétique.",
     "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
@@ -313,15 +313,15 @@
     "type": "symbole",
     "image": "img/reco/sym-bp-no.svg",
     "question": "Que représente ce symbole ?",
-    "nom": "Bouton-poussoir à fermeture (marche)",
+    "nom": "Bouton-poussoir à fermeture",
     "faux": [
-      "Bouton-poussoir à ouverture (arrêt)",
-      "Interrupteur de position (fin de course)",
+      "Bouton-poussoir à ouverture",
+      "Interrupteur de fin de course",
       "Contact temporisé au travail"
     ],
     "pourquoiPas": {
-      "Bouton-poussoir à ouverture (arrêt)": "Le contact est ici ouvert au repos (lame écartée) : il se ferme quand on appuie. Un BP d'arrêt serait fermé au repos.",
-      "Interrupteur de position (fin de course)": "Un fin de course est actionné par la machine : son actionneur se dessine par un petit triangle ou un galet, pas par le symbole de poussée.",
+      "Bouton-poussoir à ouverture": "Le contact est ouvert au repos (lame écartée) : il se ferme quand on appuie. Un bouton d'arrêt serait fermé au repos.",
+      "Interrupteur de fin de course": "Un fin de course est actionné par la machine : son actionneur se dessine avec un galet ou un triangle, pas le crochet de poussée manuelle.",
       "Contact temporisé au travail": "La temporisation se dessine par un arc de cercle (parachute), pas par une commande manuelle en pointillés."
     },
     "explication": "Un contact NO relié en pointillés au symbole « commande par poussée » (le crochet à gauche) : c'est un bouton-poussoir à fermeture. Il ne reste fermé que pendant l'appui, d'où la nécessité d'un auto-maintien.",
@@ -335,16 +335,16 @@
     "type": "symbole",
     "image": "img/reco/sym-bp-nf.svg",
     "question": "Que représente ce symbole ?",
-    "nom": "Bouton-poussoir à ouverture (arrêt)",
+    "nom": "Bouton-poussoir à ouverture",
     "faux": [
-      "Bouton-poussoir à fermeture (marche)",
+      "Bouton-poussoir à fermeture",
       "Arrêt d'urgence à accrochage",
       "Contact NF de relais thermique"
     ],
     "pourquoiPas": {
-      "Bouton-poussoir à fermeture (marche)": "Ici la lame s'appuie sur la borne fixe : le contact est fermé au repos, il s'ouvre à l'appui.",
-      "Arrêt d'urgence à accrochage": "L'arrêt d'urgence se dessine avec une tête en champignon et un symbole de verrouillage (accrochage).",
-      "Contact NF de relais thermique": "Le contact du relais thermique est commandé par l'élément thermique (créneau), pas par une poussée manuelle."
+      "Bouton-poussoir à fermeture": "La lame s'appuie ici sur la borne fixe : le contact est fermé au repos et s'ouvre à l'appui.",
+      "Arrêt d'urgence à accrochage": "L'arrêt d'urgence se dessine avec une tête en champignon et un symbole d'accrochage.",
+      "Contact NF de relais thermique": "Le contact du relais thermique est commandé par l'élément thermique, pas par une poussée manuelle."
     },
     "explication": "Contact NF (fermé au repos) + commande par poussée : c'est le bouton d'arrêt. Il est câblé en série, en tête du circuit de commande, pour que l'arrêt soit prioritaire.",
     "reperage": "-SF en IEC 81346 ; S en usage français (S1 pour l'arrêt, par exemple). Bornes 11-12 ou 1-2.",
@@ -357,16 +357,16 @@
     "type": "symbole",
     "image": "img/reco/sym-thermique.svg",
     "question": "Que représente ce symbole ?",
-    "nom": "Élément thermique d'un relais de protection",
+    "nom": "Élément thermique de relais",
     "faux": [
-      "Fusible",
-      "Résistance chauffante",
-      "Bobine de contacteur"
+      "Fusible temporisé (aM)",
+      "Résistance de chauffage",
+      "Bobine de déclencheur"
     ],
     "pourquoiPas": {
-      "Fusible": "Le fusible est un rectangle traversé par un trait droit, sans créneau.",
-      "Résistance chauffante": "Une résistance est un rectangle vide, non traversé.",
-      "Bobine de contacteur": "Une bobine est un rectangle repéré A1-A2 et n'est pas traversée par le conducteur de puissance."
+      "Fusible temporisé (aM)": "Un fusible, quelle que soit sa classe, est un rectangle traversé par un trait droit, sans créneau.",
+      "Résistance de chauffage": "Une résistance est un rectangle vide : le conducteur ne le traverse pas.",
+      "Bobine de déclencheur": "Une bobine (de déclencheur ou de relais) est un rectangle en travers, non traversé par le conducteur de puissance."
     },
     "explication": "Un rectangle traversé par le conducteur qui fait un « créneau » : c'est le symbole de l'effet thermique. Dans le circuit de puissance, il représente les bilames du relais thermique placés sur chaque phase.",
     "reperage": "Même repère que le relais thermique (F2, FR…). Dans le circuit de puissance, bornes 1/L1 - 2/T1, etc.",
@@ -382,13 +382,13 @@
     "nom": "95-96 (contact NF)",
     "faux": [
       "97-98 (contact NO)",
-      "A1-A2",
-      "2/T1 - 4/T2 - 6/T3"
+      "13-14 (contact NO)",
+      "21-22 (contact NF)"
     ],
     "pourquoiPas": {
-      "97-98 (contact NO)": "Le contact 97-98 se ferme en cas de défaut : il sert à allumer un voyant « défaut thermique », pas à couper.",
-      "A1-A2": "A1-A2 sont les bornes de la bobine d'un contacteur : un relais thermique n'a pas de bobine.",
-      "2/T1 - 4/T2 - 6/T3": "Ce sont les sorties de puissance vers le moteur, pas des contacts de commande."
+      "97-98 (contact NO)": "Le 97-98 se ferme en cas de défaut : il sert à allumer un voyant « défaut thermique », pas à couper la bobine.",
+      "13-14 (contact NO)": "13-14 est le premier contact auxiliaire NO d'un contacteur (auto-maintien), pas un contact de relais thermique.",
+      "21-22 (contact NF)": "21-22 est un contact auxiliaire NF ordinaire ; les contacts des relais de protection portent le 9 en dizaine (95-96)."
     },
     "explication": "Le contact 95-96 est NF : fermé en temps normal, il s'ouvre quand le relais déclenche. Câblé en série avec la bobine du contacteur, il la coupe en cas de surcharge. Moyen mnémotechnique : 9-5-9-6 « ça coupe », 9-7-9-8 « ça signale ».",
     "reperage": "Contacts auxiliaires du relais thermique : 95-96 (NF, coupure) et 97-98 (NO, signalisation).",
@@ -404,13 +404,13 @@
     "nom": "A1 et A2",
     "faux": [
       "13 et 14",
-      "1/L1 et 2/T1",
-      "95 et 96"
+      "95 et 96",
+      "11 et 12"
     ],
     "pourquoiPas": {
-      "13 et 14": "13-14 est un contact auxiliaire NO (souvent utilisé pour l'auto-maintien), pas la bobine.",
-      "1/L1 et 2/T1": "Ce sont l'entrée et la sortie du premier pôle de puissance.",
-      "95 et 96": "95-96 est le contact NF d'un relais thermique, pas une borne de contacteur."
+      "13 et 14": "13-14 est un contact auxiliaire NO, souvent utilisé pour l'auto-maintien, pas la bobine.",
+      "95 et 96": "95-96 est le contact NF d'un relais thermique, pas une borne de contacteur.",
+      "11 et 12": "11-12 serait un contact auxiliaire NF ; la bobine est toujours repérée par une lettre (A1-A2)."
     },
     "explication": "La bobine est toujours repérée A1-A2 (A2 souvent côté commun, 0 V ou neutre). On l'alimente sous la tension de commande indiquée sur l'appareil (24 V, 230 V…), qui n'est pas forcément celle de la puissance.",
     "reperage": "Bobine A1-A2 ; pôles de puissance 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3 ; auxiliaires 13-14 (NO), 21-22 (NF)…",
@@ -422,17 +422,17 @@
     "niveau": 2,
     "type": "materiel",
     "image": "img/reco/mat-disjoncteur-modulaire.svg",
-    "question": "Que signifie le marquage « C16 » sur ce disjoncteur ?",
-    "nom": "Courbe de déclenchement C, calibre 16 A",
+    "question": "Sur un disjoncteur modulaire comme celui-ci, que signifie le marquage « C16 » ?",
+    "nom": "Courbe C, calibre 16 A",
     "faux": [
-      "Pouvoir de coupure de 16 kA",
-      "Section de câble 16 mm²",
+      "Pouvoir de coupure 16 kA",
+      "Câble de section 16 mm²",
       "Classe C, sensibilité 16 mA"
     ],
     "pourquoiPas": {
-      "Pouvoir de coupure de 16 kA": "Le pouvoir de coupure est marqué à part, dans un petit cadre (ex. 6000 = 6 kA).",
-      "Section de câble 16 mm²": "Le disjoncteur indique son calibre, pas la section : un 16 A se raccorde typiquement en 2,5 mm² cuivre en habitat.",
-      "Classe C, sensibilité 16 mA": "Une sensibilité en mA concerne les dispositifs différentiels (30 mA, 300 mA) ; elle n'existe pas en 16 mA."
+      "Pouvoir de coupure 16 kA": "Le pouvoir de coupure est marqué à part, dans un petit cadre (ex. 6000 = 6 kA).",
+      "Câble de section 16 mm²": "Le disjoncteur indique son calibre, pas la section : un 16 A se raccorde typiquement en 2,5 mm² cuivre.",
+      "Classe C, sensibilité 16 mA": "Une sensibilité en mA concerne les différentiels (30 mA, 300 mA) ; elle n'existe pas en 16 mA."
     },
     "explication": "La lettre donne la courbe : B (déclenche entre 3 et 5 In, longues lignes), C (5 à 10 In, usage général), D (10 à 20 In, forts appels de courant comme les transformateurs ou moteurs). Le nombre donne le calibre In en ampères.",
     "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
@@ -448,13 +448,13 @@
     "nom": "13-14",
     "faux": [
       "11-12",
-      "21-22",
-      "A1-A2"
+      "23-24",
+      "21-22"
     ],
     "pourquoiPas": {
       "11-12": "Le chiffre des unités 1-2 désigne un contact NF ; or ce symbole est un contact NO.",
-      "21-22": "C'est le repérage d'un deuxième contact, et de type NF.",
-      "A1-A2": "A1-A2 désigne la bobine, pas un contact."
+      "23-24": "C'est bien un NO, mais la dizaine 2 désigne le deuxième contact. Ici, c'est le premier.",
+      "21-22": "Dizaine 2 = deuxième contact, et unités 1-2 = NF : deux erreurs."
     },
     "explication": "Repérage des contacts auxiliaires (IEC 60947) : le chiffre des dizaines est le numéro d'ordre du contact (1er, 2e…), le chiffre des unités sa fonction : 1-2 = NF, 3-4 = NO, 5-6 = NF spécial (temporisé ou thermique), 7-8 = NO spécial. Premier contact + NO = 13-14.",
     "reperage": "Contacts auxiliaires : dizaine = numéro d'ordre, unité = fonction (1-2 NF, 3-4 NO, 5-6 / 7-8 fonctions spéciales).",
@@ -471,12 +471,12 @@
     "faux": [
       "23-24",
       "11-12",
-      "95-96"
+      "31-32"
     ],
     "pourquoiPas": {
       "23-24": "Unités 3-4 = contact NO. Ce symbole est un NF.",
       "11-12": "Dizaine 1 = premier contact. Ici, c'est le deuxième.",
-      "95-96": "95-96 est réservé au contact NF du relais thermique (fonction spéciale)."
+      "31-32": "Dizaine 3 = troisième contact. Ici, c'est le deuxième."
     },
     "explication": "Dizaine = numéro d'ordre (2e contact → 2), unités = fonction (NF → 1-2). Donc 21-22. Le 9 en dizaine (95-96, 97-98) est réservé aux contacts des relais de protection.",
     "reperage": "Contacts auxiliaires : dizaine = numéro d'ordre, unité = fonction (1-2 NF, 3-4 NO).",
@@ -489,16 +489,16 @@
     "type": "materiel",
     "image": "img/reco/mat-disjoncteur-moteur.svg",
     "question": "Sur quelle valeur règles-tu la molette de ce disjoncteur moteur ?",
-    "nom": "L'intensité nominale In lue sur la plaque du moteur",
+    "nom": "Sur l'In lu sur la plaque moteur",
     "faux": [
-      "Le courant de démarrage du moteur",
-      "1,5 × In pour éviter les déclenchements",
-      "Le calibre du câble d'alimentation"
+      "Sur le courant de démarrage mesuré",
+      "Sur 1,2 fois l'In de la plaque",
+      "Sur l'Iz admissible du câble moteur"
     ],
     "pourquoiPas": {
-      "Le courant de démarrage du moteur": "Le courant de démarrage (6 à 8 In) est absorbé par la partie magnétique, réglée en usine ; la molette règle la partie thermique.",
-      "1,5 × In pour éviter les déclenchements": "Surrégler, c'est laisser le moteur chauffer en surcharge sans protection : il finit par griller.",
-      "Le calibre du câble d'alimentation": "Le câble est protégé par ailleurs ; la molette protège le moteur, elle se règle donc sur le moteur."
+      "Sur le courant de démarrage mesuré": "Le courant de démarrage (6 à 8 In) est absorbé par la partie magnétique, réglée en usine ; la molette règle la protection thermique.",
+      "Sur 1,2 fois l'In de la plaque": "Surrégler, c'est laisser le moteur chauffer en surcharge sans protection : il finit par griller.",
+      "Sur l'Iz admissible du câble moteur": "Le câble a sa propre protection ; la molette protège le moteur, elle se règle donc sur le moteur."
     },
     "explication": "La protection thermique se règle sur l'In du moteur, pour la tension réelle du réseau (ex. plaque 230/400 V, 6,2/3,6 A sur réseau 400 V → réglage 3,6 A). La pointe de démarrage est tolérée grâce à l'inertie thermique et au seuil magnétique fixe (souvent ~13 In).",
     "reperage": "-QA en IEC 81346 ; Q en usage français.",
@@ -511,16 +511,16 @@
     "type": "materiel",
     "image": "img/reco/mat-arret-urgence.svg",
     "question": "Quel contact et quelle catégorie d'arrêt pour cet arrêt d'urgence (IEC 60204-1) ?",
-    "nom": "Contact NF à ouverture positive, arrêt de catégorie 0 ou 1",
+    "nom": "NF à ouverture positive, catégorie 0 ou 1",
     "faux": [
-      "Contact NO, arrêt de catégorie 2",
-      "Contact NF simple, arrêt de catégorie 2",
-      "Contact NO temporisé, arrêt de catégorie 1"
+      "NF à ouverture positive, catégorie 2",
+      "NO surveillé par relais, catégorie 0 ou 1",
+      "NF simple non positive, catégorie 0 ou 1"
     ],
     "pourquoiPas": {
-      "Contact NO, arrêt de catégorie 2": "Un NO ne coupe rien si un fil est coupé (pas de sécurité positive), et la catégorie 2 (énergie maintenue) est interdite pour un arrêt d'urgence.",
-      "Contact NF simple, arrêt de catégorie 2": "Un NF ordinaire peut rester soudé ; il faut l'ouverture positive. Et la catégorie 2 est interdite en arrêt d'urgence.",
-      "Contact NO temporisé, arrêt de catégorie 1": "La catégorie 1 est admise, mais l'organe d'arrêt d'urgence doit agir par un contact NF à ouverture positive, pas par un NO."
+      "NF à ouverture positive, catégorie 2": "Le contact est le bon, mais la catégorie 2 (énergie maintenue sur les actionneurs) est interdite pour un arrêt d'urgence.",
+      "NO surveillé par relais, catégorie 0 ou 1": "Un NO ne coupe rien si un fil se coupe : un arrêt d'urgence agit toujours par un NF à ouverture positive, même surveillé.",
+      "NF simple non positive, catégorie 0 ou 1": "Un NF ordinaire peut rester soudé ; seule la manœuvre positive garantit l'ouverture mécanique des contacts."
     },
     "explication": "L'arrêt d'urgence (ISO 13850, IEC 60204-1) agit par un contact NF à manœuvre positive d'ouverture : appuyer sépare mécaniquement les contacts, même soudés. L'arrêt est de catégorie 0 (coupure immédiate de l'énergie) ou 1 (freinage contrôlé puis coupure), jamais 2.",
     "reperage": "-SF en IEC 81346 ; contact repéré avec le symbole d'ouverture positive (flèche dans un cercle).",
@@ -555,16 +555,16 @@
     "type": "materiel",
     "image": "img/reco/mat-contacteur.svg",
     "question": "Ce contacteur pilote un moteur, alimenté par des fusibles. Que faut-il ajouter pour protéger le moteur contre les surcharges ?",
-    "nom": "Un relais thermique réglé sur l'In du moteur",
+    "nom": "Un relais thermique réglé sur l'In",
     "faux": [
-      "Rien : le contacteur s'ouvre en cas de surcharge",
-      "Des fusibles gG au calibre In du moteur",
-      "Un second contacteur en série"
+      "Des fusibles gG calibrés sur l'In",
+      "Un différentiel 30 mA en amont",
+      "Un relais temporisé sur la bobine"
     ],
     "pourquoiPas": {
-      "Rien : le contacteur s'ouvre en cas de surcharge": "Un contacteur ne mesure rien : il reste collé tant que sa bobine est alimentée, même si le moteur chauffe.",
-      "Des fusibles gG au calibre In du moteur": "Au démarrage, le moteur appelle 6 à 8 In : des gG au calibre In fondraient. On utilise des fusibles aM (courts-circuits) + relais thermique (surcharges).",
-      "Un second contacteur en série": "Deux contacteurs coupent mieux, mais aucun ne détecte une surcharge."
+      "Des fusibles gG calibrés sur l'In": "Au démarrage, le moteur appelle 6 à 8 In : des gG au calibre In fondraient. On utilise des fusibles aM (courts-circuits) + relais thermique (surcharges).",
+      "Un différentiel 30 mA en amont": "Un différentiel détecte les fuites à la terre : il protège les personnes, pas le moteur contre une surcharge.",
+      "Un relais temporisé sur la bobine": "Une temporisation ne mesure pas le courant : elle ne détecte aucune surcharge."
     },
     "explication": "Un départ moteur assure trois fonctions : sectionnement, protection et commande. Avec des fusibles aM (courts-circuits uniquement), la surcharge doit être confiée à un relais thermique dont le contact 95-96 coupe la bobine du contacteur.",
     "reperage": "Départ moteur classique : Q1 (sectionneur porte-fusibles aM) + KM1 (contacteur) + F2 (relais thermique).",
@@ -577,16 +577,16 @@
     "type": "symbole",
     "image": "img/reco/sym-sectionneur.svg",
     "question": "Peut-on manœuvrer cet appareil en charge ?",
-    "nom": "Non : il s'ouvre hors charge, il sert à isoler",
+    "nom": "Non, il n'a pas de pouvoir de coupure",
     "faux": [
-      "Oui, comme un interrupteur",
-      "Oui, s'il est tripolaire",
-      "Oui, mais seulement en courant continu"
+      "Oui, s'il est équipé de fusibles aM",
+      "Oui, si le courant reste sous son calibre",
+      "Oui, à condition de l'ouvrir rapidement"
     ],
     "pourquoiPas": {
-      "Oui, comme un interrupteur": "Un interrupteur a un pouvoir de coupure en charge ; le sectionneur seul n'en a pas (symbole sans demi-cercle ni croix).",
-      "Oui, s'il est tripolaire": "Le nombre de pôles ne change rien : sans pouvoir de coupure, chaque pôle forme un arc.",
-      "Oui, mais seulement en courant continu": "C'est l'inverse : le courant continu est encore plus difficile à couper, l'arc ne s'éteint pas de lui-même."
+      "Oui, s'il est équipé de fusibles aM": "Les fusibles protègent, mais ne donnent aucun pouvoir de coupure aux contacts du sectionneur.",
+      "Oui, si le courant reste sous son calibre": "Le calibre indique le courant qu'il peut supporter fermé, pas un courant qu'il saurait couper.",
+      "Oui, à condition de l'ouvrir rapidement": "La vitesse de manœuvre ne suffit pas : sans chambre de coupure, l'arc s'établit quand même."
     },
     "explication": "Le sectionneur garantit une distance d'isolement, mais n'a pas de pouvoir de coupure. On coupe d'abord la charge (contacteur, disjoncteur), puis on ouvre le sectionneur. Les modèles « interrupteur-sectionneur » combinent les deux fonctions et portent les deux symboles.",
     "reperage": "-QB en IEC 81346 ; Q en usage français. Souvent équipé d'un contact de précoupure qui coupe la commande avant l'ouverture des pôles.",
@@ -599,16 +599,16 @@
     "type": "symbole",
     "image": "img/reco/sym-transfo.svg",
     "question": "Ce transformateur a une tension de court-circuit ucc = 5 %. Au secondaire, le courant de court-circuit vaut environ…",
-    "nom": "20 fois l'intensité nominale",
+    "nom": "Environ 20 × In",
     "faux": [
-      "5 fois l'intensité nominale",
-      "1,05 fois l'intensité nominale",
-      "100 fois l'intensité nominale"
+      "Environ 5 × In",
+      "Environ 1,05 × In",
+      "Environ 100 × In"
     ],
     "pourquoiPas": {
-      "5 fois l'intensité nominale": "C'est l'inverse : plus ucc est faible, plus Icc est grand. Icc ≈ In × 100 / ucc.",
-      "1,05 fois l'intensité nominale": "ucc n'est pas une marge de surcharge : c'est la tension qu'il faut au primaire pour faire circuler In secondaire court-circuité.",
-      "100 fois l'intensité nominale": "Ce serait le cas avec ucc = 1 %, ce qui ne se rencontre pas en distribution."
+      "Environ 5 × In": "C'est l'inverse : plus ucc est faible, plus Icc est grand. Icc ≈ In × 100 / ucc.",
+      "Environ 1,05 × In": "ucc n'est pas une marge de surcharge : c'est la tension qu'il faut au primaire pour faire circuler In dans le secondaire court-circuité.",
+      "Environ 100 × In": "Ce serait le cas avec ucc = 1 %, ce qui ne se rencontre pas en distribution."
     },
     "explication": "Si 5 % de la tension suffisent à faire passer In secondaire en court-circuit, la pleine tension fait passer 100 / 5 = 20 fois In : Icc ≈ In × 100 / ucc (en négligeant l'impédance du réseau amont). Cette valeur dimensionne le pouvoir de coupure des disjoncteurs.",
     "reperage": "-TA en IEC 81346 ; T en usage français.",
@@ -623,14 +623,14 @@
     "question": "Plaque moteur : 230/400 V – 19/11 A. Réseau 400 V, couplage étoile. Sur combien règles-tu ce relais ?",
     "nom": "11 A",
     "faux": [
-      "13 A, pour garder de la marge",
+      "13 A",
       "19 A",
-      "11 × √3 ≈ 19 A"
+      "6,4 A"
     ],
     "pourquoiPas": {
-      "13 A, pour garder de la marge": "Surrégler supprime la protection : le moteur peut tourner en surcharge sans que le relais déclenche.",
+      "13 A": "Surrégler supprime la protection : le moteur peut tourner en surcharge sans que le relais déclenche.",
       "19 A": "19 A est le courant pour un réseau 230 V (couplage triangle). Sur 400 V, le moteur absorbe 11 A.",
-      "11 × √3 ≈ 19 A": "En étoile, courant de ligne = courant dans l'enroulement : il n'y a pas de √3 à appliquer, et le relais voit le courant de ligne."
+      "6,4 A": "11 / √3 : en étoile, courant de ligne = courant dans l'enroulement, il n'y a pas de √3 à appliquer. Et le relais voit le courant de ligne."
     },
     "explication": "Le relais thermique est placé sur les conducteurs de ligne : il se règle sur le courant de ligne nominal pour la tension réelle du réseau. Plaque 230/400 V sur réseau 400 V → couplage étoile → In = 11 A, dans la plage 9–13 A du relais.",
     "reperage": "F2 / FR en usage français ; contacts 95-96 et 97-98.",
@@ -646,13 +646,13 @@
     "nom": "Jaune",
     "faux": [
       "Rouge",
-      "Vert",
-      "Bleu"
+      "Bleu",
+      "Blanc"
     ],
     "pourquoiPas": {
       "Rouge": "Le rouge est réservé à l'urgence : condition dangereuse qui demande une action immédiate.",
-      "Vert": "Le vert signale une condition normale.",
-      "Bleu": "Le bleu signale une action obligatoire de l'opérateur (ex. réarmement à effectuer)."
+      "Bleu": "Le bleu signale une action obligatoire de l'opérateur (ex. réarmement à effectuer).",
+      "Blanc": "Le blanc est neutre : information générale, quand les autres couleurs ne s'appliquent pas."
     },
     "explication": "Code couleur des voyants (IEC 60204-1) : rouge = urgence, jaune = anormal, bleu = action obligatoire, vert = normal, blanc = neutre (information générale). Le jaune prévient avant que la situation devienne dangereuse.",
     "reperage": "-PF en IEC 81346 ; H en usage français (H1, H2…).",

@@ -10,27 +10,63 @@
         "situation": "Tu arrives devant le coffret. Le voyant « sous tension » est éteint. Un appui sur Marche ne produit rien : pas de bruit de contacteur.",
         "question": "Par quoi commences-tu ?",
         "choix": [
-          { "texte": "Vérifier que le sectionneur général est fermé et que l'alimentation arrive au coffret", "verdict": "bon", "explication": "On va du plus simple au plus probable. Un voyant « sous tension » éteint oriente d'abord vers l'alimentation du coffret ou de la commande, pas vers le moteur." },
-          { "texte": "Démonter le moteur pour le tester à l'atelier", "verdict": "mauvais", "explication": "C'est long, et rien n'indique le moteur : s'il était seul en cause, le voyant serait allumé et le contacteur collerait." },
-          { "texte": "Réarmer le relais thermique", "verdict": "mauvais", "explication": "Un relais thermique déclenché coupe la bobine du contacteur, mais n'éteint pas le voyant « sous tension ». Le symptôme montré oriente vers l'alimentation." }
+          {
+            "texte": "Contrôler l'arrivée de tension au coffret et l'état du sectionneur",
+            "verdict": "bon",
+            "explication": "On va du plus simple au plus probable. Un voyant « sous tension » éteint oriente d'abord vers l'alimentation du coffret ou de la commande, pas vers les organes en aval."
+          },
+          {
+            "texte": "Contrôler la bobine du contacteur, qui ne colle plus à l'appui",
+            "verdict": "mauvais",
+            "explication": "Une bobine coupée empêcherait le contacteur de coller, mais n'éteindrait pas le voyant « sous tension ». Le symptôme montre un problème en amont."
+          },
+          {
+            "texte": "Réarmer le relais thermique puis refaire un essai de marche",
+            "verdict": "mauvais",
+            "explication": "Un relais thermique déclenché coupe la bobine du contacteur, mais n'éteint pas le voyant « sous tension ». Ce n'est pas la piste du symptôme."
+          }
         ]
       },
       {
         "situation": "Le sectionneur est fermé. En amont du transformateur de commande, tu mesures 400 V. Au secondaire du transformateur (circuit de commande 24 V) : 0 V.",
         "question": "Que soupçonnes-tu ?",
         "choix": [
-          { "texte": "La protection du circuit de commande (fusible ou disjoncteur au primaire ou au secondaire du transformateur)", "verdict": "bon", "explication": "Le transformateur est alimenté mais ne délivre rien : sa protection a fonctionné (ou, plus rarement, son enroulement est coupé). C'est le premier point à contrôler." },
-          { "texte": "Le moteur est grillé", "verdict": "mauvais", "explication": "Le moteur est dans le circuit de puissance. Ici, c'est la commande qui n'est pas alimentée : le moteur n'explique pas l'absence de 24 V." },
-          { "texte": "Le contacteur est collé", "verdict": "mauvais", "explication": "Un contacteur collé ferait tourner le moteur en permanence. Ici, c'est l'inverse : rien n'est alimenté côté commande." }
+          {
+            "texte": "La protection du circuit de commande, au primaire ou au secondaire",
+            "verdict": "bon",
+            "explication": "Le transformateur est alimenté mais ne délivre rien : sa protection a fonctionné. C'est le point le plus probable et le plus rapide à contrôler."
+          },
+          {
+            "texte": "Le transformateur de commande, dont l'enroulement est coupé",
+            "verdict": "acceptable",
+            "explication": "Possible, mais bien plus rare qu'une protection qui a fonctionné. On contrôle d'abord le fusible ou le disjoncteur de commande, puis l'enroulement si besoin."
+          },
+          {
+            "texte": "Le contact d'arrêt d'urgence, resté ouvert dans la commande",
+            "verdict": "mauvais",
+            "explication": "Un arrêt d'urgence ouvert coupe la commande en aval du transformateur : tu mesurerais encore 24 V au secondaire. Ici, il n'y a rien dès la sortie du transformateur."
+          }
         ]
       },
       {
         "situation": "Le fusible du secondaire est fondu.",
         "question": "Que fais-tu avant de le remplacer ?",
         "choix": [
-          { "texte": "Chercher pourquoi il a fondu : circuit de commande hors tension, contrôle à l'ohmmètre (court-circuit, bobine en défaut, fil pincé)", "verdict": "bon", "explication": "Un fusible qui fond est un symptôme, pas une panne. Si tu le remplaces sans trouver la cause, il refondra, ou pire, tu masqueras un défaut qui s'aggrave." },
-          { "texte": "Le remplacer tout de suite à l'identique et relancer", "verdict": "acceptable", "explication": "Ça peut fonctionner si le défaut était fugitif. Mais si le court-circuit est permanent, le fusible refond aussitôt : mieux vaut d'abord chercher la cause. Remplacement d'un fusible : hors tension, habilitation BS au minimum." },
-          { "texte": "Mettre un fusible de calibre supérieur pour qu'il ne refonde pas", "verdict": "danger", "explication": "Surcalibrer un fusible supprime la protection du transformateur et des conducteurs : ils peuvent chauffer jusqu'à l'incendie. Un fusible se remplace toujours par le même calibre et le même type." }
+          {
+            "texte": "Chercher le court-circuit à l'ohmmètre, commande hors tension",
+            "verdict": "bon",
+            "explication": "Un fusible qui fond est un symptôme, pas une panne. Sans trouver la cause, il refondra, ou tu masqueras un défaut qui s'aggrave."
+          },
+          {
+            "texte": "Le remplacer à l'identique et refaire un essai sous surveillance",
+            "verdict": "acceptable",
+            "explication": "Ça peut marcher si le défaut était fugitif. Mais si le court-circuit est permanent, le fusible refond aussitôt : chercher la cause d'abord. Remplacement hors tension, habilitation BS au minimum."
+          },
+          {
+            "texte": "Le remplacer par le calibre au-dessus pour éviter qu'il refonde",
+            "verdict": "danger",
+            "explication": "Surcalibrer un fusible supprime la protection du transformateur et des conducteurs : ils peuvent chauffer jusqu'à l'incendie. Toujours même calibre, même type."
+          }
         ]
       }
     ],
@@ -52,27 +88,63 @@
         "situation": "Tu réarmes le différentiel : il tient. Tu branches la perceuse : il déclenche aussitôt, avant même d'appuyer sur la gâchette.",
         "question": "Quelle est ton hypothèse ?",
         "choix": [
-          { "texte": "Un défaut d'isolement dans la perceuse : du courant fuit vers la terre", "verdict": "bon", "explication": "Le différentiel compare le courant qui part et celui qui revient. S'il manque quelque chose (fuite à la terre, ou à travers une personne), il déclenche. Avant même la gâchette, le défaut est sur le câble ou l'entrée de l'appareil." },
-          { "texte": "La perceuse consomme trop : c'est une surcharge", "verdict": "mauvais", "explication": "Une surcharge ferait déclencher le disjoncteur (protection thermique), pas le différentiel. Et la perceuse ne tourne même pas encore." },
-          { "texte": "Le différentiel est trop sensible : il faut le remplacer par un 300 mA", "verdict": "danger", "explication": "Le 30 mA protège les personnes : il est obligatoire pour les prises de courant jusqu'à 32 A (NF C 15-100). Passer à 300 mA, c'est supprimer la protection contre l'électrocution." }
+          {
+            "texte": "Une fuite à la terre dans la perceuse ou dans son câble",
+            "verdict": "bon",
+            "explication": "Le différentiel compare le courant qui part et celui qui revient. S'il manque quelque chose (fuite à la terre, ou à travers une personne), il déclenche. Avant même la gâchette, le défaut est sur le câble ou l'entrée de l'appareil."
+          },
+          {
+            "texte": "Une surcharge de la prise, qui alimente déjà d'autres outils",
+            "verdict": "mauvais",
+            "explication": "Une surcharge ferait déclencher le disjoncteur (protection thermique), pas le différentiel. Et la perceuse ne tourne même pas encore."
+          },
+          {
+            "texte": "Un différentiel trop sensible, à passer en 300 mA sur ce circuit",
+            "verdict": "danger",
+            "explication": "Le 30 mA protège les personnes : il est obligatoire pour les prises de courant jusqu'à 32 A (NF C 15-100). Passer à 300 mA, c'est supprimer la protection contre l'électrocution."
+          }
         ]
       },
       {
         "situation": "Tu veux confirmer que c'est bien la perceuse, et pas la prise ou le circuit.",
         "question": "Comment t'y prends-tu ?",
         "choix": [
-          { "texte": "Brancher un autre appareil en bon état sur la même prise", "verdict": "bon", "explication": "Test par substitution : si l'autre appareil fonctionne, la prise et le circuit sont hors de cause, c'est la perceuse." },
-          { "texte": "Ouvrir la perceuse branchée pour voir d'où vient la fuite", "verdict": "danger", "explication": "Ouvrir un appareil sous tension expose aux pièces nues. Un appareil s'ouvre toujours débranché." },
-          { "texte": "Shunter le différentiel le temps de faire l'essai", "verdict": "danger", "explication": "Neutraliser une protection des personnes, même « juste pour un essai », c'est exactement le moment où l'accident arrive. Jamais." }
+          {
+            "texte": "Brancher un autre appareil en bon état sur la même prise",
+            "verdict": "bon",
+            "explication": "Test par substitution : si l'autre appareil fonctionne, la prise et le circuit sont hors de cause, c'est la perceuse."
+          },
+          {
+            "texte": "Mesurer la tension de la prise, différentiel réarmé, à vide",
+            "verdict": "mauvais",
+            "explication": "Tu trouveras 230 V : la prise est saine à vide. Cette mesure ne dit rien sur la fuite, qui n'apparaît qu'avec la perceuse branchée."
+          },
+          {
+            "texte": "Shunter le différentiel le temps de mesurer le courant absorbé",
+            "verdict": "danger",
+            "explication": "Neutraliser une protection des personnes, même « juste pour un essai », c'est exactement le moment où l'accident arrive. Jamais."
+          }
         ]
       },
       {
         "situation": "Un aspirateur fonctionne normalement sur la même prise. En regardant la perceuse, tu vois que son câble est écrasé près de la poignée.",
         "question": "Que fais-tu de la perceuse ?",
         "choix": [
-          { "texte": "La retirer du service avec une étiquette « hors service », la faire réparer (câble remplacé) puis contrôler avant réutilisation", "verdict": "bon", "explication": "Un appareil défectueux ne doit pas pouvoir être réutilisé par erreur : on le signale et on le retire. Après réparation, un contrôle (continuité, isolement) valide sa remise en service." },
-          { "texte": "Mettre du ruban adhésif isolant sur le câble abîmé", "verdict": "mauvais", "explication": "Le ruban adhésif ne rend ni l'isolation ni la résistance mécanique d'origine : le défaut reviendra. Un câble d'appareil abîmé se remplace." },
-          { "texte": "La brancher sur une prise qui n'est pas protégée par un différentiel", "verdict": "danger", "explication": "Le différentiel a détecté une fuite qui peut passer par la personne qui tient la perceuse. Le contourner, c'est accepter ce risque." }
+          {
+            "texte": "La consigner hors service et faire remplacer le câble abîmé",
+            "verdict": "bon",
+            "explication": "Un appareil défectueux ne doit pas pouvoir être réutilisé par erreur : on le signale et on le retire. Après réparation, un contrôle (continuité, isolement) valide sa remise en service."
+          },
+          {
+            "texte": "Isoler le câble abîmé avec deux couches de ruban et la rendre",
+            "verdict": "mauvais",
+            "explication": "Le ruban adhésif ne rend ni l'isolation ni la résistance mécanique d'origine : le défaut reviendra. Un câble d'appareil abîmé se remplace."
+          },
+          {
+            "texte": "La brancher sur une prise sans différentiel pour finir le travail",
+            "verdict": "danger",
+            "explication": "Le différentiel a détecté une fuite qui peut passer par la personne qui tient la perceuse. Le contourner, c'est accepter ce risque."
+          }
         ]
       }
     ],
@@ -94,36 +166,84 @@
         "situation": "L'opérateur a déjà réarmé deux fois : même résultat. Le moteur ronfle, l'arbre ne tourne pas (ou à peine), puis le thermique déclenche.",
         "question": "Ta première action ?",
         "choix": [
-          { "texte": "Interdire toute nouvelle tentative et consigner le départ moteur avant d'intervenir", "verdict": "bon", "explication": "Chaque tentative fait chauffer le bobinage sans le refroidir (le moteur ne tourne pas, son ventilateur non plus). On arrête, on consigne, puis on cherche." },
-          { "texte": "Réarmer et relancer pour observer", "verdict": "mauvais", "explication": "Le symptôme est déjà connu. Relancer un moteur bloqué, c'est lui imposer 6 à 8 fois son courant nominal : on risque de griller le bobinage sans rien apprendre de plus." },
-          { "texte": "Augmenter le réglage du relais thermique pour qu'il ne déclenche plus", "verdict": "danger", "explication": "Le relais fait exactement son travail : protéger le moteur. Le surrégler, c'est le laisser brûler (et créer un risque d'incendie)." }
+          {
+            "texte": "Interdire tout nouvel essai et consigner le départ moteur",
+            "verdict": "bon",
+            "explication": "Chaque tentative fait chauffer le bobinage sans le refroidir (le moteur ne tourne pas, son ventilateur non plus). On arrête, on consigne, puis on cherche."
+          },
+          {
+            "texte": "Réarmer et relancer en observant le moteur et la mécanique",
+            "verdict": "mauvais",
+            "explication": "Le symptôme est déjà connu. Relancer un moteur bloqué, c'est lui imposer 6 à 8 fois son courant nominal : on risque de griller le bobinage sans rien apprendre de plus."
+          },
+          {
+            "texte": "Monter le réglage du relais thermique pour laisser démarrer",
+            "verdict": "danger",
+            "explication": "Le relais fait exactement son travail : protéger le moteur. Le surrégler, c'est le laisser brûler, avec un risque d'incendie."
+          }
         ]
       },
       {
         "situation": "Le départ est consigné.",
         "question": "Quelle hypothèse principale pour un moteur triphasé qui grogne sans démarrer ?",
         "choix": [
-          { "texte": "Il manque une phase : le moteur est alimenté en monophasé", "verdict": "bon", "explication": "Un moteur triphasé privé d'une phase ne produit pas de champ tournant au démarrage : il ronfle sans démarrer et absorbe un fort courant sur les deux phases restantes. C'est le grand classique." },
-          { "texte": "Un blocage mécanique de la charge", "verdict": "acceptable", "explication": "Possible aussi : il faudra vérifier que l'arbre tourne à la main (une fois consigné). Mais le grognement caractéristique oriente d'abord vers un manque de phase." },
-          { "texte": "Le moteur tourne à l'envers", "verdict": "mauvais", "explication": "Inverser deux phases change le sens de rotation, mais le moteur démarre normalement." }
+          {
+            "texte": "Une phase manquante : le moteur est alimenté en monophasé",
+            "verdict": "bon",
+            "explication": "Un moteur triphasé privé d'une phase ne produit pas de champ tournant au démarrage : il ronfle sans démarrer et absorbe un fort courant sur les deux phases restantes. C'est le grand classique."
+          },
+          {
+            "texte": "Un blocage mécanique de la charge ou d'un roulement",
+            "verdict": "acceptable",
+            "explication": "Possible aussi : il faudra vérifier que l'arbre tourne à la main, une fois consigné. Mais le grognement caractéristique oriente d'abord vers un manque de phase."
+          },
+          {
+            "texte": "Un condensateur de démarrage hors service sur le moteur",
+            "verdict": "mauvais",
+            "explication": "C'est un réflexe de moteur monophasé : un moteur asynchrone triphasé n'a pas de condensateur de démarrage."
+          }
         ]
       },
       {
         "situation": "Tu tournes l'arbre à la main : il tourne librement. Tu veux contrôler les trois fusibles aM du sectionneur.",
         "question": "Comment les contrôles-tu ?",
         "choix": [
-          { "texte": "Hors tension, fusibles retirés, en continuité à l'ohmmètre", "verdict": "bon", "explication": "La mesure de continuité hors tension est sûre et fiable. Elle est cohérente avec la consignation déjà faite." },
-          { "texte": "Visuellement", "verdict": "mauvais", "explication": "Une cartouche industrielle peut être fondue sans aucune trace visible (certaines ont un voyant, pas toutes). Seule la mesure est fiable." },
-          { "texte": "Sous tension, en mesurant la tension aux bornes de chaque fusible", "verdict": "acceptable", "explication": "Méthode possible avec l'habilitation adaptée (BR) et les équipements de protection, mais elle t'expose au voisinage de pièces nues. Comme tu as consigné, la mesure hors tension est plus sûre." }
+          {
+            "texte": "Fusibles retirés, en continuité à l'ohmmètre, hors tension",
+            "verdict": "bon",
+            "explication": "La mesure de continuité hors tension est sûre et fiable, et cohérente avec la consignation déjà faite."
+          },
+          {
+            "texte": "À l'œil, en regardant le voyant ou l'aspect des cartouches",
+            "verdict": "mauvais",
+            "explication": "Une cartouche industrielle peut être fondue sans aucune trace visible, et toutes n'ont pas de voyant. Seule la mesure est fiable."
+          },
+          {
+            "texte": "Sous tension, en mesurant la tension aux bornes de chaque fusible",
+            "verdict": "acceptable",
+            "explication": "Méthode possible avec l'habilitation adaptée (BR) et les équipements de protection, mais elle t'expose au voisinage de pièces nues. Comme tu as consigné, la mesure hors tension est plus sûre."
+          }
         ]
       },
       {
         "situation": "Le fusible de la phase L2 est coupé. Les deux autres sont bons.",
         "question": "Avant de remettre en service :",
         "choix": [
-          { "texte": "Chercher la cause : serrages des connexions de L2, isolement du moteur et du câble (mégohmmètre 500 V), puis remplacer les trois fusibles par des aM identiques", "verdict": "bon", "explication": "Un fusible fond pour une raison : connexion desserrée qui chauffe, défaut d'isolement… On remplace les trois cartouches (les deux autres ont pu être fragilisées), à l'identique." },
-          { "texte": "Remplacer seulement le fusible fondu par le même modèle et relancer", "verdict": "acceptable", "explication": "Le moteur repartira peut-être, mais sans cause identifiée la panne reviendra. Et on remplace en général les trois fusibles d'un même départ." },
-          { "texte": "Remplacer les trois fusibles par des gG du même calibre", "verdict": "mauvais", "explication": "Un départ moteur utilise des fusibles aM (accompagnement moteur), qui supportent la pointe de démarrage. Des gG du même calibre risquent de fondre à chaque démarrage." }
+          {
+            "texte": "Chercher la cause sur L2 (serrages, isolement), changer les 3 aM",
+            "verdict": "bon",
+            "explication": "Un fusible fond pour une raison : connexion desserrée qui chauffe, défaut d'isolement… On remplace les trois cartouches (les deux autres ont pu être fragilisées), à l'identique."
+          },
+          {
+            "texte": "Remplacer le seul fusible fondu par une cartouche identique",
+            "verdict": "acceptable",
+            "explication": "Le moteur repartira peut-être, mais sans cause identifiée la panne reviendra. Et on remplace en général les trois fusibles d'un même départ."
+          },
+          {
+            "texte": "Remplacer les trois fusibles par des gG de même calibre",
+            "verdict": "mauvais",
+            "explication": "Un départ moteur utilise des fusibles aM (accompagnement moteur), qui supportent la pointe de démarrage. Des gG du même calibre risquent de fondre à chaque démarrage."
+          }
         ]
       }
     ],
@@ -145,27 +265,63 @@
         "situation": "Tu fais passer une pièce devant B3 : la LED du capteur s'allume bien.",
         "question": "Où regardes-tu ensuite ?",
         "choix": [
-          { "texte": "La LED de l'entrée %I0.3 sur la carte de l'automate", "verdict": "bon", "explication": "On suit le signal : le capteur détecte (sa LED s'allume), il faut maintenant savoir si l'information arrive à l'automate." },
-          { "texte": "Remplacer le capteur", "verdict": "mauvais", "explication": "Sa LED s'allume : il détecte. Le remplacer serait probablement inutile. Le défaut est plus loin, entre le capteur et l'automate." },
-          { "texte": "Modifier le programme de l'automate", "verdict": "mauvais", "explication": "Une machine qui marchait hier ne s'est pas reprogrammée seule. On ne touche au programme qu'en dernier recours, quand le matériel est hors de cause." }
+          {
+            "texte": "Sur la LED de l'entrée %I0.3 de la carte automate",
+            "verdict": "bon",
+            "explication": "On suit le signal : le capteur détecte (sa LED s'allume), il faut maintenant savoir si l'information arrive à l'automate."
+          },
+          {
+            "texte": "Sur le capteur, à remplacer par un modèle neuf identique",
+            "verdict": "mauvais",
+            "explication": "Sa LED s'allume : il détecte. Le remplacer serait probablement inutile. Le défaut est plus loin, entre le capteur et l'automate."
+          },
+          {
+            "texte": "Dans le programme, sur la condition d'arrêt du convoyeur",
+            "verdict": "mauvais",
+            "explication": "Une machine qui marchait hier ne s'est pas reprogrammée seule. On ne touche au programme qu'en dernier recours, quand le matériel est hors de cause."
+          }
         ]
       },
       {
         "situation": "La LED de %I0.3 reste éteinte quand la pièce est devant le capteur.",
         "question": "Que mesures-tu ?",
         "choix": [
-          { "texte": "La tension au bornier de l'automate, entre l'entrée %I0.3 et le 0 V, pièce devant le capteur", "verdict": "bon", "explication": "Mesurer au bornier dit si le signal arrive (24 V) ou non (0 V). On coupe la chaîne en deux pour localiser le défaut." },
-          { "texte": "La résistance du capteur à l'ohmmètre", "verdict": "mauvais", "explication": "Un capteur électronique ne se teste pas à l'ohmmètre : la valeur ne veut rien dire. On le teste sous tension, par sa sortie." },
-          { "texte": "L'isolement du câble au mégohmmètre 500 V, capteur et carte raccordés", "verdict": "mauvais", "explication": "Un mégohmmètre injecte 500 V : il détruit les capteurs et les cartes électroniques raccordés. Pour une mesure d'isolement, on débranche toujours l'électronique aux deux bouts." }
+          {
+            "texte": "La tension entre %I0.3 et le 0 V, pièce devant le capteur",
+            "verdict": "bon",
+            "explication": "Mesurer au bornier dit si le signal arrive (24 V) ou non (0 V). On coupe la chaîne en deux pour localiser le défaut."
+          },
+          {
+            "texte": "La résistance du capteur à l'ohmmètre, capteur débranché",
+            "verdict": "mauvais",
+            "explication": "Un capteur électronique ne se teste pas à l'ohmmètre : la valeur ne veut rien dire. On le teste sous tension, par sa sortie."
+          },
+          {
+            "texte": "L'isolement du câble au mégohmmètre, capteur raccordé",
+            "verdict": "mauvais",
+            "explication": "Un mégohmmètre injecte 500 V : il détruit les capteurs et les cartes électroniques raccordés. Pour une mesure d'isolement, on débranche toujours l'électronique aux deux bouts."
+          }
         ]
       },
       {
         "situation": "Au bornier de l'automate : 0 V quand la pièce est là. Dans la boîte de raccordement près du capteur, sur le fil noir (sortie) : 24 V.",
         "question": "Ta conclusion ?",
         "choix": [
-          { "texte": "La liaison entre la boîte de raccordement et l'automate est coupée (fil sectionné ou borne desserrée)", "verdict": "bon", "explication": "24 V d'un côté, 0 V de l'autre : le signal se perd entre les deux. Il reste à suivre le câble pour trouver la coupure." },
-          { "texte": "La carte d'entrées de l'automate est en panne", "verdict": "mauvais", "explication": "La carte ne reçoit même pas le signal : 0 V à son bornier. Le défaut est en amont, sur la liaison." },
-          { "texte": "Le capteur est un NPN alors que la carte attend un PNP", "verdict": "mauvais", "explication": "L'installation fonctionnait avant : un capteur ne change pas de type. Et tu mesures bien 24 V sur sa sortie, signe d'un PNP qui fonctionne." }
+          {
+            "texte": "La liaison entre la boîte de raccordement et l'automate",
+            "verdict": "bon",
+            "explication": "24 V d'un côté, 0 V de l'autre : le signal se perd entre les deux. Il reste à suivre le câble pour trouver la coupure."
+          },
+          {
+            "texte": "La carte d'entrées de l'automate, voie %I0.3 hors service",
+            "verdict": "mauvais",
+            "explication": "La carte ne reçoit même pas le signal : 0 V à son bornier. Le défaut est en amont, sur la liaison."
+          },
+          {
+            "texte": "Un capteur NPN monté à la place du PNP d'origine",
+            "verdict": "mauvais",
+            "explication": "L'installation fonctionnait avant, et tu mesures bien 24 V sur la sortie du capteur, signe d'un PNP qui fonctionne."
+          }
         ]
       }
     ],
@@ -187,36 +343,84 @@
         "situation": "Le défaut n'apparaît jamais en marche stable, seulement pendant la décélération.",
         "question": "Que se passe-t-il physiquement ?",
         "choix": [
-          { "texte": "Pendant le ralentissement, le moteur entraîné par l'inertie devient générateur et renvoie de l'énergie dans le bus continu, dont la tension monte", "verdict": "bon", "explication": "Le bus continu d'un variateur alimenté en 400 V est autour de 560 V. Quand la charge freine le moteur moins vite que la rampe demandée, l'énergie revient dans les condensateurs du bus : la tension dépasse le seuil de protection." },
-          { "texte": "La tension du réseau est trop élevée", "verdict": "mauvais", "explication": "Si le réseau était en cause, le défaut apparaîtrait aussi à l'arrêt ou en marche stable, pas uniquement au freinage." },
-          { "texte": "Le moteur est en surcharge", "verdict": "mauvais", "explication": "Une surcharge donne un défaut de surintensité ou de surcharge thermique, pas de surtension." }
+          {
+            "texte": "Le moteur freine en générateur et recharge le bus continu",
+            "verdict": "bon",
+            "explication": "Le bus continu d'un variateur alimenté en 400 V est autour de 560 V. Quand la charge freine moins vite que la rampe demandée, le moteur devient générateur et renvoie de l'énergie dans les condensateurs du bus : la tension dépasse le seuil de protection."
+          },
+          {
+            "texte": "La tension réseau monte quand la charge de l'atelier baisse",
+            "verdict": "mauvais",
+            "explication": "Si le réseau était en cause, le défaut apparaîtrait aussi en marche stable ou à l'arrêt, pas uniquement pendant la décélération."
+          },
+          {
+            "texte": "Le moteur passe en surcharge pendant la décélération",
+            "verdict": "mauvais",
+            "explication": "Une surcharge donne un défaut de surintensité ou de surcharge thermique, pas de surtension du bus continu."
+          }
         ]
       },
       {
         "situation": "Tu as compris l'origine du défaut.",
         "question": "Quelle solution simple essaies-tu d'abord ?",
         "choix": [
-          { "texte": "Allonger la rampe de décélération", "verdict": "bon", "explication": "Une décélération plus douce renvoie l'énergie plus lentement : les pertes du moteur et du variateur suffisent souvent à l'absorber. C'est un simple paramètre." },
-          { "texte": "Augmenter la limite de courant du variateur", "verdict": "mauvais", "explication": "Le problème n'est pas un manque de courant mais un excès d'énergie renvoyée. Augmenter le courant de freinage aggrave plutôt la situation." },
-          { "texte": "Désactiver la détection de surtension dans les paramètres", "verdict": "mauvais", "explication": "Cette protection évite la destruction des condensateurs et des semi-conducteurs du bus. La neutraliser, c'est risquer la casse du variateur." }
+          {
+            "texte": "Allonger la rampe de décélération du variateur",
+            "verdict": "bon",
+            "explication": "Une décélération plus douce renvoie l'énergie plus lentement : les pertes du moteur et du variateur suffisent souvent à l'absorber. C'est un simple paramètre."
+          },
+          {
+            "texte": "Passer l'arrêt en roue libre au lieu de la rampe",
+            "verdict": "acceptable",
+            "explication": "Le défaut disparaît, puisque le variateur ne freine plus, mais le ventilateur met alors longtemps à s'arrêter. Valable seulement si l'arrêt rapide n'est pas exigé."
+          },
+          {
+            "texte": "Désactiver la détection de surtension du bus",
+            "verdict": "mauvais",
+            "explication": "Cette protection évite la destruction des condensateurs et des semi-conducteurs du bus. La neutraliser, c'est risquer la casse du variateur."
+          }
         ]
       },
       {
         "situation": "Avec une rampe plus longue, le défaut disparaît. Mais le procédé exige un arrêt rapide du ventilateur en cas d'alarme incendie.",
         "question": "Quelle solution matérielle ?",
         "choix": [
-          { "texte": "Ajouter une résistance de freinage (avec son module si le variateur n'en a pas), dimensionnée selon la notice : valeur ohmique minimale et puissance", "verdict": "bon", "explication": "La résistance de freinage dissipe en chaleur l'énergie renvoyée : la tension du bus reste sous le seuil, même avec une rampe courte. Sa valeur ohmique ne doit pas descendre sous le minimum indiqué par le constructeur." },
-          { "texte": "Ajouter un condensateur sur le bus continu", "verdict": "mauvais", "explication": "Le bus n'est pas conçu pour qu'on y ajoute des condensateurs, et l'énergie à évacuer reviendrait à chaque arrêt : ça ne règle rien." },
-          { "texte": "Couper l'alimentation du variateur à chaque arrêt", "verdict": "mauvais", "explication": "Le ventilateur partirait en roue libre : pas d'arrêt rapide. Et les mises sous tension répétées usent le circuit de précharge du variateur." }
+          {
+            "texte": "Une résistance de freinage dimensionnée selon la notice",
+            "verdict": "bon",
+            "explication": "La résistance de freinage dissipe en chaleur l'énergie renvoyée : la tension du bus reste sous le seuil, même avec une rampe courte. Sa valeur ohmique ne doit pas descendre sous le minimum du constructeur."
+          },
+          {
+            "texte": "Des condensateurs supplémentaires sur le bus continu",
+            "verdict": "mauvais",
+            "explication": "Le bus n'est pas conçu pour qu'on y ajoute des condensateurs, et l'énergie à évacuer reviendrait à chaque arrêt : ça ne règle rien."
+          },
+          {
+            "texte": "Un variateur de calibre supérieur pour le même moteur",
+            "verdict": "mauvais",
+            "explication": "Un calibre supérieur ne dissipe pas l'énergie renvoyée : sans moyen de freinage, le bus monte de la même façon à chaque arrêt rapide."
+          }
         ]
       },
       {
         "situation": "La résistance de freinage est livrée. Tu dois la raccorder sur les bornes du variateur.",
         "question": "Avant d'ouvrir le variateur :",
         "choix": [
-          { "texte": "Consigner, attendre le temps de décharge indiqué sur l'appareil, puis vérifier l'absence de tension sur le bus continu (bornes + et −)", "verdict": "bon", "explication": "Les condensateurs du bus restent chargés plusieurs minutes après la coupure, à plusieurs centaines de volts. On attend le temps indiqué et on vérifie avec un appareil adapté au continu." },
-          { "texte": "Couper le disjoncteur en amont et intervenir aussitôt", "verdict": "danger", "explication": "Le bus continu reste chargé après la coupure : le toucher tout de suite, c'est risquer l'électrisation à plus de 500 V." },
-          { "texte": "Vérifier que l'afficheur du variateur est éteint", "verdict": "danger", "explication": "Afficheur éteint ne veut pas dire bus déchargé : l'électronique de l'afficheur s'éteint bien avant que les condensateurs soient vides." }
+          {
+            "texte": "Consigner, attendre la décharge, vérifier 0 V sur le bus + / −",
+            "verdict": "bon",
+            "explication": "Les condensateurs du bus restent chargés plusieurs minutes après la coupure, à plusieurs centaines de volts. On attend le temps indiqué sur l'appareil et on vérifie avec un appareil adapté au continu."
+          },
+          {
+            "texte": "Consigner, puis intervenir dès que l'afficheur est éteint",
+            "verdict": "danger",
+            "explication": "Afficheur éteint ne veut pas dire bus déchargé : l'électronique de l'afficheur s'éteint bien avant que les condensateurs soient vides."
+          },
+          {
+            "texte": "Couper le disjoncteur amont et vérifier 0 V sur L1-L2-L3",
+            "verdict": "danger",
+            "explication": "L'entrée réseau est bien hors tension, mais le bus continu, lui, reste chargé derrière le pont redresseur. Il faut attendre la décharge et vérifier l'absence de tension sur les bornes + et −."
+          }
         ]
       }
     ],
@@ -238,27 +442,63 @@
         "situation": "Le responsable de production te demande de « régler le problème vite ».",
         "question": "Ta première étape ?",
         "choix": [
-          { "texte": "Mesurer les courants de fuite départ par départ avec une pince de fuite (pince milliampèremétrique), machines en fonctionnement", "verdict": "bon", "explication": "Un différentiel qui déclenche mesure toujours quelque chose. La pince de fuite, qui enserre tous les conducteurs actifs d'un départ, mesure le courant qui s'échappe vers la terre : on localise sans rien démonter." },
-          { "texte": "Remplacer le différentiel 300 mA par un 1 A", "verdict": "danger", "explication": "En schéma TT, la sensibilité du différentiel est choisie avec la résistance de la prise de terre (Ra × IΔn ≤ 50 V). Augmenter IΔn peut rendre la protection des personnes inopérante." },
-          { "texte": "Débrancher le conducteur de protection (PE) des machines suspectes", "verdict": "danger", "explication": "Sans PE, un défaut d'isolement porte la carcasse de la machine à un potentiel dangereux, et plus rien ne déclenche. C'est l'accident assuré." }
+          {
+            "texte": "Mesurer les fuites départ par départ à la pince de fuite",
+            "verdict": "bon",
+            "explication": "Un différentiel qui déclenche mesure toujours quelque chose. La pince de fuite, qui enserre tous les conducteurs actifs d'un départ, mesure le courant qui s'échappe vers la terre : on localise sans rien démonter."
+          },
+          {
+            "texte": "Passer le différentiel de tête de 300 mA à 1 A",
+            "verdict": "danger",
+            "explication": "En schéma TT, la sensibilité est choisie avec la résistance de la prise de terre (Ra × IΔn ≤ 50 V). Augmenter IΔn peut rendre la protection des personnes inopérante."
+          },
+          {
+            "texte": "Déconnecter le PE des machines suspectes pour les isoler",
+            "verdict": "danger",
+            "explication": "Sans PE, un défaut d'isolement porte la carcasse de la machine à un potentiel dangereux, et plus rien ne déclenche."
+          }
         ]
       },
       {
         "situation": "Résultats : chaque départ variateur présente environ 70 mA de fuite permanente, soit ≈ 210 mA au total. Des pointes apparaissent à la mise sous tension des variateurs.",
         "question": "Que conclus-tu ?",
         "choix": [
-          { "texte": "La somme des fuites permanentes dépasse déjà la moitié du seuil : la moindre pointe fait déclencher", "verdict": "bon", "explication": "Un différentiel peut déclencher dès 50 % de son IΔn (ici dès 150 mA). Avec 210 mA de fuite permanente, la moindre pointe suffit." },
-          { "texte": "Le différentiel est défectueux", "verdict": "mauvais", "explication": "Il fonctionne normalement : il déclenche entre 50 % et 100 % de IΔn. Le changer à l'identique ne changerait rien." },
-          { "texte": "Les trois variateurs ont un défaut d'isolement", "verdict": "mauvais", "explication": "Les filtres CEM des variateurs dérivent volontairement un petit courant vers la terre : c'est une fuite fonctionnelle, normale, pas un défaut d'isolement. C'est leur cumul qui pose problème." }
+          {
+            "texte": "Les fuites cumulées dépassent déjà la moitié du seuil",
+            "verdict": "bon",
+            "explication": "Un différentiel peut déclencher dès 50 % de son IΔn (ici dès 150 mA). Avec 210 mA de fuite permanente, la moindre pointe suffit."
+          },
+          {
+            "texte": "Le différentiel de tête est défectueux et doit être changé",
+            "verdict": "mauvais",
+            "explication": "Il fonctionne normalement : il déclenche entre 50 % et 100 % de IΔn. Le changer à l'identique ne changerait rien."
+          },
+          {
+            "texte": "Les trois variateurs présentent un défaut d'isolement",
+            "verdict": "mauvais",
+            "explication": "Les filtres CEM des variateurs dérivent volontairement un petit courant vers la terre : c'est une fuite fonctionnelle, pas un défaut d'isolement. C'est leur cumul qui pose problème."
+          }
         ]
       },
       {
         "situation": "Il faut une solution durable et conforme.",
         "question": "Laquelle ?",
         "choix": [
-          { "texte": "Répartir : un différentiel par départ variateur, de type adapté (souvent type B pour un variateur triphasé, selon sa notice), sélectif avec le différentiel de tête", "verdict": "bon", "explication": "Chaque différentiel ne voit plus que la fuite de son départ. Le type B détecte aussi les courants de fuite continus qu'un variateur peut produire. La sélectivité (différentiel de tête retardé, type S) évite que tout l'atelier saute pour un seul défaut." },
-          { "texte": "Mettre un différentiel de type AC sur chaque variateur", "verdict": "mauvais", "explication": "Le type AC ne détecte que les fuites alternatives sinusoïdales : il peut être « aveuglé » par les composantes continues d'un variateur. Il faut un type adapté, indiqué dans la notice." },
-          { "texte": "Retirer les filtres CEM des variateurs", "verdict": "mauvais", "explication": "Certaines notices le permettent dans des cas précis (notamment en schéma IT), mais en TT on dégrade la compatibilité électromagnétique sans régler le problème d'architecture." }
+          {
+            "texte": "Un différentiel de type B par variateur, sélectif en tête",
+            "verdict": "bon",
+            "explication": "Chaque différentiel ne voit plus que la fuite de son départ, et le type B détecte aussi les fuites continues qu'un variateur triphasé peut produire (à confirmer dans sa notice). La sélectivité (tête retardée, type S) évite que tout l'atelier saute."
+          },
+          {
+            "texte": "Un différentiel de type AC par variateur, sélectif en tête",
+            "verdict": "mauvais",
+            "explication": "Bonne architecture, mauvais type : le type AC ne détecte que les fuites alternatives sinusoïdales et peut être « aveuglé » par les composantes continues d'un variateur."
+          },
+          {
+            "texte": "Retirer le filtre CEM interne de chaque variateur",
+            "verdict": "mauvais",
+            "explication": "Certaines notices le permettent dans des cas précis (notamment en schéma IT), mais en TT on dégrade la compatibilité électromagnétique sans régler le problème d'architecture."
+          }
         ]
       }
     ],

@@ -47,7 +47,7 @@ export function renderEntrainement({ vue, definirTitre }) {
       </a>
       <a class="mode" href="#/entrainement/calcul">
         <span class="mode-bouton">B</span>
-        <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">Sans chrono · 11 types de calcul · 3 niveaux</span></span>
+        <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">Valeurs attendues, sans chrono · 3 niveaux</span></span>
         <span class="mode-record">${record('calcul')}</span>
       </a>
       <a class="mode" href="#/entrainement/panne">

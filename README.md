@@ -37,7 +37,7 @@ js/panne.js             mode Cas de panne (interventions pas à pas, démarches 
 js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, fil de cuivre, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance (QCM sur image, par niveau, explications en cas d'erreur)
-js/calcul.js            mode Calculs flash (11 générateurs sur 3 niveaux, diagnostic d'erreur, clavier à l'écran, ±2 %)
+js/calcul.js            mode Calculs flash (13 générateurs sur 3 niveaux, valeurs attendues, diagnostic d'erreur, clavier à l'écran)
 js/difficulte.js        les 3 niveaux de difficulté (I Fondations, II Pratique courante, III Cas complexes) + écran de choix
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
 js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
@@ -146,6 +146,15 @@ Les matières du métier deviennent l'interface.
 - `pourquoiPas` : une phrase par mauvaise réponse (mêmes textes que dans `faux`), affichée si on la choisit.
 - `explication` : comment reconnaître, ce qu'il faut retenir. Une même image peut servir à plusieurs questions (repérage des bornes, réglage…).
 - Viser 10 questions par niveau (une séance = 10 questions du niveau choisi).
+
+## Règles d'écriture des exercices (Reconnaissance et Cas de panne)
+
+- **Pas de biais de longueur** : toutes les propositions d'une question ont la même longueur, le même niveau de détail et la même rigueur
+  (la plus longue ≤ 1,45 × la plus courte). La bonne réponse ne doit pas être plus souvent la plus longue que le hasard (≤ 35 %). Les tests le vérifient.
+- **Des fausses pistes crédibles** : des erreurs qu'un technicien fait vraiment (23-24 au lieu de 13-14, différentiel AC au lieu de B,
+  vérifier 0 V sur L1-L2-L3 au lieu du bus continu…), jamais des énormités.
+- **Des images muettes** : aucun repère de borne, calibre ni marquage écrit sur les illustrations (sauf ce qui fait partie du symbole IEC,
+  comme « M 3~ »). Si la question porte sur un marquage, il est cité dans le texte de la question.
 - `image` : SVG ou photo (`.jpg`/`.webp`, max ~200 Ko). Les visuels `mat-*.svg` sont des illustrations simplifiées : les remplacer par tes propres photos d'armoire (atelier, stage) dès que possible, en gardant le même champ `image`.
 - Une session tire 10 questions au hasard parmi toutes celles du fichier.
 
@@ -181,7 +190,10 @@ Les matières du métier deviennent l'interface.
 ## Calculs Flash (`js/calcul.js`)
 
 Chaque générateur de `GENERATEURS` a un `id`, un `niveau` (1 à 3), un `titre` et une fonction `creer()` qui renvoie
-`{ enonce, aide?, unite, reponse, solution, explication, piege, erreurs, donnees }` (ou `{ enonce, choix, reponse, … }` pour un QCM).
+`{ enonce, aide?, unite, reponse, tolerance?, solution, explication, piege, erreurs, donnees }` (ou `{ enonce, choix, reponse, … }` pour un QCM).
+`tolerance` (facultatif, relative) remplace les ±2 % par défaut : ex. 0,004 pour lire une tension au volt près.
+Priorité aux **valeurs attendues** utiles sur le terrain (tension à lire au récepteur, charge d'un moteur d'après la pince et la plaque,
+déséquilibre entre phases) plutôt qu'aux exercices de manuel.
 `erreurs` liste les erreurs types : `[{ valeur, message }]` ; si la réponse tombe à ±2 % d'une valeur, son message s'affiche.
 `diagnostiquer()` détecte aussi les erreurs d'unité (×1 000), de virgule (×10) et de √3.
 Ajouter un type de calcul = ajouter un objet dans ce tableau. Une séance = 10 calculs répartis entre les générateurs du niveau.
