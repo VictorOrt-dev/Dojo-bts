@@ -1,8 +1,9 @@
-// Mode Reconnaissance visuelle : QCM à 4 propositions sur une image (symbole ou matériel).
-// Le contenu vient de data/reconnaissance.json.
+// Mode Reconnaissance visuelle : QCM à 4 propositions sur une image (symbole ou matériel),
+// par niveau de difficulté. Le contenu vient de data/reconnaissance.json.
 
 import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
 import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './dojo.js';
+import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau } from './difficulte.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
@@ -28,12 +29,24 @@ export function chargerQuestions() {
   return promesseQuestions;
 }
 
-export async function renderReco({ vue, definirTitre }) {
+export async function renderReco({ vue, definirTitre, params }) {
   definirTitre('Reconnaissance');
   const toutes = await chargerQuestions();
+  const niveau = Number(params?.get('n'));
+  const diff = difficulte(niveau);
+  if (!diff) {
+    renderChoixNiveau(vue, {
+      mode: 'reco',
+      titre: 'Reconnaissance',
+      sousTitre: 'Symboles IEC, matériel d\'armoire, repérages et réglages.',
+      href: n => `#/dojo/reco?n=${n}`,
+      nombre: n => `${toutes.filter(q => q.niveau === n).length} planches`
+    });
+    return;
+  }
 
   const session = {
-    questions: melanger(toutes).slice(0, TAILLE_SESSION),
+    questions: melanger(toutes.filter(q => q.niveau === niveau)).slice(0, TAILLE_SESSION),
     index: 0,
     score: 0,
     xp: 0,
@@ -45,6 +58,7 @@ export async function renderReco({ vue, definirTitre }) {
     const choix = melanger([q.nom, ...q.faux]);
 
     vue.innerHTML = `
+      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}</p>
       ${enteteSession(session.index + 1, session.score, session.resultats)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
         <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
@@ -62,7 +76,8 @@ export async function renderReco({ vue, definirTitre }) {
   };
 
   const repondre = (q, choix, iChoisi) => {
-    const juste = choix[iChoisi] === q.nom;
+    const choisi = choix[iChoisi];
+    const juste = choisi === q.nom;
     vue.querySelectorAll('.choix-btn').forEach((b, i) => {
       b.disabled = true;
       if (choix[i] === q.nom) b.classList.add('juste');
@@ -75,23 +90,32 @@ export async function renderReco({ vue, definirTitre }) {
     let gain = 0;
     if (juste) {
       session.score++;
-      gain = BAREME.bonneReponse;
+      gain = diff.xp;
       session.xp += gain;
       annoncerMontee(gagnerXP(gain));
     }
+
+    const lecon = `<div class="lecon"><p class="lecon-titre">Explication</p><p>${esc(typo(q.explication))}</p></div>`;
+    const ficheTechnique = `
+      <dl class="fiche-technique">
+        <dt>Repérage</dt><dd>${esc(typo(q.reperage))}</dd>
+        <dt>Sur le terrain</dt><dd>${esc(typo(q.role))}</dd>
+      </dl>`;
+    const pourquoiPas = q.pourquoiPas?.[choisi];
 
     const derniere = session.index === session.questions.length - 1;
     const zone = vue.querySelector('#explication');
     zone.innerHTML = `
       <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${juste
-          ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>`
-          : `<p class="verdict"><span class="tampon">Raté.</span></p>
-             <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>`}
-        <dl class="fiche-technique">
-          <dt>Repérage</dt><dd>${esc(typo(q.reperage))}</dd>
-          <dt>Rôle</dt><dd>${esc(typo(q.role))}</dd>
-        </dl>
+          ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
+             ${ficheTechnique}
+             <details class="approfondir"><summary>Pourquoi c'est ça</summary>${lecon}</details>`
+          : `<p class="verdict"><span class="tampon">Pas encore.</span></p>
+             <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>
+             ${pourquoiPas ? `<div class="diagnostic"><p class="lecon-titre">Pourquoi pas « ${esc(typo(choisi))} »</p><p>${esc(typo(pourquoiPas))}</p></div>` : ''}
+             ${lecon}
+             ${ficheTechnique}`}
         ${q.verifie ? '' : '<p class="note-marge">Contenu à vérifier avec ton cours.</p>'}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
@@ -103,12 +127,18 @@ export async function renderReco({ vue, definirTitre }) {
     session.index++;
     if (session.index < session.questions.length) return afficherQuestion();
 
-    if (session.score === TAILLE_SESSION) {
+    if (session.score === session.questions.length) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('reco', session.score);
-    afficherBilan(vue, { score: session.score, xpGagne: session.xp, onRejouer: () => renderReco({ vue, definirTitre }) });
+    noterSession('reco', session.score, niveau);
+    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1);
+    afficherBilan(vue, {
+      score: session.score,
+      xpGagne: session.xp,
+      onRejouer: () => renderReco({ vue, definirTitre, params }),
+      suite: session.score >= 8 && suivantNiveau ? { href: `#/dojo/reco?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+    });
   };
 
   afficherQuestion();

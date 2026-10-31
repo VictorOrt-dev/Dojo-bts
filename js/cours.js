@@ -4,6 +4,7 @@
 import * as stockage from './storage.js';
 import { frontispice, titreSection, deuxChiffres, typo } from './mise-en-page.js';
 import { fil } from './atelier.js';
+import { DIFFICULTES, etiquetteNiveau } from './difficulte.js';
 import { esc, normaliser } from './util.js';
 
 // Le champ "module" de chaque fiche doit correspondre exactement à un "nom" ci-dessous.
@@ -54,12 +55,20 @@ export async function renderCours({ vue, definirTitre, params }) {
   definirTitre('Cours');
   const fiches = await chargerFiches();
   const moduleActif = params.get('m') ?? '';
+  const niveauActif = Number(params.get('niv')) || 0;
   const recherche = params.get('q') ?? '';
+  // Lien vers le sommaire filtré (module et niveau combinables).
+  const lien = ({ m = moduleActif, niv = niveauActif } = {}) => {
+    const p = new URLSearchParams();
+    if (m) p.set('m', m);
+    if (niv) p.set('niv', niv);
+    return `#/cours${p.size ? '?' + p : ''}`;
+  };
   const vues = stockage.lire().fichesVues;
   const nbLues = fiches.filter(f => vues[f.id]).length;
 
   const filtre = (mod, libelle, nb) => {
-    const href = mod ? `#/cours?m=${encodeURIComponent(mod.nom)}` : '#/cours';
+    const href = lien({ m: mod?.nom ?? '' });
     const actif = (mod?.nom ?? '') === moduleActif ? ' aria-current="true"' : '';
     return `<a class="filtre" href="${href}"${actif}>${mod ? gaine(mod.code) : ''}${esc(libelle)}<sup>${nb}</sup></a>`;
   };
@@ -74,6 +83,10 @@ export async function renderCours({ vue, definirTitre, params }) {
       ${filtre(null, 'Toutes', fiches.length)}
       ${MODULES.map(m => filtre(m, m.nom, fiches.filter(f => f.module === m.nom).length)).join('')}
     </nav>
+    <nav class="segments" aria-label="Niveau">
+      <a href="${lien({ niv: 0 })}"${niveauActif ? '' : ' aria-current="true"'}>Tous</a>
+      ${DIFFICULTES.map(d => `<a href="${lien({ niv: d.n })}"${niveauActif === d.n ? ' aria-current="true"' : ''} title="${esc(d.nom)}">Niv. ${d.romain}</a>`).join('')}
+    </nav>
     <input id="recherche" class="recherche" type="search" enterkeyhint="search"
            placeholder="cos φ, VAT, masque…" aria-label="Rechercher dans les fiches" value="${esc(recherche)}">
     <div id="liste"></div>`;
@@ -82,7 +95,7 @@ export async function renderCours({ vue, definirTitre, params }) {
   const afficherListe = () => {
     const q = normaliser(champ.value.trim());
     const resultat = fiches.filter(f =>
-      (!moduleActif || f.module === moduleActif) && (!q || texteRecherche(f).includes(q)));
+      (!moduleActif || f.module === moduleActif) && (!niveauActif || f.niveau === niveauActif) && (!q || texteRecherche(f).includes(q)));
 
     vue.querySelector('#liste').innerHTML = resultat.length
       ? resultat.map(f => ligneFiche(f, Boolean(vues[f.id]))).join('')
@@ -93,6 +106,7 @@ export async function renderCours({ vue, definirTitre, params }) {
     // Met la recherche dans l'URL sans relancer le routeur (garde le focus du clavier).
     const p = new URLSearchParams();
     if (moduleActif) p.set('m', moduleActif);
+    if (niveauActif) p.set('niv', niveauActif);
     if (champ.value) p.set('q', champ.value);
     history.replaceState(null, '', `#/cours${p.size ? '?' + p : ''}`);
     afficherListe();
@@ -106,7 +120,7 @@ function ligneFiche(fiche, lue) {
   return `
     <a class="ligne ligne-fiche" href="#/fiche/${encodeURIComponent(fiche.id)}">
       <div>
-        <p class="ligne-meta">${gaine(mod.code)}${esc(mod.nom)}</p>
+        <p class="ligne-meta">${gaine(mod.code)}${esc(mod.nom)}${etiquetteNiveau(fiche.niveau)}</p>
         <h2 class="ligne-titre">${esc(typo(fiche.titre))}</h2>
       </div>
       <span class="ligne-fin">${lue ? '<span class="etat-lu">Lue</span>' : 'À lire'}</span>
@@ -144,7 +158,7 @@ export async function renderFiche({ vue, definirTitre, id }) {
   vue.innerHTML = `
     <article class="fiche">
       <header class="frontispice">
-        <p class="fiche-module">${gaine(mod.code)}${esc(mod.nom)}</p>
+        <p class="fiche-module">${gaine(mod.code)}${esc(mod.nom)}${etiquetteNiveau(fiche.niveau, { long: true })}</p>
         <h2 class="titre-chapitre">${esc(typo(fiche.titre))}</h2>
       </header>
       ${fiche.verifie ? '' : '<p class="note-marge">Contenu pas encore vérifié. Relis-le avec ton cours, puis passe <code>"verifie": true</code> dans fiches.json.</p>'}

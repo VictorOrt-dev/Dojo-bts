@@ -11,11 +11,11 @@ export const NIVEAUX = [
   { nom: 'Expert Senior', seuil: 3000, icone: '🏆' }
 ];
 
+// Pas de bonus de vitesse : le score ne dépend que de la justesse.
+// Les XP par bonne réponse dépendent du niveau de difficulté (voir difficulte.js : 10, 15, 20).
 export const BAREME = {
-  bonneReponse: 10,     // toute bonne réponse
-  bonusRapidite: 5,     // Calculs Flash : bonne réponse en moins de seuilRapidite secondes
-  seuilRapidite: 10,
-  sessionParfaite: 20   // 10/10 sur une session
+  bonneReponse: 10,     // valeur par défaut (niveau I)
+  sessionParfaite: 20   // 10/10 sur une séance
 };
 
 export function lireXP() {
@@ -60,13 +60,18 @@ export function noterReponse(mode, id, reussi) {
   });
 }
 
-export function noterSession(mode, score) {
+// niveau (1, 2 ou 3) : garde aussi le meilleur score par niveau de difficulté.
+export function noterSession(mode, score, niveau) {
   stockage.modifier(e => {
     e.stats ??= {};
     const m = (e.stats[mode] ??= statsVides());
     m.sessions++;
     m.meilleurScore = Math.max(m.meilleurScore, score);
     m.derniereSession = Date.now();
+    if (niveau) {
+      m.niveaux ??= {};
+      m.niveaux[niveau] = Math.max(m.niveaux[niveau] ?? 0, score);
+    }
   });
 }
 

@@ -3,6 +3,7 @@
 import { NIVEAUX, BAREME, lireXP, niveauPour, statsMode } from './xp.js';
 import { plaqueOperateur, bornier, salutation } from './atelier.js';
 import { deuxChiffres } from './mise-en-page.js';
+import { DIFFICULTES } from './difficulte.js';
 import { esc } from './util.js';
 
 export const TAILLE_SESSION = 10;
@@ -35,12 +36,12 @@ export function renderDojo({ vue, definirTitre }) {
     <nav class="modes pousse-bas" aria-label="Exercices">
       <a class="mode" href="#/dojo/reco">
         <span class="mode-bouton">A</span>
-        <span><span class="mode-titre">Reconnaissance</span><span class="mode-desc">Symboles et matériel</span></span>
+        <span><span class="mode-titre">Reconnaissance</span><span class="mode-desc">Symboles, matériel, repérages · 3 niveaux</span></span>
         <span class="mode-record">${record('reco')}</span>
       </a>
       <a class="mode" href="#/dojo/calcul">
         <span class="mode-bouton">B</span>
-        <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">30 s par calcul · ±2 %</span></span>
+        <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">Sans chrono · 11 types de calcul · 3 niveaux</span></span>
         <span class="mode-record">${record('calcul')}</span>
       </a>
       <div class="mode inactif">
@@ -53,9 +54,9 @@ export function renderDojo({ vue, definirTitre }) {
     <details class="notice">
       <summary>Notice · barème</summary>
       <table class="tableau">
-        <tr><td>Bonne réponse</td><td>+${BAREME.bonneReponse} XP</td></tr>
-        <tr><td>Calcul juste en moins de ${BAREME.seuilRapidite} s</td><td>+${BAREME.bonusRapidite} XP</td></tr>
+        ${DIFFICULTES.map(d => `<tr><td>Bonne réponse · niveau ${d.romain} (${esc(d.nom.toLowerCase())})</td><td>+${d.xp} XP</td></tr>`).join('')}
         <tr><td>Séance sans faute</td><td>+${BAREME.sessionParfaite} XP</td></tr>
+        <tr><td>Rapidité</td><td>sans effet</td></tr>
         ${NIVEAUX.map(niv => `<tr><td>${esc(niv.nom)}</td><td>${niv.seuil} XP</td></tr>`).join('')}
       </table>
     </details>`;
@@ -71,7 +72,8 @@ export function enteteSession(numero, score, resultats = []) {
 }
 
 // Rapport de fin de séance.
-export function afficherBilan(vue, { score, xpGagne, onRejouer }) {
+// suite (facultatif) : { href, libelle } pour proposer le niveau supérieur après une bonne séance.
+export function afficherBilan(vue, { score, xpGagne, onRejouer, suite = null }) {
   const parfait = score === TAILLE_SESSION;
   const message = parfait ? 'Sans faute.' : score >= 7 ? 'Belle séance.' : score >= 4 ? 'Ça vient, continue.' : 'Relis les fiches, puis reviens.';
   vue.innerHTML = `
@@ -83,7 +85,8 @@ export function afficherBilan(vue, { score, xpGagne, onRejouer }) {
     </section>
     ${carteNiveau()}
     <div class="actions pousse-bas">
-      <button id="rejouer" class="btn principal" type="button">Une autre séance</button>
+      ${suite ? `<a class="btn principal" href="${suite.href}">${esc(suite.libelle)}</a>` : ''}
+      <button id="rejouer" class="btn${suite ? '' : ' principal'}" type="button">Une autre séance de ce niveau</button>
       <a class="btn" href="#/dojo">Retour au Dojo</a>
     </div>`;
   vue.querySelector('#rejouer').addEventListener('click', onRejouer);

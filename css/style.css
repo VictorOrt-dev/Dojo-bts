@@ -3,9 +3,9 @@
    Les matières du métier : bakélite des vieux interrupteurs (fond),
    porcelaine des isolateurs et plaques émaillées (texte, plaques),
    cuivre nu du conducteur (action), vert-de-gris du cuivre oxydé (juste),
-   rouge du fusible fondu (faux, chrono critique).
+   rouge du fusible fondu (réponse fausse).
    Ergonomie : la lecture en haut, les actions dans la zone du pouce.
-   Batterie : fond quasi noir (OLED), aucune animation en boucle hors chrono,
+   Batterie : fond quasi noir (OLED), aucune animation en boucle,
    animations courtes sur transform / opacity uniquement.
    ===================================================================== */
 
@@ -440,27 +440,6 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .solution { margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--fond-creux); font: 500 13.5px/1.6 var(--mono); color: var(--porcelaine-2); overflow-wrap: anywhere; }
 
 /* ---------- Calculs flash ---------- */
-.meche { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px; padding: 14px 0 0; }
-.meche-piste { position: relative; height: 2px; border-radius: 2px; background: var(--filet); }
-.chrono-barre { position: absolute; left: 0; top: 0; height: 2px; width: 100%; border-radius: 2px; background: var(--cuivre); transition: width .2s linear; }
-.chrono-barre::after {                         /* braise au bout de la mèche */
-  content: "";
-  position: absolute;
-  right: -4px;
-  top: -4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #FFD3A8;
-  box-shadow: 0 0 6px 2px var(--cuivre), 0 0 14px 4px var(--lueur);
-}
-.chrono-valeur { min-width: 46px; font: 700 18px/1 var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
-.chrono-valeur small { margin-left: 2px; font-size: 11px; color: var(--porcelaine-3); }
-.chrono.critique .chrono-barre { background: var(--fusible); }
-.chrono.critique .chrono-barre::after { background: #FFC2B0; box-shadow: 0 0 6px 2px var(--fusible), 0 0 16px 5px rgb(240 101 74 / .55); animation: braise .5s steps(2) infinite; }
-.chrono.critique .chrono-valeur { color: var(--fusible); }
-@keyframes braise { 50% { opacity: .55; } }
-
 .exercice { padding: 16px 0 0; }
 .exercice .surtitre { margin-bottom: 10px; }
 .enonce { margin: 0 0 10px; font: 400 21px/1.35 var(--titre); letter-spacing: -.005em; }
@@ -675,3 +654,88 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 }
 .nixie.juste .nixie-valeur { color: #A8E3D3; text-shadow: 0 0 6px rgb(127 194 176 / .7), 0 0 16px rgb(127 194 176 / .3); }
 .nixie.faux .nixie-valeur { color: #FF9A84; text-shadow: 0 0 6px rgb(240 101 74 / .7), 0 0 16px rgb(240 101 74 / .3); text-decoration: line-through; text-decoration-thickness: 2px; }
+
+/* ---------- Niveaux de difficulté ---------- */
+.niv {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--porcelaine-3);
+  font: 700 10px/1 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--porcelaine-2);
+  white-space: nowrap;
+}
+.niv::before {                           /* 1, 2 ou 3 points pleins : lisible sans la couleur */
+  content: "";
+  width: 22px;
+  height: 6px;
+  background: radial-gradient(circle, currentColor 2.5px, transparent 3px) 0 0 / 8px 6px repeat-x;
+  -webkit-mask: linear-gradient(90deg, #000 var(--remplis), rgb(0 0 0 / .25) var(--remplis));
+  mask: linear-gradient(90deg, #000 var(--remplis), rgb(0 0 0 / .25) var(--remplis));
+}
+.niv-1 { --remplis: 33%; }
+.niv-2 { --remplis: 66%; }
+.niv-3 { --remplis: 100%; color: var(--cuivre); box-shadow: inset 0 0 0 1px var(--cuivre); }
+.niveau-seance { margin: 14px 0 -4px; }
+.niveau-seance .niv { margin-left: 0; }
+.fiche-module .niv { margin-left: 4px; }
+.mode-detail { display: block; margin-top: 6px; font: 700 11px/1.3 var(--mono); color: var(--cuivre); }
+
+.segments {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 0 0 14px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--fond-creux);
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / .35);
+}
+.segments a {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  border-radius: 10px;
+  font: 700 12px/1 var(--mono);
+  color: var(--porcelaine-3);
+  text-decoration: none;
+}
+.segments a[aria-current] { background: linear-gradient(180deg, var(--touche-haut), var(--touche)); box-shadow: 0 2px 0 var(--touche-ombre), inset 0 1px 0 var(--arete); color: var(--porcelaine); }
+
+/* ---------- Blocs pédagogiques après une réponse ---------- */
+.lecon, .diagnostic, .piege-terrain {
+  margin: 16px 0 0;
+  padding: 14px 16px 14px 18px;
+  border-radius: 14px;
+  background: var(--fond-creux);
+  box-shadow: inset 3px 0 0 var(--bord-lecon, var(--cuivre));
+}
+.lecon p, .diagnostic p, .piege-terrain p { margin: 0; }
+.lecon p + p, .diagnostic p + p, .piege-terrain p + p { margin-top: 6px; }
+.lecon-titre { margin-bottom: 6px !important; font: 700 11px/1.3 var(--texte); letter-spacing: .14em; text-transform: uppercase; color: var(--bord-lecon, var(--cuivre)); }
+.diagnostic { --bord-lecon: var(--fusible); background: rgb(240 101 74 / .1); }
+.piege-terrain { --bord-lecon: #E2C33A; }
+:root[data-theme="porcelaine"] .piege-terrain { --bord-lecon: #8A6A00; }
+.explication .surtitre { margin: 20px 0 8px; }
+.approfondir { margin-top: 16px; }
+.approfondir summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 14px;
+  background: var(--fond-creux);
+  font: 700 14px/1 var(--texte);
+  color: var(--porcelaine-2);
+  cursor: pointer;
+  list-style: none;
+}
+.approfondir summary::-webkit-details-marker { display: none; }
+.approfondir summary::after { content: "+"; font: 700 18px/1 var(--mono); color: var(--cuivre); }
+.approfondir[open] summary::after { content: "−"; }

@@ -15,7 +15,7 @@ const vue = document.getElementById('vue');
 const titre = document.getElementById('titre');
 const boutonRetour = document.getElementById('retour');
 let navigationInterne = false; // vrai dès qu'on a navigué dans l'app : "Retour" peut alors utiliser l'historique
-let nettoyages = [];           // fonctions à appeler en quittant l'écran courant (ex. arrêter un chrono)
+let nettoyages = [];           // fonctions à appeler en quittant l'écran courant (ex. retirer un écouteur clavier)
 
 function definirTitre(texte) {
   titre.textContent = texte;

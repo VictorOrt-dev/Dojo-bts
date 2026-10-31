@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round">
+  <line x1="140" y1="20" x2="140" y2="78"/>
+  <line x1="140" y1="78" x2="160" y2="78"/>
+  <line x1="140" y1="122" x2="140" y2="180"/>
+  <line x1="140" y1="122" x2="163" y2="70"/>
+  <line x1="150" y1="99" x2="74" y2="99" stroke-dasharray="7 6"/>
+  <path d="M82 84 H70 V114 H82"/>
+</svg>
