@@ -100,6 +100,7 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(await p.evaluate(() => { const i = document.querySelector('.schema img'); return i.complete && i.naturalWidth > 0; }), 'schéma affiché');
   await action('abandonner'); await p.waitForSelector('.bilan');
   t.ok((await p.textContent('.bilan-message')).includes('abandonnée') && await p.isVisible('.piege-terrain'), 'abandon : la panne et la démarche sont expliquées');
+  t.ok(await p.isVisible('.bilan ~ .reco-domaines, .reco-domaines') && await p.isVisible('.risque') && await p.isVisible('.norme'), 'rapport : domaines de la panne, « le risque, en vrai » et référence normative');
   t.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'pas de débordement horizontal');
   t.ok(errs.length === 0, 'console : ' + (errs.length ? errs.join(' | ') : 'aucune erreur'));
   await contexte.close();

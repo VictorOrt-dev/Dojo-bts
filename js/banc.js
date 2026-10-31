@@ -9,6 +9,8 @@ import { annoncerMontee } from './entrainement.js';
 import { frontispice, typo as typoBase } from './mise-en-page.js';
 import { parmi } from './hasard.js';
 import { esc } from './util.js';
+import { pucesDomaines } from './domaines.js';
+import { blocRisque, ligneNorme } from './tuteur.js';
 
 // Repères de borne (« X1 : 1 », « KM1 : 13 ») : jamais coupés en fin de ligne.
 const typo = t => typoBase(t).replace(/\b([A-Z][A-Z0-9]*)\u202F: (?=[0-9A-Z])/g, '$1\u202F:\u00A0');
@@ -213,6 +215,7 @@ function demarrer(vue, banc, panne) {
 
     vue.innerHTML = `
       ${frontispice({ surtitre: 'Banc de mesure · panne cachée', titre: 'Départ moteur', italique: 'direct' })}
+      <p class="reco-domaines">${pucesDomaines(banc.domaines)}</p>
       <div class="bon-intervention">
         <p class="lecon-titre">Bon d'intervention</p>
         <p>${esc(typo(banc.description))}</p>
@@ -328,9 +331,12 @@ function demarrer(vue, banc, panne) {
       </ul>
       ${etat.dangers.length ? `<div class="alerte-securite"><p class="lecon-titre">Gestes dangereux</p><p>${etat.dangers.map(d => esc(d)).join(' · ')}</p></div>` : ''}
       ${inutiles.length ? `<div class="diagnostic"><p class="lecon-titre">Fausses pistes payées en pièces</p><p>${inutiles.map(r => esc(r.libelle)).join(' · ')}</p></div>` : ''}
+      <p class="reco-domaines">${pucesDomaines(panne.domaines)}</p>
       <div class="lecon"><p class="lecon-titre">La panne</p><p>${esc(typo(panne.cause))}</p></div>
       <div class="lecon"><p class="lecon-titre">La démarche d'un pro</p><p>${esc(typo(panne.methode))}</p></div>
       <div class="piege-terrain"><p class="lecon-titre">Le piège de ce cas</p><p>${esc(typo(panne.piege))}</p></div>
+      ${blocRisque(panne.risque)}
+      ${ligneNorme(panne.norme)}
       <details class="approfondir journal"><summary>Ton journal d'intervention (${etat.journal.length})</summary>
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('')}</ol>
       </details>

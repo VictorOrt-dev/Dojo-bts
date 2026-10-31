@@ -1,9 +1,8 @@
 // Point d'entrée : routeur par hash.
 //   #/entrainement (accueil)  #/entrainement/reco  #/entrainement/calcul  #/entrainement/panne  #/entrainement/banc
-//   #/cours  #/fiche/<id>  #/profil   (les anciens liens #/dojo… sont redirigés)
+//   #/profil (Carnet). Anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… (module retiré) → accueil.
 // Chaque écran est une fonction render*(ctx) qui remplit l'élément #vue.
 
-import { renderCours, renderFiche } from './cours.js';
 import { renderProfil } from './profil.js';
 import { renderEntrainement } from './entrainement.js';
 import { renderReco } from './quiz.js';
@@ -33,7 +32,6 @@ function lireHash() {
 
 // Page vers laquelle revient le bouton "Retour" (null = pas de bouton).
 function pageParente({ page, id }) {
-  if (page === 'fiche') return '#/cours';
   if (page === 'entrainement' && id) return '#/entrainement';
   return null;
 }
@@ -58,7 +56,7 @@ async function router() {
 
   const route = lireHash();
   const { page, id, params } = route;
-  const onglet = page === 'fiche' ? 'cours' : page;
+  const onglet = page === 'entrainement' && id === 'banc' ? 'banc' : page;
   document.querySelectorAll('.tabbar a').forEach(a =>
     a.toggleAttribute('aria-current', a.dataset.onglet === onglet));
   boutonRetour.hidden = !pageParente(route);
@@ -67,8 +65,6 @@ async function router() {
   const ctx = { vue, definirTitre, id, params, auNettoyage: f => nettoyages.push(f) };
   try {
     switch (page) {
-      case 'cours': await renderCours(ctx); break;
-      case 'fiche': await renderFiche(ctx); break;
       case 'entrainement':
         if (!id) renderEntrainement(ctx);
         else if (id === 'reco') await renderReco(ctx);

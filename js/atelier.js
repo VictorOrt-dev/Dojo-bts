@@ -76,11 +76,6 @@ export function bornier(index, resultats, total) {
   return `<div class="bornier" aria-hidden="true">${bornes}</div>`;
 }
 
-// Séparateur : un fil de cuivre qui fait une boucle.
-export function fil() {
-  return `<div class="fil" aria-hidden="true"><svg viewBox="0 0 34 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M0 13h7c6 0 11-10 7-10s-4 10 4 10c5 0 7-1 16-1"/></svg></div>`;
-}
-
 // « Bonjour » ou « Bonsoir », et la date du jour en toutes lettres.
 export function salutation(date = new Date()) {
   const h = date.getHours();

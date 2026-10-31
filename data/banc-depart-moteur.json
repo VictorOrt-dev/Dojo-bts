@@ -1,6 +1,7 @@
 {
   "id": "depart-moteur",
   "titre": "Départ moteur direct",
+  "domaines": ["tri", "mono-bt"],
   "description": "Pompe de transfert 5,5 kW, 400 V, 11 A. Sectionneur porte-fusibles aM Q1, contacteur KM1, relais thermique F2. Commande en 230 V par transformateur T1, pupitre Marche / Arrêt distant relié par un câble de 3 conducteurs (40 m).",
   "noeuds": [
     { "id": "L1", "label": "Arrivée L1 (amont Q1)", "zone": "Arrivée et puissance" },
@@ -91,49 +92,64 @@
   "pannes": [
     {
       "id": "fu1-fondu",
+      "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche. Le voyant « sous tension » H1 est éteint.",
       "ouvre": ["fu1"],
       "reference": 31,
       "cause": "Le fusible de commande FU1 a fondu, après un court-circuit fugitif sur la commande.",
       "methode": "Voyant éteint : on remonte vers la source. 230 V au secondaire de T1, 0 V en sortie de FU1 : le fusible est en cause. Hors tension, on le retire pour le mesurer.",
-      "piege": "Mesuré en place, un fusible fondu affiche quelques kΩ au lieu de « OL » : tu mesures alors le voyant et l'enroulement du transformateur, branchés en parallèle. Un fusible se contrôle sorti de son support."
+      "piege": "Mesuré en place, un fusible fondu affiche quelques kΩ au lieu de « OL » : tu mesures alors le voyant et l'enroulement du transformateur, branchés en parallèle. Un fusible se contrôle sorti de son support.",
+      "risque": "Remplacer un fusible de commande par un calibre plus fort, ou par un fil, pour « que ça tienne » : au prochain défaut, c'est l'isolant du câblage qui fond au lieu du fusible, et un court-circuit entre fils de commande peut provoquer un démarrage intempestif.",
+      "norme": "NF EN 60204-1 (§ 7.2.4)"
     },
     {
       "id": "contact-95-96",
+      "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche. Le voyant H1 est allumé. Le relais thermique ne semble pas déclenché.",
       "ouvre": ["f2-95"],
       "reference": 45,
       "cause": "Le contact 95-96 du relais thermique est resté ouvert (contact usé), alors que le relais n'est pas déclenché.",
       "methode": "Voyant allumé : la commande est alimentée. On suit le 230 V dans l'ordre du schéma : 230 V sur F2 : 95, 0 V sur F2 : 96. Le contact est ouvert. Hors tension, la continuité 95-96 le confirme.",
-      "piege": "Réarmer en boucle un relais qui n'est pas déclenché : le bouton de réarmement ne répare pas un contact usé."
+      "piege": "Réarmer en boucle un relais qui n'est pas déclenché : le bouton de réarmement ne répare pas un contact usé.",
+      "risque": "Shunter 95-96 pour relancer la pompe supprime la protection du moteur contre la surcharge et le manque de phase : le bobinage cuit sans que rien ne coupe, avec risque de feu dans l'armoire.",
+      "norme": "IEC 60947-4-1"
     },
     {
       "id": "bobine-coupee",
+      "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1 est allumé.",
       "ouvre": ["bobine"],
       "reference": 43,
       "cause": "La bobine de KM1 est coupée.",
       "methode": "Un collègue maintient Marche : tu lis 230 V entre A1 et A2, mais le contacteur ne colle pas. La tension arrive, la bobine ne fait pas son travail. Hors tension, A1-A2 à l'ohmmètre : circuit ouvert au lieu de quelques centaines d'ohms.",
-      "piege": "Sans appui sur Marche, A1 est en l'air : un multimètre classique y affiche une tension fantôme d'environ 90 V qui ne veut rien dire. Le mode LoZ la fait disparaître."
+      "piege": "Sans appui sur Marche, A1 est en l'air : un multimètre classique y affiche une tension fantôme d'environ 90 V qui ne veut rien dire. Le mode LoZ la fait disparaître.",
+      "risque": "Une lecture en haute impédance trompe dans les deux sens : 91 V fantômes font croire une bobine alimentée, et une valeur faible sur un conducteur flottant peut faire croire à une absence de tension. Avant de toucher, seul un VAT conclut.",
+      "norme": "NF EN 61243-3 (VAT)"
     },
     {
       "id": "cable-pupitre",
+      "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1 est allumé.",
       "ouvre": ["cable-1"],
       "reference": 72,
       "cause": "Le conducteur X1 : 1 → S1 : 11 du câble du pupitre est coupé (câble écrasé dans le chemin de câbles).",
       "methode": "230 V sur X1 : 1 dans l'armoire, rien de franc sur S1 : 11 au pupitre : la coupure est entre les deux, dans le câble. Le mode LoZ supprime la fausse lecture ; hors tension, la continuité X1 : 1 → S1 : 11 confirme (OL).",
-      "piege": "La tension fantôme : sur S1 : 11 ou KM1 : 13, un multimètre classique affiche environ 90 V au lieu de 0. On croit à une tension « faible » et on soupçonne le transformateur ou un contact résistif. Le mode LoZ (ou un VAT) tranche."
+      "piege": "La tension fantôme : sur S1 : 11 ou KM1 : 13, un multimètre classique affiche environ 90 V au lieu de 0. On croit à une tension « faible » et on soupçonne le transformateur ou un contact résistif. Le mode LoZ (ou un VAT) tranche.",
+      "risque": "Un câble écrasé a son isolant blessé : la coupure franche d'aujourd'hui peut devenir un court-circuit demain. Si le conducteur de Marche touche celui de l'alimentation en aval du bouton Arrêt, la pompe démarre toute seule.",
+      "norme": "NF EN 60204-1 (§ 13)"
     },
     {
       "id": "fusible-l2",
+      "domaines": ["tri"],
       "symptome": "Au démarrage, le moteur grogne, puis tout s'arrête au bout de quelques secondes. L'opérateur a réessayé deux fois.",
       "ouvre": ["fu-l2"],
       "relaisDeclenche": true,
       "reference": 38,
       "cause": "La cartouche aM de la phase L2 est fondue : le moteur démarre en monophasé, le relais thermique déclenche.",
       "methode": "Moteur qui grogne = manque de phase. En aval des fusibles, chaque phase par rapport à la terre : L1 et L3 à 230 V, L2 à 0. Entre phases, Q1 : 2 – Q1 : 4 affiche environ 230 V au lieu de 400 V. Hors tension, continuité du fusible L2 : OL. On change les trois cartouches et on réarme le relais.",
-      "piege": "Relancer pour « voir » : chaque essai chauffe un moteur qui ne peut pas démarrer. Et après réparation, il faut réarmer le relais thermique, sinon rien ne redémarre."
+      "piege": "Relancer pour « voir » : chaque essai chauffe un moteur qui ne peut pas démarrer. Et après réparation, il faut réarmer le relais thermique, sinon rien ne redémarre.",
+      "risque": "Ne changer que la cartouche fondue : les deux autres ont vu le même courant de défaut et fondront au prochain démarrage. Et chaque relance en monophasé fait chauffer un moteur qui ne peut pas démarrer.",
+      "norme": "NF EN 60269 (fusibles aM)"
     }
   ]
 }

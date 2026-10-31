@@ -10,6 +10,8 @@ import { bornier } from './atelier.js';
 import { frontispice, typo, deuxChiffres } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
+import { domaine, filtrerParDomaine, pucesDomaines, barreDomaines } from './domaines.js';
+import { blocRisque, ligneNorme } from './tuteur.js';
 
 // suite : le choix permet-il de passer à l'étape suivante ?
 const VERDICTS = {
@@ -39,10 +41,11 @@ export async function renderPanne({ vue, definirTitre, params }) {
   const cas = await chargerPannes();
   const choisi = cas.find(c => c.id === params?.get('c'));
   if (choisi) jouer(vue, choisi, cas);
-  else afficherListe(vue, cas);
+  else afficherListe(vue, cas, domaine(params?.get('d'))?.id ?? '');
 }
 
-function afficherListe(vue, cas) {
+function afficherListe(vue, tousLesCas, dom) {
+  const cas = filtrerParDomaine(tousLesCas, dom);
   const suivi = statsMode('panne').elements;
   const etat = id => suivi[id]?.reussites ? '<span class="etat-lu">Sans faute</span>' : suivi[id]?.essais ? 'Faite' : 'À faire';
   vue.innerHTML = `
@@ -50,15 +53,20 @@ function afficherListe(vue, cas) {
       surtitre: 'Cas de panne',
       titre: 'Interventions',
       italique: 'pas à pas',
-      chapo: 'Des pannes de terrain. À chaque étape, choisis ta démarche : la sécurité d\'abord, puis la méthode. Prends ton temps.'
+      chapo: 'Des pannes de terrain. À chaque étape, choisis ta démarche : la sécurité d\'abord, puis la méthode. Le tuteur explique chaque choix, et ce qu\'il aurait coûté.'
     })}
-    ${DIFFICULTES.map(d => `
+    ${barreDomaines({
+      actif: dom,
+      href: d => (d ? `#/entrainement/panne?d=${d}` : '#/entrainement/panne'),
+      compter: d => filtrerParDomaine(tousLesCas, d).length
+    })}
+    ${DIFFICULTES.filter(d => cas.some(c => c.niveau === d.n)).map(d => `
       <section>
         <h3 class="section-titre"><span class="section-num">${d.romain}</span><span>${esc(d.nom)}</span></h3>
         ${cas.filter(c => c.niveau === d.n).map(c => `
           <a class="ligne ligne-panne" href="#/entrainement/panne?c=${encodeURIComponent(c.id)}">
             <div>
-              <p class="ligne-meta">${esc(c.module)}${etiquetteNiveau(c.niveau)}</p>
+              <p class="ligne-meta">${pucesDomaines(c.domaines)}${etiquetteNiveau(c.niveau)}</p>
               <h2 class="ligne-titre">${esc(typo(c.titre))}</h2>
             </div>
             <span class="ligne-fin">${etat(c.id)}</span>
@@ -85,7 +93,8 @@ function jouer(vue, c, tousLesCas) {
     vue.innerHTML = `
       <p class="niveau-seance">${etiquetteNiveau(c.niveau, { long: true })}</p>
       <header class="frontispice frontispice-panne">
-        <p class="surtitre">Cas de panne · ${esc(c.module)}</p>
+        <p class="surtitre">Cas de panne</p>
+        <p class="reco-domaines">${pucesDomaines(c.domaines)}</p>
         <h2 class="titre-chapitre">${esc(typo(c.titre))}</h2>
       </header>
       ${partie.etape === 0 ? bon : `<details class="approfondir"><summary>Relire le bon d'intervention</summary>${bon}</details>`}
@@ -175,7 +184,9 @@ function jouer(vue, c, tousLesCas) {
         <div class="lecon"><p class="lecon-titre">La cause</p><p>${esc(typo(c.conclusion.cause))}</p></div>
         <div class="lecon"><p class="lecon-titre">Le remède</p><p>${esc(typo(c.conclusion.remede))}</p></div>
         <div class="piege-terrain"><p class="lecon-titre">À retenir</p><p>${esc(typo(c.conclusion.lecon))}</p></div>
-        ${c.verifie ? '' : '<p class="note-marge">Contenu à vérifier avec ton cours.</p>'}
+        ${blocRisque(c.conclusion.risque)}
+        ${ligneNorme(c.conclusion.norme)}
+        ${c.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}
       </section>
       <div class="actions pousse-bas">
         ${prochain ? `<a class="btn principal" href="#/entrainement/panne?c=${encodeURIComponent(prochain.id)}">Cas suivant</a>` : ''}

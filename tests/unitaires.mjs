@@ -71,7 +71,6 @@ function controleDesSauvegardes(t) {
   t.section('U2. Contrôle des sauvegardes (sauvegarde.js)');
   const valide = {
     version: 1, xp: 1234,
-    fichesVues: { 'elt-ohm': 1761900000000 },
     stats: {
       reco: { sessions: 3, meilleurScore: 10, derniereSession: 1761900000000, niveaux: { '1': 10, '2': 7 }, elements: { 'sym-contact-no': { essais: 3, reussites: 2 } } },
       banc: { sessions: 1, meilleurScore: 1, derniereSession: null, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } }
@@ -100,16 +99,20 @@ function controleDesSauvegardes(t) {
   refuse({ version: 1, stats: { calcul: { elements: { ohm: { essais: 1.5, reussites: 1 } } } } }, 'entiers', 'compteur non entier');
   refuse({ version: 1, stats: { reco: { niveaux: { 7: 10 } } } }, 'niveau', 'niveau de difficulté inexistant');
   refuse({ version: 1, stats: { triche: { sessions: 1 } } }, 'mode inconnu', 'mode d\'exercice inconnu');
-  refuse({ version: 1, fichesVues: { 'elt-ohm': 'hier' } }, 'fichesVues', 'date de lecture en texte');
+  refuse({ version: 1, stats: { banc: { derniereSession: 'hier' } } }, 'derniereSession', 'date de séance en texte');
   refuse({ version: 1, derniereSauvegarde: 'hier' }, 'derniereSauvegarde', 'date de sauvegarde en texte');
   refuse({ version: 1, preferences: { matiere: '<img src=x onerror=alert(1)>' } }, 'matiere', 'thème inconnu (injection)');
-  refuse({ version: 1, fichesVues: { ['x'.repeat(500)]: 1 } }, 'clé', 'identifiant démesuré');
+  refuse({ version: 1, stats: { reco: { elements: { ['x'.repeat(500)]: { essais: 1, reussites: 1 } } } } }, 'clé', 'identifiant démesuré');
 
   // Pollution de prototype : JSON.parse crée une vraie clé « __proto__ ».
-  const piege = JSON.parse('{"version":1,"fichesVues":{"__proto__":{"pollue":true}},"stats":{"__proto__":{"pollue":true}}}');
+  const piege = JSON.parse('{"version":1,"stats":{"__proto__":{"pollue":true},"reco":{"elements":{"__proto__":{"essais":1,"reussites":1}}}}}');
   const rp = controler(piege);
-  t.ok(rp.anomalies.length >= 2 && ({}).pollue === undefined && rp.etat.fichesVues.pollue === undefined
+  t.ok(rp.anomalies.length >= 2 && ({}).pollue === undefined && rp.etat.stats.reco.elements.essais === undefined
     && Object.getPrototypeOf(rp.etat.stats) === Object.prototype, 'clé « __proto__ » : refusée, aucun objet pollué');
+
+  // Module Cours retiré : une ancienne sauvegarde avec « fichesVues » reste acceptée, le champ est simplement ignoré.
+  const ancienne = controler({ version: 1, xp: 450, fichesVues: { 'elt-ohm': 1761900000000, autre: 'x' }, stats: {} });
+  t.ok(ancienne.anomalies.length === 0 && ancienne.etat.xp === 450 && !('fichesVues' in ancienne.etat), 'ancienne sauvegarde avec « fichesVues » (module Cours retiré) : acceptée, champ ignoré');
 
   for (const n of [null, [], 'texte', 42]) {
     const { anomalies, etat } = controler(n);
@@ -118,8 +121,8 @@ function controleDesSauvegardes(t) {
   t.ok(true, 'contenu qui n\'est pas un objet (null, tableau, texte, nombre) : refusé, état par défaut');
 
   // Mode « nettoyage » (démarrage) : on garde ce qui est bon, on remplace ce qui est abîmé.
-  const abime = controler({ version: 1, xp: '100', fichesVues: { a: 1, b: 'x' }, stats: { reco: { sessions: 2, elements: { q: { essais: 1, reussites: 1 }, z: 'x' } } } });
-  t.ok(abime.etat.xp === 0 && Object.keys(abime.etat.fichesVues).join() === 'a' && abime.etat.stats.reco.sessions === 2
+  const abime = controler({ version: 1, xp: '100', stats: { reco: { sessions: 2, elements: { q: { essais: 1, reussites: 1 }, z: 'x' } }, calcul: 'abîmé' } });
+  t.ok(abime.etat.xp === 0 && !abime.etat.stats.calcul && abime.etat.stats.reco.sessions === 2
     && Object.keys(abime.etat.stats.reco.elements).join() === 'q', 'nettoyage : seuls les champs abîmés reprennent leur valeur par défaut');
   const apres = abime.etat.xp + 10;
   t.ok(typeof apres === 'number' && apres === 10, 'après contrôle, xp + 10 est une addition (plus de concaténation « 100 » + 10)');

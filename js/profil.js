@@ -1,7 +1,6 @@
 // Écran Carnet (profil) : plaque de l'opérateur, progression, matière d'affichage, sauvegarde, remise à zéro.
 
 import * as stockage from './storage.js';
-import { chargerFiches } from './cours.js';
 import { carteNiveau, TAILLE_SESSION } from './entrainement.js';
 import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
@@ -23,6 +22,15 @@ function ligneStats(libelle, mode) {
   return `<li><span>${libelle}</span><span class="mono">${valeur}</span></li>`;
 }
 
+// Interventions (cas de panne, banc) : nombre de cas différents réussis sans faute, et interventions faites.
+function ligneInterventions(libelle, mode) {
+  const s = statsMode(mode);
+  const elements = Object.values(s.elements);
+  const sansFaute = elements.filter(e => e.reussites > 0).length;
+  const valeur = s.sessions ? `${sansFaute} sans faute · ${s.sessions} interv.` : '—';
+  return `<li><span>${libelle}</span><span class="mono">${valeur}</span></li>`;
+}
+
 function estInstallee() {
   return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 }
@@ -30,8 +38,6 @@ function estInstallee() {
 export async function renderProfil({ vue, definirTitre }) {
   definirTitre('Carnet');
   const etat = stockage.lire();
-  const fiches = await chargerFiches().catch(() => []);
-  const nbLues = fiches.filter(f => etat.fichesVues[f.id]).length;
   const persistant = await stockage.estPersistant();
   const sauvegarde = etatSauvegarde(etat.derniereSauvegarde);
   const theme = themeActuel();
@@ -45,11 +51,11 @@ export async function renderProfil({ vue, definirTitre }) {
     <section>
       ${titreSection('01', 'Progression')}
       <div class="corps">
-        <div class="compteur"><span>Fiches lues</span><span class="mono">${deuxChiffres(nbLues)}/${deuxChiffres(fiches.length)}</span></div>
-        <div class="regle" aria-hidden="true"><div class="regle-remplissage" style="width: ${fiches.length ? Math.round(nbLues / fiches.length * 100) : 0}%"></div></div>
         <ul class="stats">
           ${ligneStats('Reconnaissance', 'reco')}
           ${ligneStats('Calculs flash', 'calcul')}
+          ${ligneInterventions('Cas de panne', 'panne')}
+          ${ligneInterventions('Banc de mesure', 'banc')}
         </ul>
       </div>
     </section>

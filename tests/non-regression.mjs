@@ -44,6 +44,10 @@ export default async function ({ t, url: U, navigateur }) {
         case 'chute-tri': return r3 * rho * d.L * d.I / d.S / 4;
         case 'compensation': return d.P * (tan(d.cos1) - tan(d.cos2));
         case 'boucherot': { const S = Math.hypot(d.P1 + d.P2, d.P1 * tan(d.cos1)); return ex.unite === 'kVA' ? S : S * 1000 / (r3 * 400); }
+        case 'alim-24v': return (d.api + d.nCapteurs * 0.025 + d.nEv * d.pEv / 24) * 1.25;
+        case 'chute-24v': return 24 - 2 * rho * d.L * (d.P / 24) / d.S;
+        case 'contact-tt': return d.type === 'uc' ? d.Ra * 230 / (d.Ra + d.Rb) : 50 / (d.IdnMA / 1000);
+        case 'hta-courant': return d.type === 'in' ? d.S / (r3 * 20) : d.Ibt * 0.4 / 20;
         case 'transfo': { const In = d.S * 1000 / (r3 * 400); return d.demande === 'In' ? In : In * 100 / d.ucc / 1000; }
       } };
     for (const g of c.GENERATEURS) { const pb = [];
@@ -64,16 +68,25 @@ export default async function ({ t, url: U, navigateur }) {
     const parNiveau = [1, 2, 3].map(n => c.GENERATEURS.filter(g => g.niveau === n).length);
     const ids = c.GENERATEURS.map(g => g.id);
     const sessionsOk = [1, 2, 3].every(n => c.creerSession(n).exercices.length === 10 && c.creerSession(n).exercices.every(e => e.generateur.niveau === n));
-    return { res, parNiveau, sessionsOk, ids };
+    const domainesValides = ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'];
+    const metaOk = c.GENERATEURS.every(g => g.domaines?.length && g.domaines.every(d => domainesValides.includes(d)) && g.risque?.length > 60);
+    const parDomaine = Object.fromEntries(domainesValides.map(d => [d, c.GENERATEURS.filter(g => g.domaines.includes(d)).length]));
+    const filtreOk = [1, 2, 3].every(n => domainesValides.every(d => { const g = c.generateursDe(n, d); return !g.length || c.creerSession(n, d).exercices.every(e => e.generateur.domaines.includes(d) && e.generateur.niveau === n); }));
+    return { res, parNiveau, sessionsOk, ids, metaOk, parDomaine, filtreOk };
   });
   for (const [id, v] of Object.entries(r.res)) if (v.pb.length) t.ok(false, `${id} : ${v.pb.join(' | ')}`);
   t.ok(Object.values(r.res).every(v => !v.pb.length), `${r.ids.length} générateurs × 300 tirages : valeurs justes, explication + piège + calcul posé présents, erreurs types diagnostiquées`);
   t.ok(!r.ids.includes('resistances') && ['tension-attendue', 'charge-moteur', 'desequilibre'].every(id => r.ids.includes(id)), 'résistances série/parallèle retirées ; 3 calculs de valeurs attendues ajoutés (tension au récepteur, charge moteur, déséquilibre)');
   t.ok(r.parNiveau.every(n => n >= 3) && r.sessionsOk, `générateurs par niveau : ${r.parNiveau.join(' / ')} ; une séance ne tire que dans son niveau`);
+  t.ok(r.metaOk, 'chaque calcul : domaine(s) valide(s) et risque humain / machine rédigé');
+  t.ok(Object.values(r.parDomaine).every(n => n > 0), `calculs dans les 5 domaines : ${Object.entries(r.parDomaine).map(([d, n]) => `${d} ${n}`).join(', ')}`);
+  t.ok(r.filtreOk, 'séance filtrée par domaine : uniquement des calculs de ce domaine et de ce niveau');
 
   const qs = await p.evaluate(() => fetch('data/reconnaissance.json').then(r => r.json()));
-  const fiches = await p.evaluate(() => fetch('data/fiches.json').then(r => r.json()));
-  t.ok(qs.length === 30 && [1, 2, 3].every(n => qs.filter(q => q.niveau === n).length === 10) && new Set(qs.map(q => q.id)).size === 30, 'reconnaissance : 30 questions, 10 par niveau, ids uniques');
+  const DOMAINES = ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'];
+  t.ok(qs.length >= 30 && [1, 2, 3].every(n => qs.filter(q => q.niveau === n).length >= 10) && new Set(qs.map(q => q.id)).size === qs.length, `reconnaissance : ${qs.length} questions, au moins 10 par niveau (${[1, 2, 3].map(n => qs.filter(q => q.niveau === n).length).join(' / ')}), ids uniques`);
+  t.ok(qs.every(q => q.domaines?.length && q.domaines.every(d => DOMAINES.includes(d)) && q.risque?.length > 60 && q.norme), 'chaque question : domaine(s) valide(s), risque humain / machine, référence normative');
+  t.ok(DOMAINES.every(d => qs.some(q => q.domaines.includes(d))), 'reconnaissance : les 5 domaines ont des questions');
   t.ok(qs.every(q => q.faux.length === 3 && new Set([q.nom, ...q.faux]).size === 4 && q.explication && q.reperage && q.role
     && Object.keys(q.pourquoiPas).sort().join('|') === [...q.faux].sort().join('|') && Object.values(q.pourquoiPas).every(Boolean)), 'chaque question : explication + un « pourquoi pas » par mauvaise réponse');
   // Biais de longueur : options de longueur comparable, bonne réponse pas plus souvent la plus longue que le hasard.
@@ -96,9 +109,6 @@ export default async function ({ t, url: U, navigateur }) {
 
   let imagesOk = true; for (const src of new Set(qs.map(q => q.image))) if (await p.evaluate(u => fetch(u).then(r => r.status), src) !== 200) imagesOk = false;
   t.ok(imagesOk, `les ${new Set(qs.map(q => q.image)).size} images répondent`);
-  const modules = ['Électrotechnique', 'Automatismes', 'Réseaux', 'Sécurité'];
-  t.ok(fiches.length === 12 && modules.every(m => [1, 2, 3].every(n => fiches.filter(f => f.module === m && f.niveau === n).length === 1))
-    && fiches.every(f => f.definitions.length >= 4 && f.formules.length >= 3 && f.pieges.length >= 4), 'fiches : 12 fiches, une par module et par niveau, complètes');
 
   t.section('B. Reconnaissance par niveau');
   const jouer = async (bon, controle) => {
@@ -175,20 +185,43 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(await xpDe() - xp0 === justes * 15, `XP = ${await xpDe() - xp0} pour ${justes} justes (15 XP chacun, sans bonus de vitesse)`);
   t.ok((await etat()).stats.calcul.niveaux[2] === justes, 'meilleur score du niveau II enregistré');
 
-  t.section('D. Cours par niveau');
-  await p.goto(U + '#/cours'); await p.waitForSelector('.ligne-fiche');
-  t.ok(await p.locator('.ligne-fiche').count() === 12 && await p.locator('.ligne-fiche .niv').count() === 12, '12 fiches, chacune avec son étiquette de niveau');
-  await p.click('.segments a:has-text("Niv. III")'); await p.waitForTimeout(200);
-  t.ok(await p.locator('.ligne-fiche').count() === 4, 'filtre niveau III : 4 fiches (une par module)');
-  await p.click('.filtre:has-text("Sécurité")'); await p.waitForTimeout(200);
-  t.ok(await p.locator('.ligne-fiche').count() === 1 && (await p.textContent('.ligne-titre')).includes('liaison à la terre'), 'filtres combinés Sécurité + niveau III : schémas de liaison à la terre');
-  await p.click('.ligne-fiche'); await p.waitForSelector('.fiche');
-  t.ok((await p.textContent('.fiche-module')).includes('Cas complexes'), 'niveau affiché sur la fiche');
+  t.section('D. Domaines techniques et fin du module Cours');
+  t.ok(!(await p.$('.tabbar a[href="#/cours"]')) && await p.isVisible('.tabbar a[href="#/entrainement/banc"]'), 'barre d\'onglets : Entraînement, Banc, Carnet (plus de Cours)');
+  await p.goto(U + '#/cours'); await p.waitForTimeout(300);
+  t.ok(p.url().endsWith('#/entrainement'), 'ancien lien #/cours redirigé vers l\'entraînement');
+  await p.goto(U + '#/fiche/secu-slt'); await p.waitForTimeout(300);
+  t.ok(p.url().endsWith('#/entrainement'), 'ancien lien #/fiche/… redirigé vers l\'entraînement');
+  t.ok(!fs.existsSync(path.join(RACINE, 'data/fiches.json')) && !fs.existsSync(path.join(RACINE, 'js/cours.js')), 'fiches.json et cours.js supprimés du dépôt');
+  await p.goto(U + '#/entrainement/reco'); await p.waitForSelector('.filtres-domaines');
+  t.ok(await p.locator('.filtres-domaines .filtre').count() === 6, 'filtre par domaine : Tous + 5 domaines');
+  await p.click('.filtres-domaines .filtre:has-text("HTA")'); await p.waitForTimeout(200);
+  t.ok(p.url().endsWith('#/entrainement/reco?d=hta') && await p.locator('.mode.inactif').count() === 2 && (await p.textContent('.domaine-desc')).includes('Haute tension'),
+    'domaine HTA : niveaux I et II grisés (pas de contenu), description du domaine affichée');
+  await p.click('a.mode[href="#/entrainement/reco?n=3&d=hta"]'); await p.waitForSelector('.choix-btn');
+  const nbHta = qs.filter(q => q.niveau === 3 && q.domaines.includes('hta')).length;
+  t.ok((await p.textContent('.session-chiffres')).includes(`/${String(nbHta).padStart(2, '0')}`), `séance HTA niveau III : ${nbHta} planches, pas 10`);
+  let horsDomaine = 0;
+  for (let i = 0; i < nbHta; i++) {
+    await p.waitForSelector('.choix-btn:not([disabled])');
+    const src = await p.getAttribute('.reco-visuel img', 'src');
+    const question = (await p.textContent('.question')).replace(/\s/g, '');
+    const q = qs.find(x => x.image === src && x.question.replace(/\s/g, '') === question);
+    if (!q?.domaines.includes('hta')) horsDomaine++;
+    await p.locator('.choix-btn').first().click(); await p.waitForSelector('#suivant');
+    if (i === 0) t.ok(await p.isVisible('.risque') || await p.isVisible('.approfondir'), 'correction : bloc « le risque, en vrai » présent');
+    await p.click('#suivant');
+  }
+  await p.waitForSelector('.bilan');
+  t.ok(horsDomaine === 0, 'séance HTA : uniquement des planches du domaine HTA');
+  await p.goto(U + '#/entrainement/calcul?n=1&d=tbt-cc'); await p.waitForSelector('.clavier');
+  t.ok((await p.textContent('.niveau-seance')).includes('TBT'), 'calculs : séance TBT & CC, domaine rappelé en tête');
 
 
   t.section('E. Cas de panne');
   const pannes = await p.evaluate(() => fetch('data/pannes.json').then(r => r.json()));
-  t.ok(pannes.length === 6 && [1, 2, 3].every(n => pannes.filter(c => c.niveau === n).length === 2), '6 interventions, 2 par niveau');
+  t.ok(pannes.length >= 8 && [1, 2, 3].every(n => pannes.filter(c => c.niveau === n).length >= 2), `${pannes.length} interventions, au moins 2 par niveau`);
+  t.ok(pannes.every(c => !c.module && c.domaines?.length && c.domaines.every(d => DOMAINES.includes(d)) && c.conclusion.risque?.length > 60 && c.conclusion.norme), 'chaque cas : domaines (plus de « module »), risque et norme dans le diagnostic final');
+  t.ok(DOMAINES.every(d => pannes.some(c => c.domaines.includes(d))), 'cas de panne : les 5 domaines sont couverts (dont consignation / VAT et poste HTA)');
   t.ok(pannes.every(c => c.contexte && c.conclusion?.cause && c.conclusion?.remede && c.conclusion?.lecon && c.etapes.length >= 3
     && c.etapes.every(e => e.situation && e.question && e.choix.length >= 3 && e.choix.filter(x => x.verdict === 'bon').length === 1
       && e.choix.every(x => ['bon', 'acceptable', 'mauvais', 'danger'].includes(x.verdict) && x.explication && x.texte))),
@@ -196,7 +229,10 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(pannes.flatMap(c => c.etapes.flatMap(e => e.choix)).filter(x => x.verdict === 'danger').length >= 8, 'des démarches dangereuses à reconnaître dans les cas');
   await p.goto(U + '#/entrainement'); await p.waitForSelector('a[href="#/entrainement/panne"]');
   await p.click('a[href="#/entrainement/panne"]'); await p.waitForSelector('.ligne-panne');
-  t.ok(await p.locator('.ligne-panne').count() === 6, 'liste des 6 interventions, groupées par niveau');
+  t.ok(await p.locator('.ligne-panne').count() === pannes.length, `liste des ${pannes.length} interventions, groupées par niveau`);
+  await p.click('.filtres-domaines .filtre:has-text("SÉCU")'); await p.waitForTimeout(200);
+  t.ok(await p.locator('.ligne-panne').count() === pannes.filter(c => c.domaines.includes('securite')).length, 'filtre Sécurité : seuls les cas du domaine');
+  await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/panne'); await p.waitForSelector('.ligne-panne');
   const xpAvantPanne = await xpDe();
   const cas = pannes.find(c => c.id === 'commande-hs');
   await p.click('a[href="#/entrainement/panne?c=commande-hs"]'); await p.waitForSelector('.etape');
@@ -232,7 +268,7 @@ export default async function ({ t, url: U, navigateur }) {
 
   t.section('F. Nouveau nom « Elec learning »');
   const textes = [];
-  for (const h of ['#/entrainement', '#/entrainement/reco', '#/entrainement/panne', '#/cours', '#/profil']) { await p.goto(U + h); await p.waitForTimeout(250); textes.push(await p.evaluate(() => document.body.innerText + ' ' + document.title)); }
+  for (const h of ['#/entrainement', '#/entrainement/reco', '#/entrainement/panne', '#/entrainement/banc', '#/profil']) { await p.goto(U + h); await p.waitForTimeout(250); textes.push(await p.evaluate(() => document.body.innerText + ' ' + document.title)); }
   t.ok(!textes.join(' ').match(/dojo/i) && textes[0].includes('Elec learning'), 'plus aucun « Dojo » à l\'écran ; « Elec learning » dans l\'en-tête');
   const manifeste = await p.evaluate(() => fetch('manifest.webmanifest').then(r => r.json()));
   t.ok(manifeste.name === 'Elec learning' && manifeste.short_name === 'Elec learning', 'manifeste : Elec learning');
@@ -261,16 +297,16 @@ export default async function ({ t, url: U, navigateur }) {
   await ctx2.setOffline(true);
   await p2.reload(); await p2.waitForSelector('.selecteur');
   await p2.goto(U + '#/entrainement/panne?c=variateur-surtension'); await p2.waitForSelector('.etape');
-  await p2.goto(U + '#/fiche/secu-slt'); await p2.waitForSelector('.fiche');
+  await p2.goto(U + '#/entrainement/calcul?n=3&d=hta'); await p2.waitForSelector('.clavier');
   await p2.goto(U + '#/entrainement/reco?n=3'); await p2.waitForSelector('.reco-visuel img');
   const imageOk = await p2.evaluate(() => new Promise(r => { const i = document.querySelector('.reco-visuel img'); i.complete ? r(i.naturalWidth > 0) : (i.onload = () => r(true), i.onerror = () => r(false)); }));
-  t.ok(imageOk, 'sans réseau : l\'app s\'ouvre, cas de panne, fiche jamais ouverte et images disponibles');
+  t.ok(imageOk, 'sans réseau : l\'app s\'ouvre, cas de panne, calculs HTA et images disponibles');
 
-  for (const h of ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=3', '#/entrainement/calcul', '#/entrainement/calcul?n=3', '#/entrainement/panne', '#/entrainement/panne?c=variateur-surtension', '#/cours', '#/profil']) {
+  for (const h of ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=3', '#/entrainement/calcul', '#/entrainement/calcul?n=3', '#/entrainement/panne', '#/entrainement/panne?c=variateur-surtension', '#/entrainement/panne?d=hta', '#/entrainement/reco?d=securite', '#/entrainement/banc', '#/profil']) {
     await p.goto(U + h); await p.waitForTimeout(250);
     if (await p.evaluate(() => document.documentElement.scrollWidth > innerWidth)) t.ok(false, 'débordement horizontal sur ' + h);
   }
-  t.ok(true, 'aucun débordement horizontal (9 écrans)');
+  t.ok(true, 'aucun débordement horizontal (11 écrans)');
 
   await ctx2.close();
   await importSecurise(t, U, navigateur, dossierTemp);
@@ -305,10 +341,10 @@ async function importSecurise(t, U, navigateur, dossierTemp) {
   message = await importer('compteurs.json', sauvegarde({ stats: { reco: { sessions: -2 } } }));
   t.ok(message.includes('refusée') && (await etat()).xp === 300, 'compteur négatif dans les stats : refusée');
 
-  message = await importer('proto.json', '{"app":"elec-learning","version":1,"xp":5,"fichesVues":{"__proto__":{"pollue":1}}}');
+  message = await importer('proto.json', '{"app":"elec-learning","version":1,"xp":5,"stats":{"__proto__":{"pollue":1}}}');
   t.ok(message.includes('refusée') && await p.evaluate(() => ({}).pollue === undefined) && (await etat()).xp === 300, 'clé « __proto__ » : refusée, aucun objet pollué');
 
-  message = await importer('enorme.json', sauvegarde({ fichesVues: Object.fromEntries(Array.from({ length: 80000 }, (_, i) => [`fiche-${i}`, 1761900000000])) }));
+  message = await importer('enorme.json', sauvegarde({ stats: { reco: { sessions: 1, elements: Object.fromEntries(Array.from({ length: 60000 }, (_, i) => [`question-${i}`, { essais: 1, reussites: 1 }])) } } }));
   t.ok(message.includes('volumineux') && (await etat()).xp === 300, 'fichier de plus de 2 Mo : refusé');
 
   const somme = await p.evaluate(async () => { const xp = await import('/js/xp.js'); xp.gagnerXP(10); return xp.lireXP(); });

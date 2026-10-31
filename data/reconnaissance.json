@@ -19,7 +19,12 @@
     "explication": "Au repos, la lame est écartée de la borne fixe : le circuit est ouvert. Il se ferme quand l'appareil est actionné. C'est le contact « normalement ouvert ». Repère visuel : la lame part en biais et ne touche rien.",
     "reperage": "Porte le repère de l'appareil qui le manœuvre (ex. -QA1 / KM1). Contacts auxiliaires NO : bornes finissant par 3-4 (13-14, 23-24…).",
     "role": "Ouvert au repos, il se ferme quand l'appareil est actionné. Sert à l'auto-maintien, à la signalisation « en marche » ou à envoyer une information à l'automate.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · IEC 60947-5-1",
+    "risque": "Un NO câblé à la place d'un NF dans une chaîne d'arrêt ou de sécurité inverse la logique : un fil coupé n'arrête plus la machine, il empêche seulement de la démarrer. La sécurité positive est perdue sans que personne ne s'en aperçoive."
   },
   {
     "id": "sym-contact-nf",
@@ -41,7 +46,12 @@
     "explication": "Au repos, la lame s'appuie sur la borne fixe (le petit trait horizontal) : le courant passe. Il s'ouvre quand l'appareil est actionné. C'est le contact « normalement fermé », celui des arrêts et des sécurités.",
     "reperage": "Porte le repère de l'appareil qui le manœuvre. Contacts auxiliaires NF : bornes finissant par 1-2 (11-12, 21-22…).",
     "role": "Fermé au repos, il s'ouvre quand l'appareil est actionné. Utilisé pour les arrêts, les sécurités et les verrouillages : un fil coupé provoque l'arrêt (sécurité positive).",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · NF EN 60204-1",
+    "risque": "Les arrêts et les sécurités se câblent en NF : un fil qui se débranche ou un bornier desserré arrête la machine. Câblés en NO, la même panne rend le bouton d'arrêt inopérant, et on ne le découvre que le jour où on en a besoin."
   },
   {
     "id": "sym-bobine",
@@ -63,7 +73,12 @@
     "explication": "Un rectangle posé en travers du conducteur, plus large que haut : c'est la bobine (l'électro-aimant) d'un contacteur ou d'un relais. Sur le schéma réel, ses bornes sont repérées A1 et A2.",
     "reperage": "Bornes A1-A2. Repère de l'appareil : -QA (contacteur de puissance) ou -KF (relais auxiliaire) en IEC 81346 ; KM ou KA en usage français.",
     "role": "Électro-aimant : quand elle est alimentée, elle attire l'armature mobile et fait basculer tous les contacts de l'appareil.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · IEC 60947-4-1",
+    "risque": "Une bobine alimentée sous une tension supérieure à sa plaque (230 V sur une bobine 24 V) grille en quelques secondes ; sous-alimentée, elle colle mal, le contacteur vibre et ses contacts de puissance s'usent ou se soudent."
   },
   {
     "id": "sym-moteur",
@@ -85,7 +100,12 @@
     "explication": "Un cercle avec M = moteur. Le « 3~ » indique qu'il est alimenté en alternatif triphasé : les trois traits du haut sont les trois phases U, V, W.",
     "reperage": "-MA en IEC 81346 ; M en usage français. Bornes de raccordement U, V, W.",
     "role": "Convertit l'énergie électrique triphasée en énergie mécanique de rotation.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60617 · IEC 60034-1",
+    "risque": "Un moteur se protège contre les surcharges et le manque de phase : sans relais thermique réglé, il absorbe plusieurs fois son In quand il est bloqué et brûle son bobinage en quelques minutes, avec risque d'incendie."
   },
   {
     "id": "sym-fusible",
@@ -107,7 +127,13 @@
     "explication": "Le rectangle traversé de bout en bout par le conducteur, c'est le fusible : le trait central représente l'élément qui fond.",
     "reperage": "-FA en IEC 81346 ; F ou FU en usage français.",
     "role": "Protège contre les courts-circuits en fondant ; les fusibles gG protègent aussi contre les surcharges, les aM (accompagnement moteur) seulement contre les courts-circuits. Se remplace par un fusible de même calibre et de même classe.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "mono-bt",
+      "tri"
+    ],
+    "norme": "IEC 60617 · NF EN 60269",
+    "risque": "Remplacer un fusible par un calibre plus fort, ou par un fil, supprime la protection : au prochain court-circuit, c'est le câble qui fond, dans la goulotte. Un fusible se remplace par un modèle identique (calibre, type gG ou aM, taille)."
   },
   {
     "id": "sym-voyant",
@@ -129,7 +155,12 @@
     "explication": "Un cercle barré d'une croix : c'est une lampe, utilisée en armoire comme voyant de signalisation (marche, défaut, sous tension). Sa couleur suit l'IEC 60204-1 : rouge = urgence, jaune = anormal, vert = normal, bleu = action obligatoire, blanc = neutre.",
     "reperage": "-PF en IEC 81346 (P = présenter une information) ; H en usage français (H1, H2…).",
     "role": "Signale un état à l'opérateur : machine en marche, défaut thermique, présence tension…",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "NF EN 60204-1 (§ 10.3)",
+    "risque": "Un voyant informe, il ne prouve rien : une lampe grillée ou un voyant alimenté par un autre circuit peut être éteint sur une installation sous tension. Avant de toucher, seule la VAT compte."
   },
   {
     "id": "sym-transfo",
@@ -151,7 +182,13 @@
     "explication": "Deux cercles qui se chevauchent : un enroulement primaire et un enroulement secondaire couplés magnétiquement. En armoire, on le trouve souvent pour fabriquer la tension de commande (400 V → 24 V).",
     "reperage": "-TA en IEC 81346 (T = transformer l'énergie) ; T en usage français (T1).",
     "role": "Change le niveau d'une tension alternative et isole galvaniquement les deux circuits (transformateur de commande, d'isolement, de distribution).",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri",
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · NF EN 61558",
+    "risque": "Un transformateur de commande mal raccordé (prise primaire 230 V branchée sur 400 V) envoie une tension trop élevée dans toute la commande : bobines grillées, électronique détruite. Et son secondaire reste dangereux même si le primaire est en 400 V : on consigne avant de toucher."
   },
   {
     "id": "mat-disjoncteur-modulaire",
@@ -173,7 +210,12 @@
     "explication": "Une manette de réarmement, un voyant de position et un format modulaire sur rail DIN : c'est un disjoncteur divisionnaire. Sur l'appareil réel, son marquage (ex. C16) donne la courbe et le calibre.",
     "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
     "role": "Protège un circuit contre les surcharges (déclencheur thermique) et les courts-circuits (déclencheur magnétique). Se réarme après déclenchement.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "NF EN 60898-1 · NF C 15-100",
+    "risque": "Réarmer en boucle un disjoncteur qui déclenche, c'est réenclencher sur un défaut : chaque fermeture sur court-circuit use ses contacts et fait chauffer la ligne. On cherche d'abord pourquoi il a déclenché."
   },
   {
     "id": "mat-contacteur",
@@ -195,7 +237,12 @@
     "explication": "Trois pôles de puissance en haut et en bas, deux petites bornes de bobine à part, une fenêtre qui laisse voir la partie mobile : c'est la signature d'un contacteur. Sur l'appareil réel, tu lirais 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3, la bobine A1-A2 et un contact auxiliaire 13-14.",
     "reperage": "-QA en IEC 81346 ; KM en usage français. Bobine A1-A2, pôles 1-2 / 3-4 / 5-6, contact auxiliaire 13-14.",
     "role": "Établit et coupe à distance l'alimentation d'un récepteur (moteur…), commandé par sa bobine. Il ne protège pas : il faut l'associer à un disjoncteur moteur ou à un relais thermique.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60947-4-1",
+    "risque": "Un contacteur n'est pas un organe de séparation : ses contacts peuvent se souder sur un courant de démarrage ou de court-circuit. Le croire ouvert parce que le moteur est arrêté, c'est travailler sur un départ sous tension."
   },
   {
     "id": "mat-arret-urgence",
@@ -217,7 +264,13 @@
     "explication": "Tête rouge en champignon sur fond jaune, déverrouillage par rotation : c'est l'arrêt d'urgence (ISO 13850). Il reste enfoncé jusqu'au déverrouillage volontaire.",
     "reperage": "-SF en IEC 81346 ; S ou AU en usage français. Contact NF à manœuvre positive d'ouverture.",
     "role": "Arrête la machine le plus vite possible en cas de danger. Une fois déverrouillé, la machine ne doit pas redémarrer seule : il faut une action volontaire séparée.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "securite",
+      "tbt-cc"
+    ],
+    "norme": "ISO 13850 · NF EN 60204-1 (§ 10.7)",
+    "risque": "Un arrêt d'urgence shunté, mal câblé ou qui ne coupe que l'automate ne protège personne : le jour où quelqu'un est pris dans la machine, l'appui ne change rien. Il se teste périodiquement, en vrai."
   },
   {
     "id": "mat-relais-thermique",
@@ -239,7 +292,12 @@
     "explication": "Une molette de réglage graduée, un bouton de réarmement, et trois broches qui s'enfichent directement sous un contacteur : c'est un relais thermique. Sur l'appareil réel, la molette est graduée en ampères et les contacts sont repérés 95-96 et 97-98.",
     "reperage": "F en usage français (souvent F2 ou FR). En IEC 81346, la lettre varie selon les référentiels (-FA, -BB…) : vérifie celle de ton cours. Contacts 95-96 (NF) et 97-98 (NO).",
     "role": "Protège le moteur contre les surcharges : réglé sur l'In du moteur, il ouvre son contact 95-96 placé dans le circuit de commande, ce qui fait retomber le contacteur. Il ne protège pas contre les courts-circuits.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60947-4-1",
+    "risque": "Monter le réglage du thermique pour que la machine « tienne » supprime la protection du moteur : il chauffe sans que rien ne coupe, son isolant vieillit, puis il grille, parfois en mettant le feu à la poussière autour."
   },
   {
     "id": "mat-disjoncteur-moteur",
@@ -261,7 +319,12 @@
     "explication": "Une manette rotative de commande + une molette de réglage graduée : c'est un disjoncteur moteur. Il regroupe la protection magnétique (courts-circuits) et thermique (surcharges) dans un seul appareil ; sur l'appareil réel, la molette indique une plage en ampères.",
     "reperage": "-QA en IEC 81346 ; Q en usage français. Pôles 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3.",
     "role": "Protège le moteur contre les courts-circuits (magnétique) et les surcharges (thermique). La molette se règle sur l'intensité nominale de la plaque moteur.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60947-2 · IEC 60947-4-1",
+    "risque": "Un disjoncteur moteur réglé au-dessus de l'In ne protège plus le moteur contre les surcharges ; choisi avec un pouvoir de coupure trop faible pour l'Icc du tableau, il peut exploser sur un court-circuit franc."
   },
   {
     "id": "sym-sectionneur",
@@ -283,7 +346,13 @@
     "explication": "Un contact ouvert avec un petit trait perpendiculaire au bout de la borne fixe : c'est la fonction sectionnement. Le sectionneur isole une installation pour travailler dessus en sécurité.",
     "reperage": "-QB en IEC 81346 (Q = commuter l'énergie, B = sectionnement) ; Q en usage français (Q1, souvent associé aux fusibles).",
     "role": "Assure la séparation (isolement) d'un circuit, avec une distance d'ouverture garantie. Il se manœuvre à vide et se cadenasse en position ouverte pour la consignation.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "securite",
+      "tri"
+    ],
+    "norme": "IEC 60617 · NF C 18-510",
+    "risque": "Le sectionneur est l'organe de la consignation : manœuvré en charge, il crée un arc qui brûle l'opérateur ; non cadenassé, quelqu'un peut le refermer pendant que tu as les mains dans l'armoire."
   },
   {
     "id": "sym-disjoncteur",
@@ -305,7 +374,13 @@
     "explication": "La croix (×) sur la borne fixe désigne la fonction disjoncteur : l'appareil est capable d'ouvrir un courant de court-circuit. En schéma développé, on ajoute souvent les déclencheurs thermique et magnétique.",
     "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
     "role": "Établit, supporte et coupe les courants normaux et de court-circuit. Protège la ligne en aval.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "mono-bt",
+      "tri"
+    ],
+    "norme": "IEC 60617 · IEC 60947-2",
+    "risque": "Un disjoncteur dont le pouvoir de coupure est inférieur au courant de court-circuit au point d'installation ne coupe pas le défaut : l'arc persiste, l'appareil éclate et l'armoire peut prendre feu."
   },
   {
     "id": "sym-bp-no",
@@ -327,7 +402,12 @@
     "explication": "Un contact NO relié en pointillés au symbole « commande par poussée » (le crochet à gauche) : c'est un bouton-poussoir à fermeture. Il ne reste fermé que pendant l'appui, d'où la nécessité d'un auto-maintien.",
     "reperage": "-SF en IEC 81346 ; S en usage français (S2 pour la marche, par exemple). Bornes 13-14 ou 3-4.",
     "role": "Donne l'ordre de marche : il ferme le circuit tant qu'on appuie, le contact d'auto-maintien prend ensuite le relais.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · NF EN 60204-1 (§ 10.2)",
+    "risque": "Un bouton Marche mal protégé (dépassant, sans collerette) peut être actionné par un coude ou une pièce qui tombe : démarrage intempestif. Les boutons de mise en marche sont affleurants ou protégés."
   },
   {
     "id": "sym-bp-nf",
@@ -349,7 +429,12 @@
     "explication": "Contact NF (fermé au repos) + commande par poussée : c'est le bouton d'arrêt. Il est câblé en série, en tête du circuit de commande, pour que l'arrêt soit prioritaire.",
     "reperage": "-SF en IEC 81346 ; S en usage français (S1 pour l'arrêt, par exemple). Bornes 11-12 ou 1-2.",
     "role": "Coupe le circuit de commande quand on appuie : la bobine du contacteur retombe et l'auto-maintien est perdu.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · NF EN 60204-1",
+    "risque": "Un bouton Arrêt câblé en NO, ou placé après l'auto-maintien, ne coupe plus rien : l'arrêt n'est plus prioritaire, et la machine continue de tourner quand l'opérateur appuie."
   },
   {
     "id": "sym-thermique",
@@ -371,7 +456,12 @@
     "explication": "Un rectangle traversé par le conducteur qui fait un « créneau » : c'est le symbole de l'effet thermique. Dans le circuit de puissance, il représente les bilames du relais thermique placés sur chaque phase.",
     "reperage": "Même repère que le relais thermique (F2, FR…). Dans le circuit de puissance, bornes 1/L1 - 2/T1, etc.",
     "role": "Chauffe avec le courant du moteur ; en cas de surcharge prolongée, il fait basculer le contact 95-96 du relais.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60617 · IEC 60947-4-1",
+    "risque": "Un bilame encrassé ou un relais sous-calibré déclenche à tort ; la tentation de le shunter ou de le régler au maximum supprime la seule protection du moteur contre la surcharge et le manque de phase."
   },
   {
     "id": "reco-thermique-bornes",
@@ -393,7 +483,13 @@
     "explication": "Le contact 95-96 est NF : fermé en temps normal, il s'ouvre quand le relais déclenche. Câblé en série avec la bobine du contacteur, il la coupe en cas de surcharge. Moyen mnémotechnique : 9-5-9-6 « ça coupe », 9-7-9-8 « ça signale ».",
     "reperage": "Contacts auxiliaires du relais thermique : 95-96 (NF, coupure) et 97-98 (NO, signalisation).",
     "role": "Le relais ne coupe jamais la puissance lui-même : il agit sur la commande, et c'est le contacteur qui coupe le moteur.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc",
+      "tri"
+    ],
+    "norme": "IEC 60947-4-1 · IEC 60947-1",
+    "risque": "Câbler 97-98 (le contact de signalisation) à la place de 95-96 : le relais déclenche, le voyant défaut s'allume… et le moteur continue de tourner en surcharge jusqu'à ce qu'il brûle."
   },
   {
     "id": "reco-contacteur-bobine",
@@ -415,7 +511,12 @@
     "explication": "La bobine est toujours repérée A1-A2 (A2 souvent côté commun, 0 V ou neutre). On l'alimente sous la tension de commande indiquée sur l'appareil (24 V, 230 V…), qui n'est pas forcément celle de la puissance.",
     "reperage": "Bobine A1-A2 ; pôles de puissance 1/L1-2/T1, 3/L2-4/T2, 5/L3-6/T3 ; auxiliaires 13-14 (NO), 21-22 (NF)…",
     "role": "Alimenter A1-A2 colle le contacteur ; couper l'alimentation de la bobine le fait retomber.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60947-4-1",
+    "risque": "Alimenter A1-A2 sous la tension de puissance au lieu de la tension de commande grille la bobine ; inverser A1 et A2 sur une bobine continue avec diode intégrée met l'alimentation en court-circuit."
   },
   {
     "id": "reco-c16",
@@ -437,7 +538,12 @@
     "explication": "La lettre donne la courbe : B (déclenche entre 3 et 5 In, longues lignes), C (5 à 10 In, usage général), D (10 à 20 In, forts appels de courant comme les transformateurs ou moteurs). Le nombre donne le calibre In en ampères.",
     "reperage": "-QA en IEC 81346 ; Q ou QF en usage français.",
     "role": "Un C16 protège un circuit de 16 A et tolère des pointes de courant jusqu'à 5 In (80 A) sans déclencher instantanément.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "NF EN 60898-1 · NF C 15-100",
+    "risque": "Monter un C20 ou un C25 sur un circuit en 1,5 mm² pour éviter les déclenchements : le câble n'est plus protégé, il chauffe au-delà de sa limite sans que rien ne coupe. Le calibre est fixé par la section, pas par la charge."
   },
   {
     "id": "reco-no-bornes",
@@ -459,7 +565,12 @@
     "explication": "Repérage des contacts auxiliaires (IEC 60947) : le chiffre des dizaines est le numéro d'ordre du contact (1er, 2e…), le chiffre des unités sa fonction : 1-2 = NF, 3-4 = NO, 5-6 = NF spécial (temporisé ou thermique), 7-8 = NO spécial. Premier contact + NO = 13-14.",
     "reperage": "Contacts auxiliaires : dizaine = numéro d'ordre, unité = fonction (1-2 NF, 3-4 NO, 5-6 / 7-8 fonctions spéciales).",
     "role": "Ce repérage normalisé permet de câbler et de dépanner sans ouvrir la documentation constructeur.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60947-1 (repérage des bornes)",
+    "risque": "Un repérage faux ou ignoré mène à câbler un NF à la place d'un NO : auto-maintien impossible, ou au contraire signalisation « en marche » allumée à l'arrêt, qui trompe le prochain dépanneur."
   },
   {
     "id": "reco-nf-bornes",
@@ -481,7 +592,12 @@
     "explication": "Dizaine = numéro d'ordre (2e contact → 2), unités = fonction (NF → 1-2). Donc 21-22. Le 9 en dizaine (95-96, 97-98) est réservé aux contacts des relais de protection.",
     "reperage": "Contacts auxiliaires : dizaine = numéro d'ordre, unité = fonction (1-2 NF, 3-4 NO).",
     "role": "Un NF sert typiquement aux verrouillages électriques (ex. empêcher deux contacteurs inverseurs de coller ensemble).",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60947-1 (repérage des bornes)",
+    "risque": "Sur un inverseur de sens, le verrouillage électrique passe par les NF croisés : câblé sur les mauvaises bornes, les deux contacteurs peuvent coller ensemble, et c'est un court-circuit franc entre phases."
   },
   {
     "id": "reco-reglage-molette",
@@ -503,7 +619,12 @@
     "explication": "La protection thermique se règle sur l'In du moteur, pour la tension réelle du réseau (ex. plaque 230/400 V, 6,2/3,6 A sur réseau 400 V → réglage 3,6 A). La pointe de démarrage est tolérée grâce à l'inertie thermique et au seuil magnétique fixe (souvent ~13 In).",
     "reperage": "-QA en IEC 81346 ; Q en usage français.",
     "role": "Un réglage juste protège le moteur sans déclencher au démarrage. S'il déclenche quand même, on cherche la cause (surcharge, manque de phase) au lieu d'augmenter le réglage.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60947-4-1",
+    "risque": "Réglé sur le courant du couplage triangle alors que le moteur est en étoile (ou l'inverse), le disjoncteur laisse passer une surcharge de 70 % : le moteur cuit à petit feu sans jamais déclencher."
   },
   {
     "id": "reco-au-categorie",
@@ -525,7 +646,12 @@
     "explication": "L'arrêt d'urgence (ISO 13850, IEC 60204-1) agit par un contact NF à manœuvre positive d'ouverture : appuyer sépare mécaniquement les contacts, même soudés. L'arrêt est de catégorie 0 (coupure immédiate de l'énergie) ou 1 (freinage contrôlé puis coupure), jamais 2.",
     "reperage": "-SF en IEC 81346 ; contact repéré avec le symbole d'ouverture positive (flèche dans un cercle).",
     "role": "Le choix entre catégorie 0 et 1 dépend de l'analyse de risques : une charge lourde en roue libre peut être plus dangereuse qu'un freinage contrôlé.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "ISO 13850 · NF EN 60204-1 (§ 9.2.2)",
+    "risque": "Un arrêt d'urgence en catégorie 2 (le moteur reste alimenté à l'arrêt) n'est pas admis : une défaillance du variateur ou de la commande et la machine repart. Une charge suspendue qui part en roue libre peut aussi tuer : d'où le choix réfléchi entre catégorie 0 et 1."
   },
   {
     "id": "reco-moteur-81346",
@@ -547,7 +673,12 @@
     "explication": "En IEC 81346-2, la première lettre donne la fonction : M = fournir une énergie mécanique (entraîner). La deuxième lettre précise : A = par moyen électromagnétique, donc un moteur électrique. Le signe « - » indique un repère de produit.",
     "reperage": "-MA en IEC 81346 ; M en usage français. Bornes U1, V1, W1 (début d'enroulements) et W2, U2, V2.",
     "role": "Un repérage cohérent sur le schéma, l'armoire et le terrain permet de retrouver le bon appareil sans ambiguïté.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 81346-2",
+    "risque": "Un repère différent sur le schéma, sur l'armoire et sur le terrain, c'est le risque de consigner le mauvais moteur et d'intervenir sur celui qui est resté sous tension."
   },
   {
     "id": "reco-contacteur-protection",
@@ -569,7 +700,12 @@
     "explication": "Un départ moteur assure trois fonctions : sectionnement, protection et commande. Avec des fusibles aM (courts-circuits uniquement), la surcharge doit être confiée à un relais thermique dont le contact 95-96 coupe la bobine du contacteur.",
     "reperage": "Départ moteur classique : Q1 (sectionneur porte-fusibles aM) + KM1 (contacteur) + F2 (relais thermique).",
     "role": "Sans protection thermique, une surcharge mécanique ou un manque de phase détruit le bobinage en quelques minutes.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "NF C 15-100 · IEC 60947-4-1",
+    "risque": "Avec des fusibles aM seuls, une surcharge ou un manque de phase ne coupe rien : le moteur chauffe jusqu'à la destruction de son bobinage. Les aM ne protègent que contre le court-circuit."
   },
   {
     "id": "reco-sectionneur-charge",
@@ -591,7 +727,13 @@
     "explication": "Le sectionneur garantit une distance d'isolement, mais n'a pas de pouvoir de coupure. On coupe d'abord la charge (contacteur, disjoncteur), puis on ouvre le sectionneur. Les modèles « interrupteur-sectionneur » combinent les deux fonctions et portent les deux symboles.",
     "reperage": "-QB en IEC 81346 ; Q en usage français. Souvent équipé d'un contact de précoupure qui coupe la commande avant l'ouverture des pôles.",
     "role": "Ouvrir un sectionneur en charge crée un arc électrique : risque de brûlure grave pour l'opérateur et de destruction de l'appareil.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "securite",
+      "tri"
+    ],
+    "norme": "IEC 60947-3 · NF C 18-510",
+    "risque": "Ouvrir un sectionneur en charge, c'est tirer un arc électrique à quelques centimètres de sa main : brûlures graves aux mains et au visage, projection de métal en fusion, et appareil détruit."
   },
   {
     "id": "reco-icc-transfo",
@@ -613,7 +755,13 @@
     "explication": "Si 5 % de la tension suffisent à faire passer In secondaire en court-circuit, la pleine tension fait passer 100 / 5 = 20 fois In : Icc ≈ In × 100 / ucc (en négligeant l'impédance du réseau amont). Cette valeur dimensionne le pouvoir de coupure des disjoncteurs.",
     "reperage": "-TA en IEC 81346 ; T en usage français.",
     "role": "Un transformateur de 630 kVA (In ≈ 910 A sous 400 V) avec ucc = 6 % donne Icc ≈ 15 kA : les disjoncteurs en aval doivent pouvoir les couper.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri",
+      "hta"
+    ],
+    "norme": "NF C 15-100 (§ 434) · IEC 60076-5",
+    "risque": "Un Icc sous-estimé fait installer des disjoncteurs au pouvoir de coupure trop faible : au premier court-circuit franc près du transformateur, l'appareil explose au lieu de couper, devant la personne qui se trouve face à l'armoire."
   },
   {
     "id": "reco-reglage-thermique",
@@ -635,7 +783,12 @@
     "explication": "Le relais thermique est placé sur les conducteurs de ligne : il se règle sur le courant de ligne nominal pour la tension réelle du réseau. Plaque 230/400 V sur réseau 400 V → couplage étoile → In = 11 A, dans la plage 9–13 A du relais.",
     "reperage": "F2 / FR en usage français ; contacts 95-96 et 97-98.",
     "role": "Bien lire la plaque (tension réseau ↔ courant correspondant) est la première étape de tout réglage de protection moteur.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60947-4-1 · IEC 60034-1",
+    "risque": "Régler 19 A sur un moteur couplé en étoile (11 A) laisse passer 70 % de surcharge sans déclencher : l'isolant vieillit vite et le moteur finit par griller, sans que le relais ait jamais rien vu."
   },
   {
     "id": "reco-voyant-couleur",
@@ -657,6 +810,122 @@
     "explication": "Code couleur des voyants (IEC 60204-1) : rouge = urgence, jaune = anormal, bleu = action obligatoire, vert = normal, blanc = neutre (information générale). Le jaune prévient avant que la situation devienne dangereuse.",
     "reperage": "-PF en IEC 81346 ; H en usage français (H1, H2…).",
     "role": "Respecter le code couleur permet à n'importe quel opérateur de comprendre l'état de la machine d'un coup d'œil, sans lire d'étiquette.",
-    "verifie": false
+    "verifie": false,
+    "domaines": [
+      "tbt-cc",
+      "securite"
+    ],
+    "norme": "NF EN 60204-1 (§ 10.3.2)",
+    "risque": "Un code couleur non respecté fait mal lire l'état de la machine : un défaut signalé en vert ou un état normal en rouge, et l'opérateur s'habitue à ignorer les voyants, y compris le jour où ils annoncent un vrai danger."
+  },
+  {
+    "id": "sym-alim-dc",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-alim-dc.svg",
+    "question": "Que représente ce symbole ?",
+    "nom": "Convertisseur alternatif / continu",
+    "faux": [
+      "Onduleur continu / alternatif",
+      "Transformateur de sécurité TBTS 24 V",
+      "Variateur de fréquence de moteur"
+    ],
+    "pourquoiPas": {
+      "Onduleur continu / alternatif": "Un onduleur fait le chemin inverse : le signe du continu serait côté entrée et le ~ côté sortie. Ici, le ~ est à l'entrée et le continu (trait plein sur trait pointillé) à la sortie : on redresse.",
+      "Transformateur de sécurité TBTS 24 V": "Un transformateur se dessine avec deux cercles entrelacés et reste en alternatif des deux côtés. Le carré coupé en diagonale est un convertisseur, et sa sortie porte le signe du continu.",
+      "Variateur de fréquence de moteur": "Un variateur se dessine aussi en carré coupé, mais avec un ~ de chaque côté (fréquence variable en sortie). Ici, la sortie porte le signe du continu."
+    },
+    "explication": "Le carré coupé par une diagonale est le symbole général du convertisseur. Côté entrée, le ~ de l'alternatif ; côté sortie, un trait plein au-dessus d'un trait pointillé : le signe du continu. C'est l'alimentation 24 V DC qui fait vivre l'automate, les capteurs et les bobines de relais.",
+    "reperage": "Repère usuel G1 ou T1 selon le bureau d'études (IEC 81346-2 : classe T, convertir une énergie électrique). Bornes de sortie + et − (ou L+ et M chez certains constructeurs).",
+    "role": "Fournit la tension continue de la commande. Sa sortie 0 V est souvent reliée au PE : un défaut à la masse fait alors fondre un fusible au lieu de provoquer une commande intempestive.",
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · NF EN 60204-1 (§ 9.4.3)",
+    "risque": "Une alimentation sous-dimensionnée s'écroule quand les bobines collent ensemble : l'automate redémarre, les sorties retombent en plein cycle. Un 0 V laissé flottant laisse un premier défaut à la masse passer inaperçu ; au second, un relais peut coller tout seul et démarrer la machine."
+  },
+  {
+    "id": "sym-diode-roue-libre",
+    "niveau": 2,
+    "type": "symbole",
+    "image": "img/reco/sym-diode.svg",
+    "question": "Ce composant est câblé en parallèle sur la bobine d'un relais 24 V DC. Que représente-t-il ?",
+    "nom": "Diode de roue libre",
+    "faux": [
+      "Varistance d'écrêtage",
+      "Condensateur de filtrage",
+      "Résistance de décharge"
+    ],
+    "pourquoiPas": {
+      "Varistance d'écrêtage": "Une varistance se dessine comme une résistance barrée d'un trait oblique. Elle n'a pas de sens de passage. Ici, le triangle pointé vers une barre indique un sens passant et un sens bloqué : c'est une diode.",
+      "Condensateur de filtrage": "Un condensateur, ce sont deux plaques parallèles face à face. Le triangle pointé vers une barre est le symbole de la diode.",
+      "Résistance de décharge": "Une résistance est un simple rectangle, sans sens. Ici, le triangle pointé vers une barre indique un composant polarisé : une diode."
+    },
+    "explication": "Triangle pointé vers une barre : une diode, le courant passe dans le sens de la pointe. Montée en inverse sur une bobine alimentée en continu, elle est bloquée en marche normale. À la coupure, la bobine veut garder son courant : la diode lui offre un chemin, au lieu d'une surtension de plusieurs centaines de volts.",
+    "reperage": "La barre (cathode) va côté + (A1), le triangle (anode) côté 0 V (A2). Souvent intégrée au relais ou livrée en module enfichable.",
+    "role": "Protège le contact ou la sortie transistor de l'automate qui pilote la bobine : sans elle, l'étincelle de rupture use le contact et la surtension détruit une sortie statique.",
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617",
+    "risque": "Montée à l'envers, la diode court-circuite l'alimentation dès la mise sous tension : fusible ou sortie d'automate détruits. Oubliée, elle laisse passer des pics qui grillent les sorties transistor. Elle rallonge aussi le temps de retombée du relais : à vérifier sur une fonction de sécurité."
+  },
+  {
+    "id": "sym-sectionneur-terre",
+    "niveau": 3,
+    "type": "symbole",
+    "image": "img/reco/sym-sectionneur-terre.svg",
+    "question": "Que représente ce symbole, que l'on trouve dans les cellules HTA ?",
+    "nom": "Sectionneur de mise à la terre",
+    "faux": [
+      "Parafoudre de cellule HTA",
+      "Interrupteur-sectionneur HTA",
+      "Disjoncteur à coupure dans le SF6"
+    ],
+    "pourquoiPas": {
+      "Parafoudre de cellule HTA": "Un parafoudre se dessine comme un rectangle relié à la terre, sans contact mobile. Ici, il y a une lame de sectionneur.",
+      "Interrupteur-sectionneur HTA": "Il relie deux conducteurs actifs et porte, en plus du trait du sectionneur, le petit cercle de l'interrupteur. Ici, la borne fixe va directement à la terre.",
+      "Disjoncteur à coupure dans le SF6": "Le disjoncteur porte une croix sur la borne fixe et coupe un courant de défaut entre conducteurs actifs. Ici, pas de croix, et la borne fixe est reliée à la terre."
+    },
+    "explication": "Une lame de sectionneur (le petit trait perpendiculaire au bout de la borne fixe) dont l'autre côté rejoint le symbole de la terre : c'est le sectionneur de mise à la terre. Fermé, il relie les conducteurs de la cellule entre eux et à la terre.",
+    "reperage": "Interverrouillé mécaniquement avec l'appareil principal de la cellule : il ne peut se fermer que si celui-ci est ouvert. Sa position se lit sur le synoptique de la face avant.",
+    "role": "Réalise la mise à la terre et en court-circuit après séparation et VAT, étape obligatoire de la consignation en HTA : en cas de réalimentation par erreur, le courant part à la terre et fait déclencher la protection amont au lieu de traverser l'intervenant.",
+    "verifie": false,
+    "domaines": [
+      "hta",
+      "securite"
+    ],
+    "norme": "NF C 18-510 · IEC 60617",
+    "risque": "Le fermer sur une cellule encore sous tension provoque un court-circuit franc et un arc violent : d'où l'interverrouillage et la VAT avant. Ne pas le fermer laisse l'intervenant exposé à un retour de tension : erreur de manœuvre, production locale, tension induite."
+  },
+  {
+    "id": "reco-couplage-dyn11",
+    "niveau": 3,
+    "type": "symbole",
+    "image": "img/reco/sym-transfo.svg",
+    "question": "La plaque de ce transformateur de poste HTA/BT indique « Dyn11 ». Que signifie la lettre « n » ?",
+    "nom": "Neutre du secondaire sorti sur borne",
+    "faux": [
+      "Enroulement secondaire en triangle",
+      "Neutre HTA relié à la terre du poste",
+      "Indice horaire nul entre HTA et BT"
+    ],
+    "pourquoiPas": {
+      "Enroulement secondaire en triangle": "Un secondaire en triangle s'écrirait « d » minuscule. Ici, « y » minuscule : secondaire en étoile. « D » majuscule : primaire HTA en triangle.",
+      "Neutre HTA relié à la terre du poste": "Les majuscules concernent la HTA, et un primaire en triangle (D) n'a pas de neutre. Le « n » minuscule suit le « y » du secondaire BT.",
+      "Indice horaire nul entre HTA et BT": "L'indice horaire est le nombre final : 11, soit 11 × 30° = 330° de déphasage entre HTA et BT. Le « n » n'a rien à voir avec le déphasage."
+    },
+    "explication": "Code de couplage : majuscule pour l'enroulement haute tension, minuscule pour la basse tension. D = primaire en triangle, y = secondaire en étoile, n = neutre de l'étoile sorti sur une borne, 11 = indice horaire (déphasage de 330°).",
+    "reperage": "Borne n de la plaque à bornes BT : c'est elle qui devient le neutre de l'installation, relié à la prise de terre du neutre en TT ou en TN.",
+    "role": "Le neutre sorti permet de distribuer du 230 V entre phase et neutre et de fixer le schéma de liaison à la terre de l'installation BT.",
+    "verifie": false,
+    "domaines": [
+      "hta",
+      "tri"
+    ],
+    "norme": "IEC 60076-1",
+    "risque": "Deux transformateurs d'indices horaires différents mis en parallèle se court-circuitent l'un l'autre : courants énormes, protections qui déclenchent, transformateurs détruits. Un neutre BT coupé fait monter les tensions simples jusqu'à 400 V : récepteurs 230 V détruits, risque d'incendie."
   }
 ]

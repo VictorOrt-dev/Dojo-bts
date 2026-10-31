@@ -2,7 +2,9 @@
   {
     "id": "commande-hs",
     "niveau": 1,
-    "module": "Électrotechnique",
+    "domaines": [
+      "tbt-cc"
+    ],
     "titre": "La pompe ne démarre plus, rien ne se passe",
     "contexte": "Pompe de relevage d'un atelier, commandée depuis un coffret : bouton Marche, bouton Arrêt, voyant « sous tension ». L'opérateur signale que plus rien ne réagit depuis ce matin.",
     "etapes": [
@@ -73,14 +75,19 @@
     "conclusion": {
       "cause": "Un fil du circuit de commande, pincé dans la charnière de la porte du coffret, touchait la masse : court-circuit sur le 24 V, fusible fondu.",
       "remede": "Remplacer le fil abîmé, le faire passer dans une goulotte ou une spirale de protection, remettre un fusible identique, essai de fonctionnement.",
-      "lecon": "Méthode : du plus simple au plus probable, en suivant l'énergie depuis la source. Un organe de protection qui a fonctionné a toujours une raison."
+      "lecon": "Méthode : du plus simple au plus probable, en suivant l'énergie depuis la source. Un organe de protection qui a fonctionné a toujours une raison.",
+      "risque": "Un fil de commande qui touche la masse fait fondre le fusible si le 0 V est relié au PE ; sinon, le défaut passe inaperçu et un second défaut peut shunter un bouton et démarrer la pompe tout seul. Remettre un fusible plus gros, c'est laisser le fil chauffer dans la charnière.",
+      "norme": "NF EN 60204-1 (§ 9.4.3)"
     },
     "verifie": false
   },
   {
     "id": "differentiel-perceuse",
     "niveau": 1,
-    "module": "Sécurité",
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
     "titre": "Le différentiel saute quand on branche la perceuse",
     "contexte": "Prise de l'atelier protégée par un différentiel 30 mA. Dès qu'un technicien branche sa perceuse portative, le différentiel déclenche.",
     "etapes": [
@@ -151,14 +158,142 @@
     "conclusion": {
       "cause": "Câble de la perceuse écrasé : l'isolant d'un conducteur est entaillé et touche la gaine humide, créant une fuite vers la terre.",
       "remede": "Retrait du service, remplacement du câble, contrôle de l'appareil avant remise en service.",
-      "lecon": "Un différentiel qui déclenche fait son travail : il protège une personne. On cherche la fuite, on ne touche jamais à la protection."
+      "lecon": "Un différentiel qui déclenche fait son travail : il protège une personne. On cherche la fuite, on ne touche jamais à la protection.",
+      "risque": "Réarmer en boucle ou shunter le différentiel laisse sous tension la masse d'un outil tenu à pleine main : électrisation, voire fibrillation cardiaque au-delà de quelques dizaines de milliampères dans le corps. Le 30 mA est la dernière barrière.",
+      "norme": "NF C 15-100 (§ 411.3.3)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "consignation-contacteur",
+    "niveau": 1,
+    "domaines": [
+      "securite",
+      "tri"
+    ],
+    "titre": "Changer le contacteur d'un départ moteur : la consignation",
+    "contexte": "Le contacteur KM2 d'une pompe de circulation est à remplacer (départ 400 V, sectionneur Q2 cadenassable, commande en 24 V DC). Tu es habilité BR et tu réalises toi-même la consignation de ce départ. L'opérateur a arrêté la pompe.",
+    "etapes": [
+      {
+        "situation": "La pompe est à l'arrêt, KM2 est retombé, le moteur ne tourne plus.",
+        "question": "Peux-tu considérer le départ comme hors tension ?",
+        "choix": [
+          {
+            "texte": "Non : un contacteur ouvert ne sépare pas le circuit",
+            "verdict": "bon",
+            "explication": "Un contacteur n'est pas un organe de séparation : ses contacts peuvent être soudés, il peut recoller sur un ordre automatique, et sa distance d'ouverture n'est pas garantie. La séparation se fait avec l'appareil de sectionnement du départ, ici Q2."
+          },
+          {
+            "texte": "Oui : KM2 est retombé et le moteur est à l'arrêt",
+            "verdict": "danger",
+            "explication": "Un moteur arrêté prouve seulement que la bobine n'est pas alimentée. Un ordre de l'automate, un collègue au pupitre ou un contact soudé, et tu as les mains sur du 400 V. Arrêté ne veut pas dire séparé."
+          },
+          {
+            "texte": "Oui, à condition de couper aussi le 24 V de commande",
+            "verdict": "mauvais",
+            "explication": "Couper la commande empêche KM2 de coller, mais ses bornes amont restent à 400 V tant que Q2 est fermé. Ce sont justement ces bornes que tu vas démonter."
+          },
+          {
+            "texte": "Oui, après un appui sur l'arrêt d'urgence de la pompe",
+            "verdict": "mauvais",
+            "explication": "L'arrêt d'urgence coupe la commande, parfois la puissance par un contacteur, mais jamais l'amont de KM2. Ce n'est pas un moyen de consignation."
+          }
+        ]
+      },
+      {
+        "situation": "Q2 est ouvert et cadenassé avec ton cadenas personnel, une pancarte « Ne pas manœuvrer » est posée. Sur le schéma et sur l'étiquette, Q2 alimente bien ce départ.",
+        "question": "Étape suivante avant de toucher KM2 ?",
+        "choix": [
+          {
+            "texte": "Vérifier l'absence de tension au VAT, au plus près",
+            "verdict": "bon",
+            "explication": "Cadenasser ne suffit pas : seule la vérification d'absence de tension (VAT), faite au plus près du lieu de travail sur tous les conducteurs actifs, prouve que la séparation a fonctionné et que tu es sur le bon départ."
+          },
+          {
+            "texte": "Mesurer une fois au multimètre réglé sur V~",
+            "verdict": "danger",
+            "explication": "Un multimètre n'est pas un VAT : sur Ω ou sur A, avec un cordon coupé ou une pile morte, il affiche 0 V sur un conducteur sous tension. Le VAT (NF EN 61243-3) est conçu pour cette vérification et se teste avant et après."
+          },
+          {
+            "texte": "Commencer : Q2 est cadenassé, c'est consigné",
+            "verdict": "danger",
+            "explication": "Cadenasser n'est pas consigner : il manque la vérification d'absence de tension. Une erreur d'identification, une double alimentation ou un retour par un autre circuit ne se voient qu'à la VAT."
+          },
+          {
+            "texte": "Attendre cinq minutes la décharge des condensateurs",
+            "verdict": "mauvais",
+            "explication": "Ce départ direct n'a ni variateur ni condensateur. Et même quand il y en a, attendre ne remplace jamais la VAT : on attend, puis on vérifie."
+          }
+        ]
+      },
+      {
+        "situation": "Tu prends ton VAT.",
+        "question": "Comment conduis-tu la vérification ?",
+        "choix": [
+          {
+            "texte": "Tester le VAT sur une source, mesurer, puis retester",
+            "verdict": "bon",
+            "explication": "Un VAT se vérifie avant et après usage, sur une source sous tension connue ou avec son testeur intégré : sinon, un VAT défaillant affiche « absence » sur un conducteur sous tension. Entre les deux : L1-L2, L2-L3, L1-L3, puis chaque phase par rapport à la terre, sur les bornes amont de KM2."
+          },
+          {
+            "texte": "Mesurer L1-L2 : si 0 V, les trois phases sont coupées",
+            "verdict": "mauvais",
+            "explication": "Un pôle de Q2 peut être resté fermé (contact soudé, liaison mécanique cassée) : 0 V entre L1 et L2 n'exclut pas L3 sous tension. Toutes les combinaisons, entre phases et entre chaque phase et la terre."
+          },
+          {
+            "texte": "Mesurer en aval de KM2, c'est plus facile d'accès",
+            "verdict": "mauvais",
+            "explication": "En aval d'un contacteur ouvert, tu liras 0 V même si l'amont est sous tension. C'est l'amont de KM2 que tu vas démonter : c'est là que se fait la vérification."
+          },
+          {
+            "texte": "Se fier au voyant « sous tension » éteint du coffret",
+            "verdict": "danger",
+            "explication": "Un voyant peut être grillé, alimenté par un autre circuit ou câblé derrière un fusible fondu. Il informe, il ne prouve rien."
+          }
+        ]
+      },
+      {
+        "situation": "Absence de tension vérifiée sur les trois phases, entre elles et par rapport à la terre. Le départ n'a ni condensateur ni source de réalimentation possible.",
+        "question": "Faut-il poser une mise à la terre et en court-circuit (MALT-CC) ?",
+        "choix": [
+          {
+            "texte": "Non en BT, sauf risque de réalimentation ou d'induction",
+            "verdict": "bon",
+            "explication": "En basse tension, la mise à la terre et en court-circuit n'est obligatoire qu'en cas de risque de tension : réalimentation possible, tension induite, condensateurs, ligne aérienne. Ici, départ en armoire sans source : la consignation est complète. En HTA, elle est toujours obligatoire."
+          },
+          {
+            "texte": "Oui, toujours, quel que soit le domaine de tension",
+            "verdict": "acceptable",
+            "explication": "La poser n'est pas une faute, mais ce n'est pas la règle en BT : elle s'impose seulement s'il existe un risque de tension. En HTA, en revanche, elle est toujours obligatoire."
+          },
+          {
+            "texte": "Non, et le cadenas peut être retiré : la VAT est faite",
+            "verdict": "danger",
+            "explication": "Le cadenas maintient la séparation pendant toute l'intervention : sans lui, quelqu'un peut refermer Q2 pendant que tu as les mains dans KM2. Il ne se retire qu'à la fin, par toi."
+          },
+          {
+            "texte": "Oui, en reliant les phases au PE avec un fil de fortune",
+            "verdict": "danger",
+            "explication": "Une MALT-CC se fait avec un dispositif normalisé, dimensionné pour le courant de court-circuit et posé après la VAT. Un fil de fortune fond au premier retour de tension et projette du métal en fusion."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Pas de panne à trouver ici : c'est la mise en sécurité qui est évaluée. Le danger, ce sont les bornes amont de KM2, sous tension tant que Q2 est fermé.",
+      "remede": "Consignation complète : séparation par Q2, condamnation (cadenas personnel et pancarte), identification sur le schéma et sur place, VAT au plus près avec un VAT testé avant et après, MALT-CC seulement s'il existe un risque de tension en BT. Après travaux : outils retirés, déconsignation par toi, essai.",
+      "lecon": "Arrêté n'est pas séparé, cadenassé n'est pas consigné : seule la VAT, faite au bon endroit avec un appareil vérifié, autorise à toucher.",
+      "risque": "Intervenir sur un départ 400 V que l'on croit coupé : électrisation, électrocution, brûlures par arc. Les accidents arrivent sur les interventions jugées simples, quand une étape a été sautée.",
+      "norme": "NF C 18-510 · NF EN 61243-3 (VAT)"
     },
     "verifie": false
   },
   {
     "id": "moteur-grogne",
     "niveau": 2,
-    "module": "Électrotechnique",
+    "domaines": [
+      "tri"
+    ],
     "titre": "Le moteur grogne et ne démarre pas",
     "contexte": "Moteur asynchrone triphasé 400 V de 5,5 kW entraînant un convoyeur. Départ moteur : sectionneur porte-fusibles aM, contacteur, relais thermique. Au démarrage, le moteur grogne et le relais thermique déclenche après quelques secondes.",
     "etapes": [
@@ -250,14 +385,18 @@
     "conclusion": {
       "cause": "Une cosse desserrée sur la phase L2, en sortie du sectionneur, a chauffé jusqu'à faire fondre le fusible. Le moteur s'est retrouvé alimenté en monophasé.",
       "remede": "Remplacement de la cosse abîmée, resserrage au couple, trois fusibles aM neufs, mesure d'isolement du moteur, essai et mesure des trois courants (ils doivent être équilibrés).",
-      "lecon": "Moteur qui grogne = penser « manque de phase ». Le relais thermique a bien joué son rôle : sans lui, le moteur aurait brûlé."
+      "lecon": "Moteur qui grogne = penser « manque de phase ». Le relais thermique a bien joué son rôle : sans lui, le moteur aurait brûlé.",
+      "risque": "Un moteur en monophasé ne démarre pas mais absorbe plusieurs fois son In : sans relais thermique, ou en relançant en boucle, le bobinage brûle en quelques minutes. Et la cosse qui a chauffé peut amorcer un départ de feu dans l'armoire.",
+      "norme": "IEC 60947-4-1 · IEC 60034-1"
     },
     "verifie": false
   },
   {
     "id": "capteur-convoyeur",
     "niveau": 2,
-    "module": "Automatismes",
+    "domaines": [
+      "tbt-cc"
+    ],
     "titre": "Le convoyeur ne s'arrête plus en fin de course",
     "contexte": "Un convoyeur doit s'arrêter quand la pièce arrive devant le capteur inductif PNP B3, câblé sur l'entrée %I0.3 de l'automate. Depuis ce matin, il ne s'arrête plus : un opérateur l'arrête à la main.",
     "etapes": [
@@ -328,14 +467,18 @@
     "conclusion": {
       "cause": "Le câble du capteur, mal fixé, frottait contre la chaîne du convoyeur : le conducteur de sortie s'est sectionné.",
       "remede": "Remplacement du câble, cheminement à l'écart des pièces en mouvement, protection mécanique (gaine), essai de détection jusqu'à l'automate.",
-      "lecon": "On suit le signal point par point, du capteur à l'automate, en coupant la chaîne en deux à chaque mesure. Le programme passe en dernier."
+      "lecon": "On suit le signal point par point, du capteur à l'automate, en coupant la chaîne en deux à chaque mesure. Le programme passe en dernier.",
+      "risque": "Un capteur de fin de course qui ne détecte plus, c'est une machine qui force contre une butée ou envoie les pièces dans le vide. Le forcer dans l'automate ou le shunter « pour finir la série » supprime la fonction : si c'est une sécurité, l'opérateur n'est plus protégé.",
+      "norme": "IEC 61131-2 · NF EN 60204-1"
     },
     "verifie": false
   },
   {
     "id": "variateur-surtension",
     "niveau": 3,
-    "module": "Électrotechnique",
+    "domaines": [
+      "tri"
+    ],
     "titre": "Variateur en défaut « surtension » à chaque arrêt",
     "contexte": "Un variateur de vitesse pilote le moteur d'un gros ventilateur d'extraction, à forte inertie. À chaque arrêt commandé, le variateur se met en défaut « surtension du bus continu » et le ventilateur finit en roue libre.",
     "etapes": [
@@ -427,14 +570,19 @@
     "conclusion": {
       "cause": "L'énergie cinétique du ventilateur, renvoyée au variateur pendant le freinage, faisait monter la tension du bus continu au-delà du seuil de protection.",
       "remede": "Rampe de décélération adaptée pour l'arrêt normal, résistance de freinage dimensionnée selon la notice pour l'arrêt rapide, paramètre de freinage activé, essai d'arrêt d'urgence.",
-      "lecon": "Lire le code défaut, comprendre la physique (le moteur devient générateur au freinage), puis agir sur le paramètre avant le matériel. Et toujours respecter le temps de décharge d'un variateur."
+      "lecon": "Lire le code défaut, comprendre la physique (le moteur devient générateur au freinage), puis agir sur le paramètre avant le matériel. Et toujours respecter le temps de décharge d'un variateur.",
+      "risque": "Le bus continu d'un variateur 400 V reste chargé à plus de 500 V plusieurs minutes après coupure : on attend le temps indiqué sur l'étiquette et on vérifie l'absence de tension avant d'ouvrir. Une résistance de freinage mal dimensionnée monte à plusieurs centaines de degrés.",
+      "norme": "IEC 61800-5-1"
     },
     "verifie": false
   },
   {
     "id": "differentiel-variateurs",
     "niveau": 3,
-    "module": "Sécurité",
+    "domaines": [
+      "securite",
+      "tri"
+    ],
     "titre": "Le différentiel général déclenche « sans raison »",
     "contexte": "Atelier en schéma TT, protégé en tête par un différentiel 300 mA. Plusieurs fois par jour, il déclenche sans défaut franc visible. Jamais la nuit, quand les machines sont arrêtées. L'atelier compte trois machines équipées de variateurs de vitesse.",
     "etapes": [
@@ -505,7 +653,107 @@
     "conclusion": {
       "cause": "Cumul des courants de fuite fonctionnels des filtres CEM de trois variateurs sur un seul différentiel de tête.",
       "remede": "Un différentiel de type adapté par départ variateur, différentiel de tête retardé pour la sélectivité, vérification de la prise de terre (Ra) et essai de chaque dispositif.",
-      "lecon": "Un différentiel qui déclenche « sans raison » mesure toujours quelque chose : on mesure avant de changer. On ne touche jamais au PE ni à la sensibilité pour « faire tenir »."
+      "lecon": "Un différentiel qui déclenche « sans raison » mesure toujours quelque chose : on mesure avant de changer. On ne touche jamais au PE ni à la sensibilité pour « faire tenir ».",
+      "risque": "Remplacer le 300 mA par un modèle moins sensible, ou débrancher un PE pour « faire tenir », supprime la protection contre les contacts indirects : en TT, une masse en défaut reste alors sous tension sans que rien ne coupe.",
+      "norme": "NF C 15-100 (§ 411.5, § 531.2)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "hta-dgpt2",
+    "niveau": 3,
+    "domaines": [
+      "hta",
+      "securite"
+    ],
+    "titre": "Poste HTA/BT : le transformateur a déclenché sur son DGPT2",
+    "contexte": "Usine alimentée par un poste HTA/BT : 20 kV / 400 V, transformateur immergé de 630 kVA protégé par un relais DGPT2. Coupure générale à 6 h 10. Dans le poste, la cellule de protection du transformateur est ouverte et un voyant du DGPT2 est allumé. Tu es habilité BR, sans habilitation HTA.",
+    "etapes": [
+      {
+        "situation": "Le directeur de production te demande de « relancer le courant » au plus vite.",
+        "question": "Ta première décision ?",
+        "choix": [
+          {
+            "texte": "Prévenir le chargé d'exploitation HTA, ne rien manœuvrer",
+            "verdict": "bon",
+            "explication": "Les manœuvres en HTA (cellules, sectionneurs de terre) sont réservées aux personnes habilitées en haute tension pour ces opérations. Habilité BR, ton rôle est de constater, de sécuriser l'accès au poste et de prévenir."
+          },
+          {
+            "texte": "Réenclencher la cellule HTA pour relancer l'usine",
+            "verdict": "danger",
+            "explication": "Le DGPT2 a détecté un problème dans le transformateur. Réenclencher sur un défaut interne peut faire éclater la cuve (huile et arc). Et sans habilitation HTA, tu n'as pas à manœuvrer une cellule."
+          },
+          {
+            "texte": "Réarmer le DGPT2 et attendre un nouveau déclenchement",
+            "verdict": "mauvais",
+            "explication": "Réarmer efface l'indication qui dit pourquoi la protection a agi, et ne règle rien. On lit, on note, on analyse : la cause d'abord."
+          },
+          {
+            "texte": "Ouvrir la porte de la cellule et inspecter le transformateur",
+            "verdict": "danger",
+            "explication": "En 20 kV, l'arc s'amorce à distance, sans contact. Ouvrir une cellule sans consignation ni habilitation, c'est entrer dans la zone de danger. Les verrouillages sont là pour ça : on ne les contourne jamais."
+          }
+        ]
+      },
+      {
+        "situation": "Le technicien HTA habilité est sur place. Il consigne la cellule (séparation, condamnation, VAT, mise à la terre et en court-circuit). Vous lisez ensemble le DGPT2 : le voyant « gaz » est allumé et du gaz est visible dans la fenêtre du relais.",
+        "question": "Que vous dit ce déclenchement ?",
+        "choix": [
+          {
+            "texte": "Défaut interne : l'huile a été décomposée par un arc",
+            "verdict": "bon",
+            "explication": "Le DGPT2 surveille le dégagement gazeux, la pression et la température de l'huile. Du gaz dans un transformateur immergé, c'est de l'huile décomposée par un arc ou un point chaud interne : défaut entre spires, connexion qui chauffe. Le transformateur ne doit pas être remis sous tension."
+          },
+          {
+            "texte": "Simple surcharge : l'usine a tiré trop de courant cette nuit",
+            "verdict": "mauvais",
+            "explication": "Une surcharge fait monter la température de l'huile (seuils thermiques du DGPT2), elle ne produit pas de gaz. Et à 6 h, l'usine démarrait à peine."
+          },
+          {
+            "texte": "Défaut côté BT, sur l'un des départs de l'atelier",
+            "verdict": "mauvais",
+            "explication": "Un court-circuit en BT est coupé par le disjoncteur général BT ou par la protection du départ. Le gaz, lui, vient de l'intérieur de la cuve."
+          },
+          {
+            "texte": "Relais DGPT2 défectueux, il suffit de le réarmer",
+            "verdict": "mauvais",
+            "explication": "Le gaz est visible dans la fenêtre : il est bien là. On ne conclut jamais à un relais défaillant avant d'avoir analysé le transformateur."
+          }
+        ]
+      },
+      {
+        "situation": "La production attend. Un groupe électrogène de secours peut reprendre les charges essentielles.",
+        "question": "Que décidez-vous pour le transformateur ?",
+        "choix": [
+          {
+            "texte": "Le laisser hors tension jusqu'à l'analyse du gaz",
+            "verdict": "bon",
+            "explication": "Le gaz est prélevé et analysé, l'huile aussi (analyse des gaz dissous), pour savoir ce qui a brûlé. Tant que la cause n'est pas connue, pas de remise sous tension : le groupe de secours reprend l'essentiel."
+          },
+          {
+            "texte": "Le remettre sous tension à vide pour voir s'il tient",
+            "verdict": "danger",
+            "explication": "Même à vide, le transformateur est magnétisé et le défaut alimenté : un défaut interne peut évoluer en court-circuit franc, avec éclatement de la cuve et incendie d'huile."
+          },
+          {
+            "texte": "Purger le gaz du relais, puis réenclencher",
+            "verdict": "danger",
+            "explication": "Purger le relais efface la preuve et ne répare rien : le défaut est toujours dans la cuve, et le réenclenchement l'alimente."
+          },
+          {
+            "texte": "Commander tout de suite un transformateur neuf",
+            "verdict": "acceptable",
+            "explication": "C'est peut-être l'issue, mais la décision se prend après l'analyse : certains défauts se réparent, et l'analyse dit ce qui s'est passé. En attendant, le secours tourne."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Défaut interne du transformateur, un amorçage entre spires de l'enroulement HTA : l'arc a décomposé l'huile, le gaz s'est accumulé dans le DGPT2, qui a fait ouvrir la cellule de protection.",
+      "remede": "Transformateur maintenu consigné, analyse du gaz et de l'huile, expertise, charges essentielles sur le groupe de secours. Remise en service seulement après réparation ou remplacement, par du personnel habilité HTA.",
+      "lecon": "Une protection de transformateur qui déclenche sur gaz signale un défaut interne : on ne réenclenche pas. Sans habilitation HTA, ton rôle est de constater, de sécuriser les abords et de prévenir.",
+      "risque": "Réenclencher un transformateur immergé en défaut interne peut faire éclater la cuve : incendie d'huile, projections, arc. En HTA, il suffit de s'approcher trop près d'une pièce nue sous tension pour que l'arc s'amorce.",
+      "norme": "NF C 18-510 · NF C 13-100 · IEC 60076"
     },
     "verifie": false
   }

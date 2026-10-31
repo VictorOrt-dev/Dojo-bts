@@ -1,7 +1,7 @@
 {
   "name": "Elec learning",
   "short_name": "Elec learning",
-  "description": "Fiches de révision BTS maintenance et entraînement pratique de l'électricien.",
+  "description": "Simulateur de terrain de l'électricien : diagnostic au banc de mesure, cas de panne, calculs et reconnaissance, par domaine et par niveau.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

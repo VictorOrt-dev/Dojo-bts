@@ -12,14 +12,13 @@ export const MODES = ['reco', 'calcul', 'panne', 'banc'];
 export const MATIERES = ['bakelite', 'porcelaine'];
 export const XP_MAX = 10_000_000;      // très au-delà du dernier rang (3 000 XP) : au-delà, c'est une donnée trafiquée
 export const TAILLE_MAX = 2_000_000;   // octets : une vraie sauvegarde fait quelques dizaines de Ko
-const ID_MAX = 100;                    // longueur maximale d'un identifiant de fiche ou de question
+const ID_MAX = 100;                    // longueur maximale d'un identifiant de question, de calcul ou de panne
 const CLES_INTERDITES = new Set(['__proto__', 'constructor', 'prototype']);
 
 export function etatParDefaut() {
   return {
     version: VERSION,
     xp: 0,
-    fichesVues: {},          // { idFiche: horodatage de dernière lecture }
     stats: {},               // résultats des exercices, par mode
     derniereSauvegarde: null, // horodatage du dernier export
     preferences: { matiere: 'bakelite' }
@@ -99,10 +98,7 @@ export function controler(donnees) {
     else anomalies.push(`xp doit être un nombre positif (au plus ${XP_MAX}), reçu : ${apercu(donnees.xp)}`);
   }
 
-  etat.fichesVues = filtrerEntrees(donnees.fichesVues, 'fichesVues', anomalies, (v, c) => {
-    if (!estHorodatage(v)) { anomalies.push(`${c} doit être une date (horodatage)`); return undefined; }
-    return v;
-  });
+  // « fichesVues » (module Cours, retiré) : présent dans les anciennes sauvegardes, simplement ignoré.
 
   etat.stats = filtrerEntrees(donnees.stats, 'stats', anomalies, (v, c) => {
     const mode = c.slice('stats.'.length);

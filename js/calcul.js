@@ -1,10 +1,13 @@
-// Mode Calculs flash : 10 calculs d'un niveau de difficulté, sans chrono, réponse acceptée à ±2 %.
-// Chaque générateur fabrique un exercice avec des valeurs tirées au hasard, son calcul posé,
-// un rappel de méthode, un piège de terrain et les erreurs types qu'il sait reconnaître.
+// Mode Calculs flash : 10 calculs d'un niveau de difficulté (et, au choix, d'un domaine technique),
+// sans chrono, réponse acceptée à ±2 %. Chaque générateur fabrique un exercice avec des valeurs tirées
+// au hasard, son calcul posé, un rappel de méthode, un piège de terrain, le risque humain et machine
+// d'une erreur, la référence normative et les erreurs types qu'il sait reconnaître.
 
 import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
-import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
-import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau } from './difficulte.js';
+import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
+import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
+import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
+import { blocRisque, ligneNorme } from './tuteur.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
 import { typo } from './mise-en-page.js';
@@ -26,6 +29,8 @@ export const GENERATEURS = [
     id: 'ohm',
     niveau: 1,
     titre: "Loi d'Ohm",
+    domaines: ["tbt-cc", "mono-bt"],
+    risque: "Sous-estimer un courant, c'est choisir un fil, un fusible ou un contact trop faibles : échauffement, isolant qui fond, départ de feu dans la goulotte. Se tromper d'un facteur 1 000 (Ω au lieu de kΩ) sur une résistance de limitation, c'est la faire brûler au premier essai.",
     creer() {
       const R = parmi([4.7, 10, 22, 47, 100, 220]);
       const I = parmi([0.1, 0.2, 0.5, 1.5, 2, 2.5]);
@@ -71,6 +76,9 @@ export const GENERATEURS = [
     id: 'puissance',
     niveau: 1,
     titre: 'Puissance et énergie',
+    domaines: ["mono-bt"],
+    norme: "NF C 15-100",
+    risque: "Une puissance mal évaluée fait sous-dimensionner câble et protection : le circuit chauffe en permanence sans déclencher, comme une rallonge enroulée sur son touret. L'isolant vieillit, puis c'est l'incendie.",
     creer() {
       const piegeCos = "P = U × I ne vaut qu'en continu ou pour un récepteur résistif ; pour un moteur en alternatif, il faut multiplier par cos φ.";
       return parmi([
@@ -137,6 +145,9 @@ export const GENERATEURS = [
     id: 'tension-attendue',
     niveau: 1,
     titre: 'Tension attendue au récepteur',
+    domaines: ["mono-bt"],
+    norme: "NF C 15-100 (§ 525)",
+    risque: "Une chute de tension excessive fait chauffer les moteurs (couple réduit, courant en hausse) et décrocher les contacteurs. Et quand elle vient d'une connexion desserrée, ce point chauffe jusqu'à fondre l'isolant et amorcer.",
     creer() {
       return parmi([
         () => {
@@ -178,11 +189,44 @@ export const GENERATEURS = [
     }
   },
 
+  {
+    id: 'alim-24v',
+    niveau: 1,
+    titre: 'Alimentation 24 V DC',
+    domaines: ['tbt-cc'],
+    norme: 'IEC 61131-2 (24 V DC : plage 20,4 à 28,8 V)',
+    risque: "Une alimentation calculée au plus juste s'écroule quand les bobines collent ensemble : la tension passe sous 20 V, l'automate redémarre, des sorties retombent en plein cycle et la machine fait des mouvements incohérents.",
+    creer() {
+      const api = parmi([0.4, 0.5, 0.6, 0.8]);
+      const nCapteurs = parmi([6, 8, 10, 12, 16]);
+      const iCapteur = 0.025;
+      const nEv = parmi([2, 3, 4, 5]);
+      const pEv = parmi([4.8, 7.2, 9.6]);
+      const charge = api + nCapteurs * iCapteur + nEv * pEv / 24;
+      const I = charge * 1.25;
+      return {
+        enonce: `Une alimentation 24 V DC doit fournir : un automate (${nb(api)} A), ${nCapteurs} capteurs à 25 mA et ${nEv} électrovannes de ${nb(pEv)} W. Avec 25 % de réserve, quel courant minimal doit-elle délivrer ?`,
+        aide: 'Électrovanne : I = P / 24 V',
+        unite: 'A', reponse: I, donnees: { api, nCapteurs, nEv, pEv },
+        solution: `I = ${nb(api)} + ${nCapteurs} × 0,025 + ${nEv} × ${nb(pEv)} / 24 = ${nb(charge, 3)} A ; avec la réserve : ${nb(charge, 3)} × 1,25 = ${nb(I, 3)} A`,
+        explication: 'On additionne toutes les consommations en ampères (P / U pour les charges données en watts), puis on ajoute une réserve de 20 à 30 % pour les appels de courant des bobines et les extensions futures. On choisit ensuite le calibre standard juste au-dessus (2,5 / 5 / 10 / 20 A).',
+        piege: 'Les électrovannes et les relais ont un courant d\'appel : une alimentation calculée sans réserve décroche au moment précis où tout colle en même temps. Et un capteur à 25 mA « ne compte pas » jusqu\'à ce qu\'il y en ait seize.',
+        erreurs: [
+          { valeur: charge, message: 'Tu as oublié la réserve de 25 % : multiplie la somme des courants par 1,25.' },
+          { valeur: (api + nCapteurs * iCapteur + nEv * pEv) * 1.25, message: 'Tu as additionné les watts des électrovannes comme des ampères : convertis d\'abord, I = P / 24.' },
+          { valeur: (api + nEv * pEv / 24) * 1.25, message: 'Tu as oublié les capteurs : ' + nCapteurs + ' × 25 mA, ça compte.' }
+        ]
+      };
+    }
+  },
+
   // ---------------------------------------------------------------- Niveau II · Pratique courante
   {
     id: 'triphase',
     niveau: 2,
     titre: 'Puissances en triphasé',
+    domaines: ["tri"],
+    risque: "Confondre kW, kVA et kvar, c'est mal choisir un transformateur ou un groupe électrogène, qui se dimensionnent en kVA : choisi sur des kW avec un mauvais cos φ, le groupe s'écroule à la première grosse charge inductive.",
     creer() {
       const U = 400;
       const I = entier(4, 60);
@@ -237,6 +281,9 @@ export const GENERATEURS = [
     id: 'intensite',
     niveau: 2,
     titre: 'Intensité nominale moteur',
+    domaines: ["tri"],
+    norme: "IEC 60947-4-1",
+    risque: "Un In mal calculé fausse le réglage de la protection : trop haut, le moteur grille sur une surcharge sans que rien ne déclenche ; trop bas, la machine s'arrête en production, et quelqu'un finit par « monter le réglage ».",
     creer() {
       const Pu = parmi([1.5, 2.2, 3, 4, 5.5, 7.5, 11, 15]);
       const eta = parmi([0.82, 0.85, 0.87, 0.89, 0.91]);
@@ -262,6 +309,9 @@ export const GENERATEURS = [
     id: 'couplage',
     niveau: 2,
     titre: 'Couplage étoile / triangle',
+    domaines: ["tri"],
+    norme: "IEC 60034-1 (plaque moteur)",
+    risque: "Un moteur 230/400 V couplé en triangle sur un réseau 400 V voit 400 V sur chaque enroulement au lieu de 230 V : courant multiplié, isolant détruit en quelques minutes, fumée dans l'armoire.",
     creer() {
       return parmi([
         () => {
@@ -326,6 +376,9 @@ export const GENERATEURS = [
     id: 'chute-mono',
     niveau: 2,
     titre: 'Chute de tension en monophasé',
+    domaines: ["mono-bt"],
+    norme: "NF C 15-100 (§ 525)",
+    risque: "Câble trop long ou trop fin : la chute de tension fait mal démarrer les moteurs monophasés, et la section trop faible chauffe. Une longue rallonge restée enroulée peut fondre.",
     creer() {
       const { S, I } = parmi([
         { S: 1.5, I: 10 }, { S: 2.5, I: 16 }, { S: 2.5, I: 20 },
@@ -365,6 +418,9 @@ export const GENERATEURS = [
     id: 'charge-moteur',
     niveau: 2,
     titre: 'Courant mesuré et plaque moteur',
+    domaines: ["tri"],
+    norme: "IEC 60034-1",
+    risque: "Un moteur qui tire durablement plus que son In vieillit vite : chaque dizaine de degrés de trop divise environ par deux la durée de vie de son isolant. Un courant très inférieur à l'In peut aussi signaler un accouplement cassé ou une pompe désamorcée.",
     creer() {
       const moteur = parmi([{ P: 4, I: 8.2 }, { P: 5.5, I: 11 }, { P: 7.5, I: 14.8 }, { P: 11, I: 21.5 }]);
       const plaque = parmi([
@@ -390,11 +446,90 @@ export const GENERATEURS = [
     }
   },
 
+  {
+    id: 'chute-24v',
+    niveau: 2,
+    titre: 'Chute de tension en 24 V DC',
+    domaines: ['tbt-cc'],
+    norme: 'IEC 61131-2 · NF C 15-100 (§ 525)',
+    risque: "Sous-alimentée, une électrovanne colle mal ou vibre, sa bobine chauffe, et le vérin peut ne pas finir sa course : capteur de fin de course jamais atteint, machine bloquée en cycle, ou mouvement incomplet là où quelqu'un croit la pièce bloquée.",
+    creer() {
+      const P = parmi([12, 18, 24]);
+      const I = P / 24;
+      const S = parmi([0.5, 0.75, 1]);
+      const L = parmi([40, 50, 60, 80]);
+      const du = 2 * RHO_CUIVRE * L * I / S;
+      const U = 24 - du;
+      return {
+        enonce: `Électrovanne 24 V DC de ${P} W, à ${L} m de l'alimentation, câble cuivre ${nb(S)} mm². L'alimentation délivre 24,0 V. Quelle tension dois-tu lire aux bornes de l'électrovanne, bobine alimentée ?`,
+        aide: 'ρ cuivre = 0,0225 Ω·mm²/m · I = P / 24 V · réponse au dixième de volt',
+        unite: 'V', reponse: U, tolerance: 0.004, donnees: { P, S, L },
+        solution: `I = ${P} / 24 = ${nb(I, 3)} A ; ΔU = 2 × 0,0225 × ${L} × ${nb(I, 3)} / ${nb(S)} = ${nb(du)} V ; U = 24 − ${nb(du)} = ${nb(U)} V`,
+        explication: 'Même formule qu\'en monophasé : ΔU = 2 × ρ × L × I / S, aller et retour (le + et le 0 V). En 24 V, chaque volt perdu pèse lourd : 1 V, c\'est déjà plus de 4 %. Beaucoup d\'électrovannes ne garantissent leur fonctionnement que jusqu\'à −10 % (21,6 V) : vérifie la notice.',
+        piege: 'Une longueur sans importance en 230 V devient critique en 24 V. Mesure toujours bobine alimentée : à vide, tu lis 24 V partout et la chute reste invisible.',
+        erreurs: [
+          { valeur: 24 - du / 2, message: 'Tu n\'as compté qu\'un conducteur : le courant va par le + et revient par le 0 V (facteur 2).' },
+          { valeur: du, message: 'Tu as donné la chute ΔU, pas la tension à lire aux bornes de l\'électrovanne.' },
+          { valeur: 24 + du, message: 'La chute se retranche de la tension de départ, elle ne s\'ajoute pas.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'contact-tt',
+    niveau: 2,
+    titre: 'Défaut d\'isolement en schéma TT',
+    domaines: ['securite', 'mono-bt'],
+    norme: 'NF C 15-100 (§ 411.5) · UL = 50 V en local sec',
+    risque: "Une prise de terre trop résistante laisse une masse en défaut sous une tension dangereuse : si le courant de défaut reste sous le seuil du différentiel, rien ne coupe, et la personne qui touche la carcasse est traversée par le courant.",
+    creer() {
+      return parmi([
+        () => {
+          const Ra = parmi([30, 50, 80, 100]);   // toujours au moins 2 × Rb : l'erreur « Rb × Id » reste distincte
+          const Rb = parmi([5, 10, 15]);
+          const Id = 230 / (Ra + Rb);
+          const Uc = Ra * Id;
+          return {
+            enonce: `Schéma TT. Une phase touche la carcasse métallique d'une machine. Prise de terre des masses Ra = ${Ra} Ω, prise de terre du neutre Rb = ${Rb} Ω. Tension de contact sur la carcasse ?`,
+            aide: 'U0 = 230 V · on néglige les câbles',
+            unite: 'V', reponse: Uc, donnees: { type: 'uc', Ra, Rb },
+            solution: `Id = 230 / (${Ra} + ${Rb}) = ${nb(Id)} A ; Uc = Ra × Id = ${Ra} × ${nb(Id)} = ${nb(Uc, 1)} V`,
+            explication: 'En TT, le courant de défaut traverse les deux prises de terre en série : Id = U0 / (Ra + Rb). La carcasse monte à Uc = Ra × Id. Au-delà de 50 V (local sec), c\'est dangereux : le différentiel doit couper.',
+            piege: 'Le courant de défaut ne fait que quelques ampères : un disjoncteur de 16 A ne le voit même pas. En TT, seul le différentiel protège contre ce défaut.',
+            erreurs: [
+              { valeur: Rb * Id, message: 'Tu as calculé la tension aux bornes de Rb (la terre du neutre). La personne touche la carcasse : c\'est Ra × Id.' },
+              { valeur: 230, message: 'Les deux prises de terre forment un diviseur de tension : la carcasse ne monte pas à 230 V, mais à Ra / (Ra + Rb) × 230.' }
+            ]
+          };
+        },
+        () => {
+          const IdnMA = parmi([30, 100, 300, 500]);
+          const RaMax = 50 / (IdnMA / 1000);
+          return {
+            enonce: `Schéma TT, local sec (UL = 50 V). Les masses sont protégées par un différentiel de ${IdnMA} mA. Valeur maximale de la prise de terre Ra ?`,
+            unite: 'Ω', reponse: RaMax, donnees: { type: 'ramax', IdnMA },
+            solution: `Ra ≤ UL / IΔn = 50 / ${nb(IdnMA / 1000, 3)} = ${nb(RaMax, 1)} Ω`,
+            explication: 'Condition de protection en TT : Ra × IΔn ≤ UL. Au seuil de déclenchement du différentiel, la carcasse ne doit pas dépasser 50 V (25 V en local mouillé). D\'où Ra ≤ UL / IΔn, avec IΔn en ampères.',
+            piege: 'Le 30 mA des prises protège même avec une terre médiocre, mais un différentiel de tête à 300 ou 500 mA exige une terre bien plus basse. Ra se mesure (telluromètre ou boucle de défaut), elle ne se suppose pas.',
+            erreurs: [
+              { valeur: 25 / (IdnMA / 1000), message: '25 V, c\'est la limite des locaux mouillés. Ici, local sec : UL = 50 V.' },
+              { valeur: 50 * IdnMA / 1000, message: 'Tu as multiplié : la condition Ra × IΔn ≤ UL donne Ra ≤ UL / IΔn.' }
+            ]
+          };
+        }
+      ])();
+    }
+  },
+
   // ---------------------------------------------------------------- Niveau III · Cas complexes
   {
     id: 'chute-tri',
     niveau: 3,
     titre: 'Chute de tension en triphasé',
+    domaines: ["tri"],
+    norme: "NF C 15-100 (§ 525)",
+    risque: "Au démarrage, le courant vaut 6 à 8 fois l'In : une ligne déjà limite en régime établi fait chuter la tension au point que le moteur ne décolle pas, chauffe, et que les contacteurs voisins retombent.",
     creer() {
       const { S, I } = parmi([{ S: 2.5, I: 20 }, { S: 4, I: 25 }, { S: 6, I: 32 }, { S: 10, I: 50 }, { S: 16, I: 63 }]);
       const L = parmi([30, 40, 50, 60, 80]);
@@ -418,6 +553,9 @@ export const GENERATEURS = [
     id: 'compensation',
     niveau: 3,
     titre: 'Compensation du réactif',
+    domaines: ["tri"],
+    norme: "IEC 60831-1",
+    risque: "Une batterie de condensateurs surdimensionnée surcompense : surtensions, résonance avec les harmoniques des variateurs, condensateurs qui gonflent ou éclatent. Et une batterie reste chargée après coupure : on attend la décharge et on vérifie avant d'intervenir.",
     creer() {
       const P = parmi([50, 80, 120, 200]);
       const cos1 = parmi([0.7, 0.75, 0.8]);
@@ -444,6 +582,8 @@ export const GENERATEURS = [
     id: 'boucherot',
     niveau: 3,
     titre: 'Méthode de Boucherot',
+    domaines: ["tri"],
+    risque: "Additionner directement des kVA de cos φ différents fausse le bilan : transformateur ou groupe mal choisi, protection de tête mal réglée, déclenchements à la mise en route de l'atelier.",
     creer() {
       const P1 = parmi([11, 15, 22]);
       const cos1 = parmi([0.8, 0.85]);
@@ -489,6 +629,9 @@ export const GENERATEURS = [
     id: 'transfo',
     niveau: 3,
     titre: 'Transformateur : In et Icc',
+    domaines: ["tri", "hta"],
+    norme: "NF C 15-100 (§ 434) · IEC 60076-5",
+    risque: "Un Icc sous-estimé fait installer des disjoncteurs dont le pouvoir de coupure est trop faible : au premier court-circuit franc près du transformateur, l'appareil explose au lieu de couper, devant la personne qui se trouve face à l'armoire.",
     creer() {
       const S = parmi([100, 160, 250, 400, 630]);
       const ucc = parmi([4, 6]);
@@ -522,6 +665,9 @@ export const GENERATEURS = [
     id: 'desequilibre',
     niveau: 3,
     titre: 'Déséquilibre entre phases',
+    domaines: ["tri"],
+    norme: "IEC 60034-26",
+    risque: "Quelques % de déséquilibre de tension donnent un déséquilibre de courant bien plus fort et un échauffement supplémentaire du moteur, qui doit alors être déclassé. C'est souvent le signe d'une connexion qui chauffe ou d'un contact usé sur une phase.",
     creer() {
       const ecarts = parmi([[1.02, 0.95, 1.01], [1.05, 0.97, 0.99], [0.96, 1.03, 1.04], [1.0, 1.06, 0.93]]);
       const pct = valeurs => {
@@ -557,6 +703,48 @@ export const GENERATEURS = [
         }
       ])();
     }
+  },
+
+  {
+    id: 'hta-courant',
+    niveau: 3,
+    titre: 'Courant côté HTA d\'un poste',
+    domaines: ['hta', 'tri'],
+    norme: 'NF C 13-100 · IEC 60076-1',
+    risque: "Un fusible HTA trop petit fond à l'enclenchement du transformateur (courant d'appel magnétisant) ; trop gros, il ne protège plus contre un défaut interne. Le calibre se choisit sur les tableaux du constructeur, jamais au jugé, et toute manœuvre HTA demande l'habilitation correspondante.",
+    creer() {
+      return parmi([
+        () => {
+          const S = parmi([250, 400, 630, 1000, 1250]);
+          const I = S / (RACINE3 * 20);
+          return {
+            enonce: `Transformateur de poste ${S} kVA, 20 kV / 400 V. Courant nominal côté HTA ?`,
+            unite: 'A', reponse: I, donnees: { type: 'in', S },
+            solution: `I = S / (√3 × U) = ${S} / (1,732 × 20) = ${nb(I)} A`,
+            explication: 'Même formule qu\'en BT, I = S / (√3 × U), mais avec U = 20 kV : la tension est 50 fois plus élevée qu\'en 400 V, le courant 50 fois plus faible. Un 630 kVA tire environ 18 A en HTA pour 909 A en BT.',
+            piege: 'Un courant HTA faible ne veut pas dire un danger faible : en 20 kV, l\'arc s\'amorce à distance, sans contact. Les distances et l\'habilitation HTA s\'appliquent avant même de toucher quoi que ce soit.',
+            erreurs: [
+              { valeur: S / (RACINE3 * 0.4), message: 'Tu as pris 400 V : c\'est le courant côté BT. Côté HTA, la tension vaut 20 kV.' },
+              { valeur: S / 20, message: 'Tu as oublié √3 : en triphasé, I = S / (√3 × U).' }
+            ]
+          };
+        },
+        () => {
+          const Ibt = parmi([350, 500, 640, 800]);
+          const I = Ibt * 0.4 / 20;
+          return {
+            enonce: `Tu mesures ${Ibt} A sur une phase BT d'un transformateur 20 kV / 400 V. Quel courant circule dans une phase HTA (charge équilibrée, pertes négligées) ?`,
+            unite: 'A', reponse: I, donnees: { type: 'rapport', Ibt },
+            solution: `Même puissance des deux côtés : I HTA = I BT × U BT / U HTA = ${Ibt} × 0,4 / 20 = ${nb(I)} A`,
+            explication: 'La puissance traverse le transformateur : √3 × U HTA × I HTA = √3 × U BT × I BT (pertes négligées). Les courants sont dans le rapport inverse des tensions : 20 kV / 400 V = 50, donc I HTA = I BT / 50.',
+            piege: 'Le rapport s\'applique entre courants de ligne et tensions composées : le couplage Dyn ne change pas ce résultat, le √3 s\'élimine des deux côtés.',
+            erreurs: [
+              { valeur: Ibt * 50, message: 'Tu as multiplié par 50 : côté HTA, la tension est plus élevée, donc le courant plus faible. Divise.' }
+            ]
+          };
+        }
+      ])();
+    }
   }
 ];
 
@@ -581,11 +769,18 @@ export function diagnostiquer(ex, valeur) {
   return null;
 }
 
-export function creerSession(niveau) {
-  const dispo = GENERATEURS.filter(g => g.niveau === niveau);
+// Générateurs d'un niveau, éventuellement limités à un domaine ('' = tous).
+export function generateursDe(niveau, dom = '') {
+  return filtrerParDomaine(GENERATEURS, dom).filter(g => g.niveau === niveau);
+}
+
+// Une séance compte toujours 10 calculs : les générateurs disponibles sont repris à tour de rôle.
+export function creerSession(niveau, dom = '') {
+  const dispo = generateursDe(niveau, dom);
   const generateurs = melanger(Array.from({ length: TAILLE_SESSION }, (_, i) => dispo[i % dispo.length]));
   return {
     niveau,
+    domaine: dom,
     exercices: generateurs.map(g => ({ generateur: g, ...g.creer() })),
     index: 0,
     score: 0,
@@ -605,19 +800,22 @@ const LONGUEUR_MAX = 9;
 export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
   definirTitre('Calculs flash');
   const niveau = Number(params?.get('n'));
+  const dom = domaine(params?.get('d'))?.id ?? '';
   const diff = difficulte(niveau);
-  if (!diff) {
+  if (!diff || !generateursDe(niveau, dom).length) {
     renderChoixNiveau(vue, {
       mode: 'calcul',
+      base: '#/entrainement/calcul',
       titre: 'Calculs flash',
-      sousTitre: 'Dix calculs, des valeurs différentes à chaque séance. Réponse acceptée à ±2 % (au volt près pour une tension à lire).',
-      href: n => `#/entrainement/calcul?n=${n}`,
-      nombre: n => `${GENERATEURS.filter(g => g.niveau === n).length} types de calcul`
+      sousTitre: 'Dix calculs, des valeurs différentes à chaque séance : la valeur que tu dois lire avant de sortir le multimètre. Réponse acceptée à ±2 % (au volt près pour une tension à lire).',
+      nombre: (n, d) => generateursDe(n, d).length,
+      unite: 'types de calcul',
+      domaine: dom
     });
     return;
   }
 
-  const session = sessionCourante = creerSession(niveau);
+  const session = sessionCourante = creerSession(niveau, dom);
   let saisie = '';
   const exerciceCourant = () => session.exercices[session.index];
 
@@ -656,10 +854,11 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const ex = exerciceCourant();
     saisie = '';
     vue.innerHTML = `
-      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}</p>
+      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
       ${enteteSession(session.index + 1, session.score, session.resultats)}
       <section class="exercice">
         <p class="surtitre">${esc(ex.generateur.titre)}</p>
+        <p class="reco-domaines">${pucesDomaines(ex.generateur.domaines)}</p>
         <p class="enonce">${esc(typo(ex.enonce))}</p>
         ${ex.aide ? `<p class="aide">${esc(typo(ex.aide))}</p>` : ''}
       </section>
@@ -717,7 +916,8 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const diagnostic = !juste && !ex.choix ? diagnostiquer(ex, valeur) : null;
     const calculPose = `<p class="surtitre">Le calcul posé</p><p class="solution">${esc(typo(ex.solution))}</p>`;
     const rappel = `<div class="lecon"><p class="lecon-titre">Rappel</p><p>${esc(typo(ex.explication))}</p></div>`;
-    const piege = `<div class="piege-terrain"><p class="lecon-titre">Piège à éviter</p><p>${esc(typo(ex.piege))}</p></div>`;
+    const piege = `<div class="piege-terrain"><p class="lecon-titre">Piège en armoire</p><p>${esc(typo(ex.piege))}</p></div>`;
+    const risque = `${blocRisque(ex.generateur.risque)}${ligneNorme(ex.generateur.norme)}`;
 
     const derniere = session.index === session.exercices.length - 1;
     const zone = vue.querySelector('#correction');
@@ -726,13 +926,14 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
         ${juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
              ${calculPose}
-             <details class="approfondir"><summary>Revoir la méthode</summary>${rappel}${piege}</details>`
+             <details class="approfondir"><summary>Revoir la méthode et le risque</summary>${rappel}${piege}${risque}</details>`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>
              <p class="attendu">Ta réponse : <strong class="mono">${esc(typo(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`))}</strong> — il fallait <strong class="mono">${esc(typo(attendu))}</strong>.</p>
              ${diagnostic ? `<div class="diagnostic"><p class="lecon-titre">Ce qui s'est sans doute passé</p><p>${esc(typo(diagnostic))}</p></div>` : ''}
              ${rappel}
              ${calculPose}
-             ${piege}`}
+             ${piege}
+             ${risque}`}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
@@ -743,17 +944,17 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     session.index++;
     if (session.index < session.exercices.length) return afficherExercice();
 
-    if (session.score === TAILLE_SESSION) {
+    if (session.score === TAILLE_SESSION && TAILLE_SESSION >= SEANCE_MIN_BONUS) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('calcul', session.score, niveau);
-    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1);
+    noterSession('calcul', session.score, dom ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
+    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1 && generateursDe(d.n, dom).length);
     afficherBilan(vue, {
       score: session.score,
       xpGagne: session.xp,
       onRejouer: () => renderCalcul({ vue, definirTitre, auNettoyage, params }),
-      suite: session.score >= 8 && suivantNiveau ? { href: `#/entrainement/calcul?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+      suite: session.score >= 8 && suivantNiveau ? { href: lienSeance('#/entrainement/calcul', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };
 

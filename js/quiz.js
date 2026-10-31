@@ -1,9 +1,11 @@
 // Mode Reconnaissance visuelle : QCM à 4 propositions sur une image (symbole ou matériel),
-// par niveau de difficulté. Le contenu vient de data/reconnaissance.json.
+// par niveau de difficulté et par domaine technique. Le contenu vient de data/reconnaissance.json.
 
 import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
-import { TAILLE_SESSION, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
-import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau } from './difficulte.js';
+import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
+import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
+import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
+import { blocRisque, ligneNorme } from './tuteur.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
@@ -33,20 +35,24 @@ export async function renderReco({ vue, definirTitre, params }) {
   definirTitre('Reconnaissance');
   const toutes = await chargerQuestions();
   const niveau = Number(params?.get('n'));
+  const dom = domaine(params?.get('d'))?.id ?? '';
   const diff = difficulte(niveau);
-  if (!diff) {
+  const disponibles = diff ? filtrerParDomaine(toutes, dom).filter(q => q.niveau === niveau) : [];
+  if (!disponibles.length) {
     renderChoixNiveau(vue, {
       mode: 'reco',
+      base: '#/entrainement/reco',
       titre: 'Reconnaissance',
-      sousTitre: 'Symboles IEC, matériel d\'armoire, repérages et réglages.',
-      href: n => `#/entrainement/reco?n=${n}`,
-      nombre: n => `${toutes.filter(q => q.niveau === n).length} planches`
+      sousTitre: 'Symboles IEC, matériel d\'armoire, repérages et réglages : ce que tu dois lire d\'un coup d\'œil devant l\'armoire.',
+      nombre: (n, d) => filtrerParDomaine(toutes, d).filter(q => q.niveau === n).length,
+      unite: 'planches',
+      domaine: dom
     });
     return;
   }
 
   const session = {
-    questions: melanger(toutes.filter(q => q.niveau === niveau)).slice(0, TAILLE_SESSION),
+    questions: melanger(disponibles).slice(0, TAILLE_SESSION),
     index: 0,
     score: 0,
     xp: 0,
@@ -58,11 +64,12 @@ export async function renderReco({ vue, definirTitre, params }) {
     const choix = melanger([q.nom, ...q.faux]);
 
     vue.innerHTML = `
-      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}</p>
-      ${enteteSession(session.index + 1, session.score, session.resultats)}
+      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
+      ${enteteSession(session.index + 1, session.score, session.resultats, session.questions.length)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
         <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
         <figcaption class="reco-legende">Planche ${deuxChiffres(session.index + 1)} · ${LEGENDES[q.type] ?? ''}</figcaption>
+        <p class="reco-domaines">${pucesDomaines(q.domaines)}</p>
       </figure>
       <h2 class="question">${esc(typo(q.question))}</h2>
       <div class="choix">
@@ -100,7 +107,8 @@ export async function renderReco({ vue, definirTitre, params }) {
       <dl class="fiche-technique">
         <dt>Repérage</dt><dd>${esc(typo(q.reperage))}</dd>
         <dt>Sur le terrain</dt><dd>${esc(typo(q.role))}</dd>
-      </dl>`;
+      </dl>
+      ${ligneNorme(q.norme)}`;
     const pourquoiPas = q.pourquoiPas?.[choisi];
 
     const derniere = session.index === session.questions.length - 1;
@@ -110,13 +118,14 @@ export async function renderReco({ vue, definirTitre, params }) {
         ${juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
              ${ficheTechnique}
-             <details class="approfondir"><summary>Pourquoi c'est ça</summary>${lecon}</details>`
+             <details class="approfondir"><summary>Pourquoi c'est ça, et le risque</summary>${lecon}${blocRisque(q.risque)}</details>`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>
              <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>
              ${pourquoiPas ? `<div class="diagnostic"><p class="lecon-titre">Pourquoi pas « ${esc(typo(choisi))} »</p><p>${esc(typo(pourquoiPas))}</p></div>` : ''}
              ${lecon}
+             ${blocRisque(q.risque)}
              ${ficheTechnique}`}
-        ${q.verifie ? '' : '<p class="note-marge">Contenu à vérifier avec ton cours.</p>'}
+        ${q.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);
@@ -127,17 +136,19 @@ export async function renderReco({ vue, definirTitre, params }) {
     session.index++;
     if (session.index < session.questions.length) return afficherQuestion();
 
-    if (session.score === session.questions.length) {
+    const total = session.questions.length;
+    if (session.score === total && total >= SEANCE_MIN_BONUS) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('reco', session.score, niveau);
-    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1);
+    noterSession('reco', session.score, dom ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
+    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1 && filtrerParDomaine(toutes, dom).some(q => q.niveau === d.n));
     afficherBilan(vue, {
       score: session.score,
+      total,
       xpGagne: session.xp,
       onRejouer: () => renderReco({ vue, definirTitre, params }),
-      suite: session.score >= 8 && suivantNiveau ? { href: `#/entrainement/reco?n=${suivantNiveau.n}`, libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+      suite: session.score >= Math.ceil(total * 0.8) && suivantNiveau ? { href: lienSeance('#/entrainement/reco', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };
 

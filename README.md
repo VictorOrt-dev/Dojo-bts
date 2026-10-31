@@ -1,6 +1,12 @@
-# Elec learning — Cours & entraînement électricien (PWA)
+# Elec learning — simulateur de terrain de l'électricien (PWA)
 
-Application web mobile perso : fiches de révision BTS Maintenance + exercices pratiques (reconnaissance, calculs, cas de panne).
+Pas une app de révision : un **simulateur d'entraînement pour techniciens électriciens de maintenance**. Le cœur, c'est la
+pratique : diagnostic au **banc de mesure** (panne cachée, multimètre, LoZ, pince, consignation), **cas de panne** pas à pas,
+**calculs** des valeurs à lire avant de mesurer, **reconnaissance** des symboles et du matériel d'armoire. Chaque exercice est
+classé par **niveau** (I à III) et par **domaine technique** ; chaque erreur est corrigée comme le ferait un tuteur de terrain :
+le pourquoi physique, le piège en armoire, le risque humain et machine, la référence normative.
+
+Les anciennes fiches de cours textuelles ont été retirées (dernière version : commit `3a0ae90`).
 HTML/CSS/JS sans framework, sans build, sans npm (seuls les tests automatisés utilisent Playwright). Données de l'utilisateur dans `localStorage`. Fonctionne hors connexion.
 
 En ligne : https://victorort-dev.github.io/Dojo-bts/ (le dépôt garde son nom d'origine, voir « Renommer le dépôt » plus bas).
@@ -16,7 +22,7 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 ## Mettre en ligne (GitHub Pages)
 
 La mise en ligne passe par le workflow `.github/workflows/test.yml` : à chaque push sur `main`, les tests tournent
-d'abord ; **le site n'est publié que si les 141 vérifications passent**. Une pull request vers `main` lance les tests sans rien publier.
+d'abord ; **le site n'est publié que si toutes les vérifications passent**. Une pull request vers `main` lance les tests sans rien publier.
 
 1. Une seule fois : dans le dépôt, Settings › Pages › Build and deployment › Source : **« GitHub Actions »**.
    (Avec l'ancien réglage « Deploy from a branch », GitHub publie `main` à chaque push sans attendre les tests.)
@@ -31,31 +37,31 @@ Pour relancer à la main (ex. après avoir changé le réglage Pages) : onglet A
 ## Structure
 
 ```
-index.html              coquille : barre du haut, zone #vue, onglets
+index.html              coquille : barre du haut, zone #vue, onglets Entraînement · Banc · Carnet
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
 css/style.css           tout le style ; jetons Bakélite / Porcelaine en tête de fichier
 sw.js                   service worker : mode hors connexion (réseau d'abord, cache en secours) — liste FICHIERS à tenir à jour
-js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/reco, /calcul, /panne, /banc, #/cours, #/fiche/<id>, #/profil
-                        (les anciens liens #/dojo… sont redirigés)
+js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/banc, /panne, /calcul, /reco, #/profil
+                        (anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… → accueil)
 js/storage.js           SEUL fichier qui touche localStorage (clé "elec-learning:v1", reprend l'ancienne clé "dojo:v1")
 js/sauvegarde.js        contrôle strict des données (import refusé à la moindre anomalie, stockage local nettoyé au démarrage)
-js/cours.js             liste + détail des fiches
 js/profil.js            progression, export/import, remise à zéro
-js/entrainement.js      accueil (Exercices), plaque de l'opérateur, en-tête de séance, rapport, toast
-js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées)
+js/entrainement.js      accueil (Entraînement), plaque de l'opérateur, en-tête de séance, rapport, toast
+js/domaines.js          les 5 domaines techniques, repères couleur, filtre (barreDomaines), puces
+js/tuteur.js            blocs communs de correction : « le risque, en vrai » et référence normative
+js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées, filtre par domaine)
 js/banc.js              mode Banc de mesure (panne cachée, multimètre V~ / LoZ / Ω, pince, consignation, horloge, rapport)
 js/circuit.js           petit solveur électrique du banc (potentiels en alternatif, transformateur, tensions fantômes, Ω)
-js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, fil de cuivre, salutation
+js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
-js/quiz.js              mode Reconnaissance (QCM sur image, par niveau, explications en cas d'erreur)
-js/calcul.js            mode Calculs flash (13 générateurs sur 3 niveaux, valeurs attendues, diagnostic d'erreur, clavier à l'écran)
-js/difficulte.js        les 3 niveaux de difficulté (I Fondations, II Pratique courante, III Cas complexes) + écran de choix
+js/quiz.js              mode Reconnaissance (QCM sur image, par niveau et par domaine)
+js/calcul.js            mode Calculs flash (17 générateurs, 3 niveaux, 5 domaines, diagnostic d'erreur, clavier à l'écran)
+js/difficulte.js        les 3 niveaux de difficulté + écran de choix niveau × domaine
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
 js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
 js/mise-en-page.js      frontispice, titres de section, voyants d'état, typographie française (typo)
 fonts/                  polices auto-hébergées (Young Serif, Atkinson Hyperlegible, JetBrains Mono — licence OFL)
-js/util.js              esc(), normaliser(), plurielS()
-data/fiches.json        CONTENU des fiches (aucun code)
+js/util.js              esc(), plurielS()
 data/reconnaissance.json CONTENU des questions de reconnaissance
 data/pannes.json        CONTENU des cas de panne
 data/banc-depart-moteur.json CIRCUIT et pannes du banc de mesure
@@ -92,8 +98,8 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
 | `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, `__proto__`, nettoyage au démarrage |
-| `tests/non-regression.mjs` | Dans le navigateur. **A** : 13 générateurs × 300 tirages, contenus, équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** Cours. **E** Cas de panne. **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
-| `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport |
+| `tests/non-regression.mjs` | Dans le navigateur. **A** : 17 générateurs × 300 tirages, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne. **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
+| `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
 `.github/workflows/test.yml`, Chromium mis en cache) et bloque le déploiement en cas d'échec. Changer de version de Playwright :
@@ -108,7 +114,8 @@ modifier `PLAYWRIGHT_VERSION` dans le workflow.
 ## Conventions (à donner à l'IA à chaque session)
 
 - **Pas de framework, pas de npm, pas de build.** Modules ES natifs (`import`/`export`), chemins relatifs.
-- **Contenu ≠ code.** Le contenu pédagogique va dans `data/*.json`. Ajouter une fiche = modifier uniquement `fiches.json`.
+- **Contenu ≠ code.** Le contenu pédagogique va dans `data/*.json` (et dans `GENERATEURS` pour les calculs). Pas de cours textuel :
+  tout contenu est un exercice, avec `domaines`, `risque` et `norme` (les tests refusent un élément sans).
 - **Stockage.** Seul `storage.js` lit/écrit `localStorage`, via `lire()` et `modifier(e => …)`. Nouveau champ = l'ajouter dans `etatParDefaut()` **et** dans `controler()` (tous deux dans `sauvegarde.js`), sinon il sera retiré à l'import et au démarrage. Changement de format = incrémenter `VERSION` et compléter `migrer()`.
 - **Sécurité d'affichage.** Tout texte injecté dans `innerHTML` passe par `esc()`.
 - **Un écran = une fonction `render…({ vue, definirTitre, id, params })`**, branchée dans le `switch` de `app.js`.
@@ -132,47 +139,43 @@ Les matières du métier deviennent l'interface.
   - plaque signalétique émaillée avec vis et **galvanomètre** dont l'aiguille balaie jusqu'à l'XP (`atelier.js`) ;
   - **bornier** : une borne par question, reliée par le fil de cuivre, qui s'allume juste / raté ;
   - **clavier en bakélite** (pavé numérique, grande touche Valider) à la place du clavier iOS ;
-  - **gaines de conducteurs** comme couleurs de module (brun, gris, bleu, vert-jaune = terre pour la Sécurité) ;
-  - formules sur petites **plaques émaillées** ; séparateurs en **fil de cuivre bouclé** ;
+  - **gaines de conducteurs** comme repères de domaine (voir « Domaines techniques ») ;
   - barre d'onglets en **touches de poste radio** : la touche active reste enfoncée, son voyant s'allume.
-- **Ergonomie** : les Exercices sont l'écran d'accueil ; lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ;
+- **Ergonomie** : l'Entraînement est l'écran d'accueil, le Banc a son propre onglet ; lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ;
   « Suivant » reste collé au-dessus des onglets (`.action-collee`) ; toutes les cibles font au moins 44 px.
 - **Sobriété** : aucune animation en boucle, animations ≤ 180 ms sur `transform` / `opacity`
   (sauf le balayage de l'aiguille, une fois) ; `prefers-reduced-motion` respecté.
 - **Contrastes** vérifiés WCAG : AAA pour le texte dans les deux matières, AA minimum pour les couleurs d'état.
 
-## Pédagogie : progresser sans pression
+## Domaines techniques (`js/domaines.js`)
+
+En plus des 3 niveaux, chaque exercice porte un tableau `domaines` (le premier est le domaine principal). Le filtre est proposé
+sur l'écran de choix du niveau (Reconnaissance, Calculs) et sur la liste des Cas de panne ; un niveau vide pour le domaine choisi est grisé.
+
+| id | Domaine | Contenu | Repère couleur |
+|---|---|---|---|
+| `tbt-cc` | TBT & courant continu | circuits de commande, alimentations 24 V DC, capteurs, automatismes | bleu foncé (NF EN 60204-1 : commande en courant continu) |
+| `mono-bt` | Monophasé & basse tension | circuits terminaux, éclairage, prises, protection des personnes | brun + bleu clair (phase + neutre) |
+| `tri` | Triphasé & puissance | départs moteurs, transformateurs, couplages, réactif | brun, noir, gris (L1, L2, L3) |
+| `securite` | Sécurité & habilitations | consignation, VAT, risques électriques, NF C 18-510 | vert-jaune (PE) |
+| `hta` | Haute tension · postes | cellules HTA, protections de transformateur, sélectivité (niveau expert) | rouge (danger) |
+
+- Une séance filtrée peut compter moins de 10 questions (Reconnaissance) ; les Calculs restent à 10, les générateurs du domaine étant repris à tour de rôle.
+- Les records par niveau ne comptent que les séances « tous domaines ». Le bonus sans faute exige au moins 5 questions.
+
+## Pédagogie : un tuteur de terrain, pas un manuel
 
 - **Pas de chrono.** Le score ne dépend que de la justesse : on prend le temps de poser son raisonnement.
-- **Trois niveaux** pour chaque module (fiches, reconnaissance, calculs), définis dans `js/difficulte.js` :
-  I Fondations (Apprenti, +10 XP), II Pratique courante (Compagnon, +15 XP), III Cas complexes et subtilités normatives (Expert, +20 XP).
-  On choisit le niveau avant chaque séance ; à partir de 8/10, le rapport propose le niveau supérieur.
-- **Une erreur = une leçon.** En cas de mauvaise réponse, l'app affiche :
-  - Reconnaissance : pourquoi la réponse choisie n'est pas la bonne (`pourquoiPas`), l'explication détaillée, le repérage et le rôle ;
-  - Calculs : ce qui s'est sans doute passé (diagnostic des erreurs types : √3 oublié, facteur 2 de l'aller-retour, W/kW…),
-    le rappel de la formule, le calcul posé et le piège de terrain.
-  Une bonne réponse garde l'explication repliée (« Pourquoi c'est ça », « Revoir la méthode »).
-
-## Format d'une fiche (`data/fiches.json`)
-
-```json
-{
-  "id": "elec-puissances-tri",
-  "module": "Électrotechnique",
-  "niveau": 2,
-  "titre": "Puissances en triphasé équilibré",
-  "verifie": false,
-  "definitions": [{ "terme": "…", "def": "…" }],
-  "formules": [{ "nom": "…", "expr": "P = √3 · U · I · cos φ", "unites": "P en W · U en V · I en A" }],
-  "pieges": ["…"]
-}
-```
-
-- `niveau` : 1, 2 ou 3 (Fondations, Pratique courante, Cas complexes). Viser une fiche par niveau et par module.
-- `module` doit être exactement l'un de : `Électrotechnique`, `Automatismes`, `Réseaux`, `Sécurité` (liste `MODULES` dans `js/cours.js`).
-- `id` : unique, en minuscules avec tirets, ne plus le changer ensuite (la progression y est attachée).
-- `verifie` : passer à `true` une fois la fiche relue avec le cours. Tant que c'est `false`, l'app affiche un avertissement.
-- Écrire les formules en texte Unicode : `√ · ² ³ φ η Ω ≤ ≥ → ×`.
+- **Trois niveaux** (`js/difficulte.js`) : I Fondations (+10 XP), II Pratique courante (+15 XP), III Cas complexes et
+  subtilités normatives (+20 XP). À partir de 80 % de bonnes réponses, le rapport propose le niveau supérieur (s'il existe dans le domaine).
+- **Une erreur = une leçon de terrain.** La correction affiche, selon le mode :
+  - le **pourquoi** : pourquoi la réponse choisie est fausse (`pourquoiPas`), le diagnostic de l'erreur de calcul (√3 oublié,
+    aller-retour, W/kW…), l'explication physique, le calcul posé ;
+  - le **piège en armoire** : ce qui trompe vraiment sur le terrain ;
+  - **« le risque, en vrai »** (`risque`) : ce que l'erreur coûte à un humain (électrisation, arc, brûlure) ou à la machine
+    (bobinage grillé, démarrage intempestif, appareil qui explose) ;
+  - la **référence normative** (`norme`) : NF C 15-100, NF C 18-510, NF EN 60204-1, IEC 60947…
+  Une bonne réponse garde ces blocs repliés.
 
 ## Format d'une question de reconnaissance (`data/reconnaissance.json`)
 
@@ -193,14 +196,19 @@ Les matières du métier deviennent l'interface.
     "Sectionneur porte-fusibles": "…"
   },
   "explication": "Trois pôles de puissance, une bobine A1-A2 et un contact 13-14 : la signature d'un contacteur.",
-  "verifie": false
+  "verifie": false,
+  "domaines": ["tri"],
+  "norme": "IEC 60947-4-1",
+  "risque": "Un contacteur n'est pas un organe de séparation : ses contacts peuvent se souder…"
 }
 ```
 
 - `type` : `symbole` ou `materiel`. `faux` : exactement 3 réponses, toutes différentes de `nom`.
 - `pourquoiPas` : une phrase par mauvaise réponse (mêmes textes que dans `faux`), affichée si on la choisit.
 - `explication` : comment reconnaître, ce qu'il faut retenir. Une même image peut servir à plusieurs questions (repérage des bornes, réglage…).
-- Viser 10 questions par niveau (une séance = 10 questions du niveau choisi).
+- `domaines` : un ou plusieurs ids de domaine (voir « Domaines techniques »). `risque` : ce que l'erreur coûte, à l'humain ou à la machine.
+  `norme` : la référence, courte (« NF EN 60204-1 (§ 10.3) »).
+- Viser au moins 10 questions par niveau (une séance = 10 questions du niveau choisi, moins si un domaine en compte peu).
 
 ## Règles d'écriture des exercices (Reconnaissance et Cas de panne)
 
@@ -211,7 +219,7 @@ Les matières du métier deviennent l'interface.
 - **Des images muettes** : aucun repère de borne, calibre ni marquage écrit sur les illustrations (sauf ce qui fait partie du symbole IEC,
   comme « M 3~ »). Si la question porte sur un marquage, il est cité dans le texte de la question.
 - `image` : SVG ou photo (`.jpg`/`.webp`, max ~200 Ko). Les visuels `mat-*.svg` sont des illustrations simplifiées : les remplacer par tes propres photos d'armoire (atelier, stage) dès que possible, en gardant le même champ `image`.
-- Une session tire 10 questions au hasard parmi toutes celles du fichier.
+- Une séance tire 10 questions au hasard parmi celles du niveau (et du domaine) choisis.
 
 ## Format d'un cas de panne (`data/pannes.json`)
 
@@ -219,7 +227,7 @@ Les matières du métier deviennent l'interface.
 {
   "id": "moteur-grogne",
   "niveau": 2,
-  "module": "Électrotechnique",
+  "domaines": ["tri"],
   "titre": "Le moteur grogne et ne démarre pas",
   "contexte": "Bon d'intervention : machine, symptômes signalés…",
   "etapes": [
@@ -233,7 +241,7 @@ Les matières du métier deviennent l'interface.
       ]
     }
   ],
-  "conclusion": { "cause": "…", "remede": "…", "lecon": "…" },
+  "conclusion": { "cause": "…", "remede": "…", "lecon": "…", "risque": "…", "norme": "…" },
   "verifie": false
 }
 ```
@@ -244,14 +252,16 @@ Les matières du métier deviennent l'interface.
 
 ## Calculs Flash (`js/calcul.js`)
 
-Chaque générateur de `GENERATEURS` a un `id`, un `niveau` (1 à 3), un `titre` et une fonction `creer()` qui renvoie
+Chaque générateur de `GENERATEURS` a un `id`, un `niveau` (1 à 3), un `titre`, des `domaines`, un `risque`, une `norme`
+(facultative) et une fonction `creer()` qui renvoie
 `{ enonce, aide?, unite, reponse, tolerance?, solution, explication, piege, erreurs, donnees }` (ou `{ enonce, choix, reponse, … }` pour un QCM).
 `tolerance` (facultatif, relative) remplace les ±2 % par défaut : ex. 0,004 pour lire une tension au volt près.
 Priorité aux **valeurs attendues** utiles sur le terrain (tension à lire au récepteur, charge d'un moteur d'après la pince et la plaque,
 déséquilibre entre phases) plutôt qu'aux exercices de manuel.
 `erreurs` liste les erreurs types : `[{ valeur, message }]` ; si la réponse tombe à ±2 % d'une valeur, son message s'affiche.
 `diagnostiquer()` détecte aussi les erreurs d'unité (×1 000), de virgule (×10) et de √3.
-Ajouter un type de calcul = ajouter un objet dans ce tableau. Une séance = 10 calculs répartis entre les générateurs du niveau.
+Ajouter un type de calcul = ajouter un objet dans ce tableau, et sa valeur attendue dans le test A (`tests/non-regression.mjs`).
+Une séance = 10 calculs répartis entre les générateurs du niveau (et du domaine) choisis.
 
 ## Banc de mesure (`js/banc.js`, `js/circuit.js`, `data/banc-depart-moteur.json`)
 
@@ -268,7 +278,7 @@ la cause, la démarche d'un pro et le piège du cas.
   retirer un fusible ou démonter une pièce sous tension, 3e essai sur un moteur bloqué.
 - **XP** : 50 si réparé, − 10 par pièce inutile, − 15 par alerte sécurité (minimum 10), + 20 si sans faute (aucune alerte, aucune pièce inutile, temps ≤ 1,3 × la référence).
 - **Ajouter une panne** : un objet dans `pannes` : `{ id, symptome, ouvre: [éléments coupés], relaisDeclenche?,
-  reference (minutes), cause, methode, piege }`. Elle doit être réparable par un élément de `composants[].repare`.
+  reference (minutes), domaines, cause, methode, piege, risque, norme }`. Elle doit être réparable par un élément de `composants[].repare`.
 - `#/entrainement/banc?panne=<id>` force une panne précise (tests).
 
 ## XP et niveaux (`js/xp.js`)
@@ -278,7 +288,7 @@ la cause, la démarche d'un pro et le piège du cas.
 | Bonne réponse, niveau I | +10 |
 | Bonne réponse, niveau II | +15 |
 | Bonne réponse, niveau III | +20 |
-| Séance sans faute 10/10 | +20 |
+| Séance sans faute (au moins 5 questions) | +20 |
 | Rapidité | sans effet |
 
 Niveaux : N1 Apprenti (0) · N2 Compagnon (200) · N3 Technicien (600) · N4 Technicien Confirmé (1 500) · N5 Expert Senior (3 000).
@@ -292,6 +302,11 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Étape 3 : Cas de panne (interventions pas à pas), mode hors ligne (service worker), nom « Elec learning »
 - [x] Audit, phase 1 : choix équilibrés, images muettes, calculs de valeurs attendues
 - [x] Audit, phase 2 : banc de mesure virtuel (panne cachée, multimètre, pince, consignation)
+- [x] P0 : tests versionnés, import sécurisé, intégration continue
+- [x] Pivot « simulateur de terrain » : fiches de cours retirées, 5 domaines techniques, risque et norme sur chaque exercice,
+      nouveaux contenus TBT & CC, Sécurité (consignation / VAT) et HTA (DGPT2, couplage Dyn11, sectionneur de terre)
+- [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
+- [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)
 
 ## Renommer le dépôt (facultatif)
 

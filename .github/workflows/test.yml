@@ -1,6 +1,6 @@
 # Tests puis déploiement d'Elec learning sur GitHub Pages.
 #
-# - À chaque push sur main : les 141 vérifications (node tests/lancer.mjs) tournent d'abord.
+# - À chaque push sur main : toute la suite de tests (node tests/lancer.mjs) tourne d'abord.
 #   Le site n'est publié QUE si elles passent toutes (le job « deploiement » dépend du job « tests »).
 # - Sur une pull request vers main : tests seulement, rien n'est publié.
 # - Lancement manuel possible depuis l'onglet Actions (« Run workflow »).
@@ -30,7 +30,7 @@ env:
 
 jobs:
   tests:
-    name: Tests automatisés (141 vérifications)
+    name: Tests automatisés
     # Version figée : ubuntu-latest bascule vers Ubuntu 26 (fin 2026) et les dépendances système de Chromium
     # installées par Playwright dépendent de la version d'Ubuntu. À relever en même temps que PLAYWRIGHT_VERSION.
     runs-on: ubuntu-24.04
