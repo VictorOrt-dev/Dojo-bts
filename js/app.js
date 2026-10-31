@@ -1,5 +1,5 @@
 // Point d'entrée : routeur par hash.
-//   #/entrainement (accueil)  #/entrainement/reco  #/entrainement/calcul  #/entrainement/panne
+//   #/entrainement (accueil)  #/entrainement/reco  #/entrainement/calcul  #/entrainement/panne  #/entrainement/banc
 //   #/cours  #/fiche/<id>  #/profil   (les anciens liens #/dojo… sont redirigés)
 // Chaque écran est une fonction render*(ctx) qui remplit l'élément #vue.
 
@@ -9,6 +9,7 @@ import { renderEntrainement } from './entrainement.js';
 import { renderReco } from './quiz.js';
 import { renderCalcul } from './calcul.js';
 import { renderPanne } from './panne.js';
+import { renderBanc } from './banc.js';
 import { appliquerTheme } from './theme.js';
 import * as stockage from './storage.js';
 import { esc } from './util.js';
@@ -73,6 +74,7 @@ async function router() {
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
         else if (id === 'panne') await renderPanne(ctx);
+        else if (id === 'banc') await renderBanc(ctx);
         else location.replace('#/entrainement');
         break;
       case 'dojo': // ancien nom de l'app : on redirige les anciens liens

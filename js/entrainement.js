@@ -12,7 +12,7 @@ export { deuxChiffres };
 // Plaque signalétique de l'opérateur (rang, XP, galvanomètre).
 export function carteNiveau() {
   const xp = lireXP();
-  const sessions = ['reco', 'calcul', 'panne'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
+  const sessions = ['reco', 'calcul', 'panne', 'banc'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
   return plaqueOperateur({ xp, n: niveauPour(xp), total: NIVEAUX.length, sessions });
 }
 
@@ -20,6 +20,12 @@ export function carteNiveau() {
 function casSansFaute() {
   const reussis = Object.values(statsMode('panne').elements).filter(e => e.reussites > 0).length;
   return reussis ? `${reussis} sans faute` : '';
+}
+
+// Nombre de pannes différentes réussies sans faute au banc de mesure.
+function bancsReussis() {
+  const n = Object.values(statsMode('banc').elements).filter(e => e.reussites > 0).length;
+  return n ? `${n} sans faute` : '';
 }
 
 function record(mode) {
@@ -54,6 +60,11 @@ export function renderEntrainement({ vue, definirTitre }) {
         <span class="mode-bouton">C</span>
         <span><span class="mode-titre">Cas de panne</span><span class="mode-desc">Interventions pas à pas · 3 niveaux</span></span>
         <span class="mode-record">${casSansFaute()}</span>
+      </a>
+      <a class="mode" href="#/entrainement/banc">
+        <span class="mode-bouton">D</span>
+        <span><span class="mode-titre">Banc de mesure</span><span class="mode-desc">Panne cachée · multimètre et pince</span></span>
+        <span class="mode-record">${bancsReussis()}</span>
       </a>
     </nav>
 

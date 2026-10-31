@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 540" font-family="JetBrains Mono, Menlo, monospace" font-size="9" fill="none" stroke="#1A120D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="360" height="540" fill="#F4EEE4" stroke="none"/>
+  <!-- ===== Puissance ===== -->
+  <g fill="#1A120D" stroke="none" font-weight="700"><text x="34" y="16">L1</text><text x="69" y="16">L2</text><text x="104" y="16">L3</text><text x="6" y="80">Q1</text><text x="6" y="212">KM1</text><text x="6" y="274">F2</text></g>
+  <!-- arrivée -->
+  <path d="M40 22V60M75 22V60M110 22V60"/>
+  <!-- Q1 : sectionneurs (lame + trait de sectionnement) -->
+  <path d="M40 92 30 64M75 92 65 64M110 92 100 64"/>
+  <path d="M36 60H44M71 60H79M106 60H114"/>
+  <path d="M35 78H105" stroke-dasharray="3 3"/>
+  <path d="M40 92V108M75 92V108M110 92V108"/>
+  <!-- fusibles aM -->
+  <rect x="35" y="108" width="10" height="28"/><rect x="70" y="108" width="10" height="28"/><rect x="105" y="108" width="10" height="28"/>
+  <path d="M40 104V140M75 104V140M110 104V140"/>
+  <path d="M40 140V190M75 140V190M110 140V190"/>
+  <!-- départ vers T1 -->
+  <path d="M40 160H150V188M110 170H140V188"/>
+  <g fill="#1A120D" stroke="none"><circle cx="40" cy="160" r="2.6"/><circle cx="110" cy="170" r="2.6"/></g>
+  <!-- KM1 : pôles -->
+  <path d="M40 222 30 194M75 222 65 194M110 222 100 194"/>
+  <path d="M40 190a4 4 0 0 1 0 8M75 190a4 4 0 0 1 0 8M110 190a4 4 0 0 1 0 8"/>
+  <path d="M35 208H105" stroke-dasharray="3 3"/>
+  <path d="M40 222V250M75 222V250M110 222V250"/>
+  <!-- F2 : éléments thermiques -->
+  <rect x="32" y="250" width="86" height="34"/>
+  <path d="M40 250V260H48V274H40V284M75 250V260H83V274H75V284M110 250V260H118V274H110V284"/>
+  <path d="M40 284V328M75 284V318M110 284V328"/>
+  <!-- moteur -->
+  <circle cx="75" cy="350" r="30"/>
+  <path d="M40 328 55 330M110 328 95 330"/>
+  <g fill="#1A120D" stroke="none" font-family="Young Serif, Georgia, serif"><text x="66" y="354" font-size="16">M</text><text x="68" y="368" font-size="10">3~</text></g>
+  <!-- terre -->
+  <path d="M110 390V400M100 400H120M104 404H116M108 408H112"/>
+  <g fill="#1A120D" stroke="none"><text x="118" y="396">PE</text><text x="42" y="404">M1 5,5 kW</text></g>
+  <!-- points de mesure (puissance) -->
+  <g fill="#B4642F" stroke="none">
+    <circle cx="40" cy="26" r="3"/><circle cx="75" cy="26" r="3"/><circle cx="110" cy="26" r="3"/>
+    <circle cx="40" cy="100" r="3"/><circle cx="75" cy="100" r="3"/><circle cx="110" cy="100" r="3"/>
+    <circle cx="40" cy="146" r="3"/><circle cx="75" cy="146" r="3"/><circle cx="110" cy="146" r="3"/>
+    <circle cx="40" cy="236" r="3"/><circle cx="75" cy="236" r="3"/><circle cx="110" cy="236" r="3"/>
+    <circle cx="40" cy="300" r="3"/><circle cx="75" cy="300" r="3"/><circle cx="110" cy="300" r="3"/>
+  </g>
+  <g fill="#5C4E40" stroke="none">
+    <text x="44" y="103">1</text><text x="79" y="103">3</text><text x="114" y="103">5</text>
+    <text x="44" y="149">2</text><text x="79" y="149">4</text><text x="114" y="149">6</text>
+    <text x="44" y="239">2</text><text x="79" y="239">4</text><text x="114" y="239">6</text>
+    <text x="44" y="303">U</text><text x="79" y="303">V</text><text x="114" y="303">W</text>
+  </g>
+
+  <!-- ===== Commande ===== -->
+  <!-- T1 -->
+  <circle cx="150" cy="198" r="11"/><circle cx="150" cy="214" r="11"/>
+  <g fill="#1A120D" stroke="none" font-weight="700"><text x="122" y="206">T1</text></g>
+  <path d="M158 222 L172 236H250V252"/>
+  <path d="M150 225V500"/>
+  <!-- FU1 -->
+  <rect x="245" y="252" width="10" height="22"/><path d="M250 248V280"/>
+  <path d="M250 280V300"/>
+  <!-- H1 -->
+  <path d="M250 288H345V300"/><circle cx="345" cy="310" r="10"/><path d="M338 303 352 317M352 303 338 317M345 320V500"/>
+  <!-- F2 : 95-96 (NF) -->
+  <path d="M250 300V306H260M250 330 263 302M250 330V346"/>
+  <!-- pupitre -->
+  <rect x="205" y="352" width="92" height="88" stroke-dasharray="4 3"/>
+  <g fill="#5C4E40" stroke="none"><text x="157" y="392">Pupitre</text><text x="157" y="402">distant</text><text x="157" y="412">40 m</text></g>
+  <path d="M250 346V362"/>
+  <!-- S1 (NF, poussoir) -->
+  <path d="M250 362V366H260M250 388 263 360M250 388V398"/>
+  <path d="M256 377H228M232 371H226V383H232" stroke-dasharray="0"/>
+  <!-- S2 (NO, poussoir) -->
+  <path d="M250 398V404M250 430 240 406M250 430V446"/>
+  <path d="M245 418H228M232 412H226V424H232"/>
+  <!-- conducteur vers KM1:13 (auto-maintien) -->
+  <path d="M250 398H315V408"/>
+  <path d="M315 432 305 410M315 432V446H250"/>
+  <path d="M311 404a4 4 0 0 0 0 8" stroke="none"/>
+  <!-- bobine KM1 -->
+  <path d="M250 446V460"/><rect x="232" y="460" width="36" height="20"/><path d="M250 480V500"/>
+  <!-- rail 0 V -->
+  <path d="M150 500H345"/>
+  <path d="M150 500V512M142 512H158M145 516H155M148 520H152"/>
+  <g fill="#1A120D" stroke="none" font-weight="700"><text x="214" y="267">FU1</text><text x="228" y="322">F2</text><text x="314" y="314">H1</text><text x="272" y="378">S1</text><text x="225" y="438">S2</text><text x="322" y="424">KM1</text><text x="272" y="474">KM1</text></g>
+  <!-- points de mesure (commande) -->
+  <g fill="#B4642F" stroke="none">
+    <circle cx="250" cy="244" r="3"/><circle cx="250" cy="288" r="3"/><circle cx="250" cy="342" r="3"/>
+    <circle cx="250" cy="358" r="3"/><circle cx="250" cy="394" r="3"/><circle cx="250" cy="434" r="3"/>
+    <circle cx="315" cy="404" r="3"/><circle cx="250" cy="452" r="3"/><circle cx="200" cy="500" r="3"/>
+  </g>
+  <g fill="#5C4E40" stroke="none">
+    <text x="256" y="246">230 V</text><text x="256" y="290">95</text><text x="256" y="345">96 · X1:1</text>
+    <text x="256" y="356">11</text><text x="256" y="396">12/13</text><text x="256" y="437">14</text>
+    <text x="319" y="398" font-size="8">X1:3·13</text><text x="256" y="455">A1 · X1:2</text><text x="190" y="494">0 V · A2</text>
+  </g>
+</svg>

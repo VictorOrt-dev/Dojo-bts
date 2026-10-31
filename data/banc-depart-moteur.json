@@ -1,0 +1,139 @@
+{
+  "id": "depart-moteur",
+  "titre": "Départ moteur direct",
+  "description": "Pompe de transfert 5,5 kW, 400 V, 11 A. Sectionneur porte-fusibles aM Q1, contacteur KM1, relais thermique F2. Commande en 230 V par transformateur T1, pupitre Marche / Arrêt distant relié par un câble de 3 conducteurs (40 m).",
+  "noeuds": [
+    { "id": "L1", "label": "Arrivée L1 (amont Q1)", "zone": "Arrivée et puissance" },
+    { "id": "L2", "label": "Arrivée L2 (amont Q1)", "zone": "Arrivée et puissance" },
+    { "id": "L3", "label": "Arrivée L3 (amont Q1)", "zone": "Arrivée et puissance" },
+    { "id": "PE", "label": "Barrette de terre PE", "zone": "Arrivée et puissance" },
+    { "id": "a1", "label": "Q1 : 1 (entrée fusible L1)", "zone": "Arrivée et puissance" },
+    { "id": "a2", "label": "Q1 : 3 (entrée fusible L2)", "zone": "Arrivée et puissance" },
+    { "id": "a3", "label": "Q1 : 5 (entrée fusible L3)", "zone": "Arrivée et puissance" },
+    { "id": "p1", "label": "Q1 : 2 (sortie fusible L1)", "zone": "Arrivée et puissance" },
+    { "id": "p2", "label": "Q1 : 4 (sortie fusible L2)", "zone": "Arrivée et puissance" },
+    { "id": "p3", "label": "Q1 : 6 (sortie fusible L3)", "zone": "Arrivée et puissance" },
+    { "id": "k1", "label": "KM1 : 2/T1", "zone": "Arrivée et puissance" },
+    { "id": "k2", "label": "KM1 : 4/T2", "zone": "Arrivée et puissance" },
+    { "id": "k3", "label": "KM1 : 6/T3", "zone": "Arrivée et puissance" },
+    { "id": "U", "label": "Moteur M1 : U", "zone": "Moteur" },
+    { "id": "V", "label": "Moteur M1 : V", "zone": "Moteur" },
+    { "id": "W", "label": "Moteur M1 : W", "zone": "Moteur" },
+    { "id": "etoile", "label": "Point étoile du moteur", "interne": true },
+    { "id": "c0", "label": "T1 : secondaire 230 V", "zone": "Commande (armoire)" },
+    { "id": "n0", "label": "0 V commande (KM1 : A2)", "zone": "Commande (armoire)" },
+    { "id": "c1", "label": "FU1 : sortie / F2 : 95", "zone": "Commande (armoire)" },
+    { "id": "x1", "label": "F2 : 96 / X1 : 1", "zone": "Commande (armoire)" },
+    { "id": "x3", "label": "X1 : 3 / KM1 : 13", "zone": "Commande (armoire)" },
+    { "id": "x2", "label": "X1 : 2 / KM1 : 14 / A1", "zone": "Commande (armoire)" },
+    { "id": "s11", "label": "Pupitre S1 : 11", "zone": "Pupitre distant" },
+    { "id": "s12", "label": "Pupitre S1 : 12 / S2 : 13", "zone": "Pupitre distant" },
+    { "id": "s14", "label": "Pupitre S2 : 14", "zone": "Pupitre distant" }
+  ],
+  "sources": {
+    "L1": [230, 0],
+    "L2": [-115, -199.186],
+    "L3": [-115, 199.186],
+    "PE": [0, 0]
+  },
+  "transformateurs": [
+    { "id": "T1", "primaire": ["p1", "p3"], "secondaire": ["c0", "n0"], "rapport": 0.575, "enroulementSecondaire": "t1-sec" }
+  ],
+  "fantomes": {
+    "s11": { "couplage": "x1", "facteur": 0.4 },
+    "s12": { "couplage": "x1", "facteur": 0.4 },
+    "x3": { "couplage": "x1", "facteur": 0.4 },
+    "s14": { "couplage": "x1", "facteur": 0.4 },
+    "x2": { "couplage": "x1", "facteur": 0.4 }
+  },
+  "elements": [
+    { "id": "q1-1", "a": "L1", "b": "a1", "R": 0.01, "commande": "q1" },
+    { "id": "q1-3", "a": "L2", "b": "a2", "R": 0.01, "commande": "q1" },
+    { "id": "q1-5", "a": "L3", "b": "a3", "R": 0.01, "commande": "q1" },
+    { "id": "fu-l1", "a": "a1", "b": "p1", "R": 0.02 },
+    { "id": "fu-l2", "a": "a2", "b": "p2", "R": 0.02 },
+    { "id": "fu-l3", "a": "a3", "b": "p3", "R": 0.02 },
+    { "id": "km-1", "a": "p1", "b": "k1", "R": 0.01, "commande": "km" },
+    { "id": "km-3", "a": "p2", "b": "k2", "R": 0.01, "commande": "km" },
+    { "id": "km-5", "a": "p3", "b": "k3", "R": 0.01, "commande": "km" },
+    { "id": "th-1", "a": "k1", "b": "U", "R": 0.01 },
+    { "id": "th-2", "a": "k2", "b": "V", "R": 0.01 },
+    { "id": "th-3", "a": "k3", "b": "W", "R": 0.01 },
+    { "id": "m-u", "a": "U", "b": "etoile", "R": 2.1 },
+    { "id": "m-v", "a": "V", "b": "etoile", "R": 2.1 },
+    { "id": "m-w", "a": "W", "b": "etoile", "R": 2.1 },
+    { "id": "t1-prim", "a": "p1", "b": "p3", "R": 25 },
+    { "id": "t1-sec", "a": "c0", "b": "n0", "R": 3 },
+    { "id": "n0-pe", "a": "n0", "b": "PE", "R": 0.05 },
+    { "id": "fu1", "a": "c0", "b": "c1", "R": 0.02 },
+    { "id": "h1", "a": "c1", "b": "n0", "R": 2400 },
+    { "id": "f2-95", "a": "c1", "b": "x1", "R": 0.02, "commande": "relais" },
+    { "id": "cable-1", "a": "x1", "b": "s11", "R": 0.4 },
+    { "id": "s1", "a": "s11", "b": "s12", "R": 0.02 },
+    { "id": "cable-2", "a": "s12", "b": "x3", "R": 0.4 },
+    { "id": "s2", "a": "s12", "b": "s14", "R": 0.02, "commande": "marche" },
+    { "id": "cable-3", "a": "s14", "b": "x2", "R": 0.4 },
+    { "id": "km-13", "a": "x3", "b": "x2", "R": 0.02, "commande": "km" },
+    { "id": "bobine", "a": "x2", "b": "n0", "R": 450 }
+  ],
+  "composants": [
+    { "id": "fu1", "libelle": "Fusible de commande FU1", "duree": 10, "repare": ["fu1"] },
+    { "id": "fusibles", "libelle": "Les 3 cartouches aM de Q1", "duree": 15, "repare": ["fu-l1", "fu-l2", "fu-l3"] },
+    { "id": "relais", "libelle": "Relais thermique F2", "duree": 25, "repare": ["f2-95"] },
+    { "id": "bobine", "libelle": "Bobine de KM1", "duree": 25, "repare": ["bobine"] },
+    { "id": "contacteur", "libelle": "Contacteur KM1 complet", "duree": 40, "repare": ["bobine", "km-1", "km-3", "km-5", "km-13"] },
+    { "id": "cable", "libelle": "Câble du pupitre (3 conducteurs)", "duree": 45, "repare": ["cable-1", "cable-2", "cable-3"] },
+    { "id": "boutons", "libelle": "Boutons S1 et S2 du pupitre", "duree": 20, "repare": ["s1", "s2"] },
+    { "id": "transfo", "libelle": "Transformateur de commande T1", "duree": 60, "repare": ["t1-prim", "t1-sec"] },
+    { "id": "moteur", "libelle": "Moteur M1", "duree": 180, "repare": ["m-u", "m-v", "m-w"] }
+  ],
+  "durees": { "mesure": 2, "pince": 4, "essai": 2, "collegue": 1, "rearmer": 1, "consigner": 10, "deconsigner": 5 },
+  "pannes": [
+    {
+      "id": "fu1-fondu",
+      "symptome": "Rien ne se passe à l'appui sur Marche. Le voyant « sous tension » H1 est éteint.",
+      "ouvre": ["fu1"],
+      "reference": 31,
+      "cause": "Le fusible de commande FU1 a fondu, après un court-circuit fugitif sur la commande.",
+      "methode": "Voyant éteint : on remonte vers la source. 230 V au secondaire de T1, 0 V en sortie de FU1 : le fusible est en cause. Hors tension, on le retire pour le mesurer.",
+      "piege": "Mesuré en place, un fusible fondu affiche quelques kΩ au lieu de « OL » : tu mesures alors le voyant et l'enroulement du transformateur, branchés en parallèle. Un fusible se contrôle sorti de son support."
+    },
+    {
+      "id": "contact-95-96",
+      "symptome": "Rien ne se passe à l'appui sur Marche. Le voyant H1 est allumé. Le relais thermique ne semble pas déclenché.",
+      "ouvre": ["f2-95"],
+      "reference": 45,
+      "cause": "Le contact 95-96 du relais thermique est resté ouvert (contact usé), alors que le relais n'est pas déclenché.",
+      "methode": "Voyant allumé : la commande est alimentée. On suit le 230 V dans l'ordre du schéma : 230 V sur F2 : 95, 0 V sur F2 : 96. Le contact est ouvert. Hors tension, la continuité 95-96 le confirme.",
+      "piege": "Réarmer en boucle un relais qui n'est pas déclenché : le bouton de réarmement ne répare pas un contact usé."
+    },
+    {
+      "id": "bobine-coupee",
+      "symptome": "Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1 est allumé.",
+      "ouvre": ["bobine"],
+      "reference": 43,
+      "cause": "La bobine de KM1 est coupée.",
+      "methode": "Un collègue maintient Marche : tu lis 230 V entre A1 et A2, mais le contacteur ne colle pas. La tension arrive, la bobine ne fait pas son travail. Hors tension, A1-A2 à l'ohmmètre : circuit ouvert au lieu de quelques centaines d'ohms.",
+      "piege": "Sans appui sur Marche, A1 est en l'air : un multimètre classique y affiche une tension fantôme d'environ 90 V qui ne veut rien dire. Le mode LoZ la fait disparaître."
+    },
+    {
+      "id": "cable-pupitre",
+      "symptome": "Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1 est allumé.",
+      "ouvre": ["cable-1"],
+      "reference": 72,
+      "cause": "Le conducteur X1 : 1 → S1 : 11 du câble du pupitre est coupé (câble écrasé dans le chemin de câbles).",
+      "methode": "230 V sur X1 : 1 dans l'armoire, rien de franc sur S1 : 11 au pupitre : la coupure est entre les deux, dans le câble. Le mode LoZ supprime la fausse lecture ; hors tension, la continuité X1 : 1 → S1 : 11 confirme (OL).",
+      "piege": "La tension fantôme : sur S1 : 11 ou KM1 : 13, un multimètre classique affiche environ 90 V au lieu de 0. On croit à une tension « faible » et on soupçonne le transformateur ou un contact résistif. Le mode LoZ (ou un VAT) tranche."
+    },
+    {
+      "id": "fusible-l2",
+      "symptome": "Au démarrage, le moteur grogne, puis tout s'arrête au bout de quelques secondes. L'opérateur a réessayé deux fois.",
+      "ouvre": ["fu-l2"],
+      "relaisDeclenche": true,
+      "reference": 38,
+      "cause": "La cartouche aM de la phase L2 est fondue : le moteur démarre en monophasé, le relais thermique déclenche.",
+      "methode": "Moteur qui grogne = manque de phase. En aval des fusibles, chaque phase par rapport à la terre : L1 et L3 à 230 V, L2 à 0. Entre phases, Q1 : 2 – Q1 : 4 affiche environ 230 V au lieu de 400 V. Hors tension, continuité du fusible L2 : OL. On change les trois cartouches et on réarme le relais.",
+      "piege": "Relancer pour « voir » : chaque essai chauffe un moteur qui ne peut pas démarrer. Et après réparation, il faut réarmer le relais thermique, sinon rien ne redémarre."
+    }
+  ]
+}

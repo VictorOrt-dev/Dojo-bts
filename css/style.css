@@ -775,3 +775,58 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .alerte-securite p { margin: 0; }
 .alerte-securite .lecon-titre { margin-bottom: 6px !important; color: var(--fusible); }
 .rapport-panne { padding-bottom: 6px; }
+
+/* ---------- Banc de mesure ---------- */
+.signale { margin-top: 8px !important; }
+.tableau-bord { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0 10px; }
+.tableau-bord p { display: flex; flex-direction: column; gap: 4px; margin: 0; padding: 10px 14px; border-radius: 14px; background: var(--fond-creux); }
+.tableau-bord span { font: 700 10px/1 var(--texte); letter-spacing: .14em; text-transform: uppercase; color: var(--porcelaine-3); }
+.tableau-bord b { font-size: 22px; color: #FFB27A; text-shadow: 0 0 8px rgb(255 140 60 / .45); }
+:root[data-theme="porcelaine"] .tableau-bord b { color: var(--cuivre); text-shadow: none; }
+.tableau-bord .alertes b { color: var(--porcelaine-2); text-shadow: none; }
+.tableau-bord .alertes.actif b { color: var(--fusible); }
+.etat-armoire { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.pastille { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--fond-creux); font-size: .8rem; }
+.pastille span { color: var(--porcelaine-3); }
+.pastille b { font-weight: 700; }
+.pastille::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--porcelaine-3); }
+.pastille.ok::before { background: var(--vert-de-gris); box-shadow: 0 0 6px rgb(127 194 176 / .6); }
+.pastille.alerte::before { background: var(--cuivre); box-shadow: 0 0 6px var(--lueur); }
+.schema { margin-top: 10px; padding: 6px; border-radius: 14px; background: #F4EEE4; }
+.schema img { display: block; width: 100%; height: auto; }
+.onglets-banc { margin-top: 14px; }
+.instrument { display: grid; gap: 12px; }
+.instrument .aide { margin: -4px 0 0; }
+.selecteur.trois { grid-template-columns: repeat(3, 1fr); }
+.selecteur.trois button, .selecteur.fonctions button { font-size: 14px; }
+.fonctions { grid-template-columns: repeat(3, 1fr); }
+.pointe { display: grid; gap: 6px; font: 700 11px/1 var(--texte); letter-spacing: .14em; text-transform: uppercase; }
+.pointe.rouge { color: var(--fusible); }
+.pointe.noire { color: var(--porcelaine-2); }
+.instrument select, .ligne-action select {
+  width: 100%;
+  min-height: 50px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--fond-creux);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / .35);
+  color: var(--porcelaine);
+  font: 500 16px var(--texte);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.pointe.rouge select { box-shadow: inset 0 2px 6px rgb(0 0 0 / .35), inset 3px 0 0 var(--fusible); }
+.pointe.noire select { box-shadow: inset 0 2px 6px rgb(0 0 0 / .35), inset 3px 0 0 var(--porcelaine-3); }
+.instrument .nixie { margin: 0; }
+.note-mesure { margin: -4px 0 0; font-weight: 700; color: var(--cuivre); }
+.actions-banc { gap: 12px; }
+.ligne-action { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.ligne-action .btn { width: auto; padding: 0 16px; }
+.resultat-action { margin-top: 14px; }
+#resultat-banc > div { margin-top: 14px; }
+.journal ol { margin: 10px 0 0; padding: 0 0 0 4px; list-style: none; font-size: .9rem; }
+.journal li { padding: 6px 0; border-bottom: 1px solid var(--filet); color: var(--porcelaine-2); }
+.journal li .mono { margin-right: 8px; color: var(--cuivre); }
+.journal li.danger { color: var(--fusible); }
+.bilan-score.horloge-bilan { font-size: clamp(48px, 17vw, 72px); white-space: nowrap; }

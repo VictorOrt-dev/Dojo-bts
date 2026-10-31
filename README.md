@@ -27,13 +27,15 @@ index.html              coquille : barre du haut, zone #vue, onglets
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
 css/style.css           tout le style ; jetons Bakélite / Porcelaine en tête de fichier
 sw.js                   service worker : mode hors connexion (réseau d'abord, cache en secours) — liste FICHIERS à tenir à jour
-js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/reco, /calcul, /panne, #/cours, #/fiche/<id>, #/profil
+js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/reco, /calcul, /panne, /banc, #/cours, #/fiche/<id>, #/profil
                         (les anciens liens #/dojo… sont redirigés)
 js/storage.js           SEUL fichier qui touche localStorage (clé "elec-learning:v1", reprend l'ancienne clé "dojo:v1")
 js/cours.js             liste + détail des fiches
 js/profil.js            progression, export/import, remise à zéro
 js/entrainement.js      accueil (Exercices), plaque de l'opérateur, en-tête de séance, rapport, toast
 js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées)
+js/banc.js              mode Banc de mesure (panne cachée, multimètre V~ / LoZ / Ω, pince, consignation, horloge, rapport)
+js/circuit.js           petit solveur électrique du banc (potentiels en alternatif, transformateur, tensions fantômes, Ω)
 js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, fil de cuivre, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
 js/quiz.js              mode Reconnaissance (QCM sur image, par niveau, explications en cas d'erreur)
@@ -47,6 +49,8 @@ js/util.js              esc(), normaliser(), plurielS()
 data/fiches.json        CONTENU des fiches (aucun code)
 data/reconnaissance.json CONTENU des questions de reconnaissance
 data/pannes.json        CONTENU des cas de panne
+data/banc-depart-moteur.json CIRCUIT et pannes du banc de mesure
+img/banc/               schéma du banc (depart-moteur.svg)
 img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg = matériel)
 ```
 
@@ -198,6 +202,24 @@ déséquilibre entre phases) plutôt qu'aux exercices de manuel.
 `diagnostiquer()` détecte aussi les erreurs d'unité (×1 000), de virgule (×10) et de √3.
 Ajouter un type de calcul = ajouter un objet dans ce tableau. Une séance = 10 calculs répartis entre les générateurs du niveau.
 
+## Banc de mesure (`js/banc.js`, `js/circuit.js`, `data/banc-depart-moteur.json`)
+
+Un départ moteur direct (Q1 porte-fusibles aM, KM1, F2, M1 ; commande 230 V par T1, pupitre Marche / Arrêt distant).
+Une panne cachée est tirée au sort parmi celles du fichier (jamais deux fois de suite). L'élève mesure, consigne, contrôle
+et remplace ; chaque geste avance une **horloge d'intervention simulée** (pas de chronomètre réel). Le rapport compare
+son temps à celui d'un technicien confirmé, liste les alertes sécurité et les pièces changées pour rien, puis explique
+la cause, la démarche d'un pro et le piège du cas.
+
+- **Les lectures sont calculées, pas écrites à la main** : `circuit.js` résout le circuit dans l'état du moment
+  (contacts ouverts ou fermés, Marche maintenu, panne). Un conducteur « en l'air » affiche une tension fantôme
+  (fraction de `fantomes[nœud].couplage`) au multimètre classique, avec un afficheur instable ; en LoZ, elle disparaît.
+- **Gestes dangereux** (alerte sécurité + temps perdu) : ohmmètre sans consigner, ohmmètre sur l'amont de Q1,
+  retirer un fusible ou démonter une pièce sous tension, 3e essai sur un moteur bloqué.
+- **XP** : 50 si réparé, − 10 par pièce inutile, − 15 par alerte sécurité (minimum 10), + 20 si sans faute (aucune alerte, aucune pièce inutile, temps ≤ 1,3 × la référence).
+- **Ajouter une panne** : un objet dans `pannes` : `{ id, symptome, ouvre: [éléments coupés], relaisDeclenche?,
+  reference (minutes), cause, methode, piege }`. Elle doit être réparable par un élément de `composants[].repare`.
+- `#/entrainement/banc?panne=<id>` force une panne précise (tests).
+
 ## XP et niveaux (`js/xp.js`)
 
 | Action | XP |
@@ -217,6 +239,8 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Étape 1 : socle, module Cours, sauvegarde export/import, installable
 - [x] Étape 2 : Exercices — Reconnaissance visuelle (QCM), Calculs Flash, XP & niveaux
 - [x] Étape 3 : Cas de panne (interventions pas à pas), mode hors ligne (service worker), nom « Elec learning »
+- [x] Audit, phase 1 : choix équilibrés, images muettes, calculs de valeurs attendues
+- [x] Audit, phase 2 : banc de mesure virtuel (panne cachée, multimètre, pince, consignation)
 
 ## Renommer le dépôt (facultatif)
 
