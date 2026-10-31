@@ -15,10 +15,18 @@ Puis ouvrir http://localhost:8000. Ouvrir `index.html` directement (file://) ne 
 
 ## Mettre en ligne (GitHub Pages)
 
-1. Créer un dépôt GitHub (ex. `elec-learning`) et y pousser ce dossier.
-2. Dans le dépôt : Settings › Pages › Source « Deploy from a branch » › branche `main`, dossier `/ (root)`.
-3. L'app est servie sur `https://<pseudo>.github.io/<nom-du-depot>/`.
+La mise en ligne passe par le workflow `.github/workflows/test.yml` : à chaque push sur `main`, les tests tournent
+d'abord ; **le site n'est publié que si les 141 vérifications passent**. Une pull request vers `main` lance les tests sans rien publier.
+
+1. Une seule fois : dans le dépôt, Settings › Pages › Build and deployment › Source : **« GitHub Actions »**.
+   (Avec l'ancien réglage « Deploy from a branch », GitHub publie `main` à chaque push sans attendre les tests.)
+2. Pousser sur `main`. Suivre le résultat dans l'onglet **Actions** : ✅ tests puis déploiement, ❌ rien n'est publié
+   (cliquer sur le job « Tests automatisés » pour lire la vérification en échec).
+3. L'app est servie sur `https://<pseudo>.github.io/<nom-du-depot>/`. Seuls les fichiers de l'app sont publiés
+   (pas `tests/`, `docs/`, ni le README).
 4. Sur iPhone : ouvrir l'URL dans Safari › Partager › « Sur l'écran d'accueil ».
+
+Pour relancer à la main (ex. après avoir changé le réglage Pages) : onglet Actions › « Tests et déploiement » › Run workflow.
 
 ## Structure
 
@@ -54,6 +62,7 @@ data/banc-depart-moteur.json CIRCUIT et pannes du banc de mesure
 img/banc/               schéma du banc (depart-moteur.svg)
 img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg = matériel)
 tests/                  tests automatisés (voir « Tests automatisés ») — hors de l'app, jamais mis en cache
+.github/workflows/      test.yml : tests puis déploiement sur GitHub Pages
 docs/                   rapports d'audit
 ```
 
@@ -86,8 +95,12 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : 13 générateurs × 300 tirages, contenus, équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** Cours. **E** Cas de panne. **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport |
 
+**Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Node 22, Playwright 1.63.0 figé dans
+`.github/workflows/test.yml`, Chromium mis en cache) et bloque le déploiement en cas d'échec. Changer de version de Playwright :
+modifier `PLAYWRIGHT_VERSION` dans le workflow.
+
 **Règles.**
-- Lancer `node tests/lancer.mjs` avant chaque mise en ligne. Tout doit passer.
+- Lancer `node tests/lancer.mjs` avant de pousser : c'est plus rapide que d'attendre l'échec dans l'onglet Actions.
 - Nouvelle fonction = nouvelle vérification dans la suite concernée.
 - Un test qui échoue après une modification voulue (ex. : nouvelle question) se met à jour en même temps que le contenu, jamais en le supprimant.
 - Pour les tests, un écran peut exposer son état (`sessionEnCours()`, `interventionEnCours()`) ou accepter un paramètre (`?panne=<id>` au banc). L'interface ne doit jamais en dépendre.

@@ -1,0 +1,111 @@
+# Tests puis déploiement d'Elec learning sur GitHub Pages.
+#
+# - À chaque push sur main : les 141 vérifications (node tests/lancer.mjs) tournent d'abord.
+#   Le site n'est publié QUE si elles passent toutes (le job « deploiement » dépend du job « tests »).
+# - Sur une pull request vers main : tests seulement, rien n'est publié.
+# - Lancement manuel possible depuis l'onglet Actions (« Run workflow »).
+#
+# PRÉREQUIS (une seule fois) : Settings › Pages › Build and deployment › Source = « GitHub Actions ».
+# Tant que la source reste « Deploy from a branch », GitHub publie main à chaque push sans attendre les tests.
+
+name: Tests et déploiement
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un seul déploiement à la fois ; un déploiement en cours n'est jamais interrompu.
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PLAYWRIGHT_VERSION: 1.63.0   # même version que celle utilisée pour écrire les tests
+
+jobs:
+  tests:
+    name: Tests automatisés (141 vérifications)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      - name: Installer Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # L'app n'a pas de package.json (pas de npm) : Playwright est installé pour les tests uniquement.
+      - name: Installer Playwright ${{ env.PLAYWRIGHT_VERSION }}
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright@${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Mettre en cache Chromium
+        id: cache-navigateur
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Télécharger Chromium et ses dépendances système
+        if: steps.cache-navigateur.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Installer les dépendances système de Chromium (navigateur en cache)
+        if: steps.cache-navigateur.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # Code de sortie 1 à la moindre vérification en échec : le job échoue et le déploiement n'a pas lieu.
+      - name: Lancer les tests
+        run: node tests/lancer.mjs
+
+  deploiement:
+    name: Déploiement GitHub Pages
+    needs: tests
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write      # publier sur Pages
+      id-token: write   # prouver l'origine du déploiement
+    environment:
+      name: github-pages
+      url: ${{ steps.publication.outputs.page_url }}
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v7
+
+      # Seuls les fichiers de l'app sont publiés (pas tests/, docs/, README, .github/).
+      - name: Assembler le site
+        run: |
+          mkdir _site
+          cp -r index.html manifest.webmanifest sw.js .nojekyll css js data fonts img _site/
+
+      # Garde-fou : chaque fichier listé dans sw.js (mode hors connexion) doit être présent dans le site.
+      - name: Vérifier le site assemblé
+        run: |
+          node -e "
+            const fs = require('fs');
+            const liste = [...fs.readFileSync('_site/sw.js', 'utf8').matchAll(/^  '([^']+)',?$/gm)].map(m => m[1]).filter(f => f !== './');
+            const manquants = liste.filter(f => !fs.existsSync('_site/' + f));
+            if (manquants.length) { console.error('Absents du site :', manquants.join(', ')); process.exit(1); }
+            console.log(liste.length + ' fichiers de sw.js présents dans le site.');
+          "
+
+      - name: Configurer Pages
+        uses: actions/configure-pages@v6
+
+      - name: Empaqueter le site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+      - name: Publier
+        id: publication
+        uses: actions/deploy-pages@v5
