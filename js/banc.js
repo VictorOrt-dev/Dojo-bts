@@ -10,7 +10,8 @@ import { frontispice, typo as typoBase } from './mise-en-page.js';
 import { parmi } from './hasard.js';
 import { esc } from './util.js';
 import { pucesDomaines } from './domaines.js';
-import { blocRisque, ligneNorme } from './tuteur.js';
+import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
+import * as stockage from './storage.js';
 
 // Repères de borne (« X1 : 1 », « KM1 : 13 ») : jamais coupés en fin de ligne.
 const typo = t => typoBase(t).replace(/\b([A-Z][A-Z0-9]*)\u202F: (?=[0-9A-Z])/g, '$1\u202F:\u00A0');
@@ -20,6 +21,13 @@ const FONCTIONS = [
   { id: 'loz', libelle: 'V~ LoZ', aide: 'Basse impédance : supprime les tensions fantômes' },
   { id: 'ohm', libelle: 'Ω', aide: 'Résistance / continuité, circuit consigné' }
 ];
+// Visite guidée : les 3 gestes qui font comprendre le banc à un débutant.
+const GUIDE = {
+  1: "Choisis tes deux pointes, puis touche « Mesurer » en V~.",
+  2: "Même mesure en V~ LoZ : si la valeur s'effondre, c'était une tension fantôme.",
+  3: "Onglet « Actions » › « Consigner le départ » : avant tout Ω ou tout démontage.",
+  fin: "Les trois gestes de base sont acquis. À toi de trouver la panne."
+};
 const PINCE = [{ id: 0, libelle: 'L1 (borne U)' }, { id: 1, libelle: 'L2 (borne V)' }, { id: 2, libelle: 'L3 (borne W)' }];
 const FUSIBLES = [{ id: 'fu1', libelle: 'FU1 (commande)' }, { id: 'fu-l1', libelle: 'Q1 · L1' }, { id: 'fu-l2', libelle: 'Q1 · L2' }, { id: 'fu-l3', libelle: 'Q1 · L3' }];
 const nb = (x, d = 1) => x.toLocaleString('fr-FR', { maximumFractionDigits: d });
@@ -213,14 +221,23 @@ function demarrer(vue, banc, panne) {
       ? `<div class="${etat.dernier.type === 'danger' ? 'alerte-securite' : etat.dernier.type === 'ok' ? 'lecon' : etat.dernier.type === 'alerte' ? 'diagnostic' : 'bon-intervention resultat-action'}">${etat.dernier.titre ? `<p class="lecon-titre">Danger : ${esc(etat.dernier.titre)}</p>` : ''}<p>${esc(typo(etat.dernier.texte))}</p></div>`
       : '';
 
+    const guideHtml = guide ? `
+      <div class="guide-banc" role="status">
+        <p><span class="guide-etape">${guide === 'fin' ? 'Visite terminée' : `Visite ${guide}/3`}</span> ${esc(typo(GUIDE[guide]))}</p>
+        ${guide === 'fin' ? '' : '<button type="button" class="guide-passer">Passer</button>'}
+      </div>` : '';
+
     vue.innerHTML = `
-      ${frontispice({ surtitre: 'Banc de mesure · panne cachée', titre: 'Départ moteur', italique: 'direct' })}
+      <header class="frontispice frontispice-banc">
+        <p class="surtitre">Banc de mesure · panne cachée</p>
+        <h2 class="titre-chapitre">Départ moteur <em>direct</em></h2>
+      </header>
       <p class="reco-domaines">${pucesDomaines(banc.domaines)}</p>
-      <div class="bon-intervention">
-        <p class="lecon-titre">Bon d'intervention</p>
-        <p>${esc(typo(banc.description))}</p>
-        <p class="signale"><strong>Signalé :</strong> ${esc(typo(panne.symptome))}</p>
-      </div>
+      <p class="signale-court"><strong>Signalé :</strong> ${esc(typo(panne.symptome))}</p>
+      <details class="approfondir bon-details"${etat.bonOuvert ?? true ? ' open' : ''}>
+        <summary>Bon d'intervention</summary>
+        <div class="bon-intervention"><p>${esc(typo(banc.description))}</p></div>
+      </details>
 
       <div class="tableau-bord">
         <p class="horloge"><span>Temps d'intervention</span><b class="mono">${horloge(etat.minutes)}</b></p>
@@ -238,74 +255,114 @@ function demarrer(vue, banc, panne) {
 
       <details class="approfondir"><summary>Voir le schéma</summary><div class="schema"><img src="img/banc/depart-moteur.svg" alt="Schéma du départ moteur : puissance à gauche, commande à droite"></div></details>
 
-      <nav class="segments onglets-banc" aria-label="Instruments">
-        ${[['multimetre', 'Multimètre'], ['pince', 'Pince'], ['actions', 'Actions']].map(([id, l]) => `<a href="#" data-onglet-banc="${id}"${etat.onglet === id ? ' aria-current="true"' : ''}>${l}</a>`).join('')}
-      </nav>
-
-      ${etat.onglet === 'multimetre' ? `
-        <section class="instrument">
-          <div class="selecteur fonctions" role="group" aria-label="Fonction">
-            ${FONCTIONS.map(f => `<button type="button" data-fonction="${f.id}" aria-pressed="${f.id === fonction}">${f.libelle}</button>`).join('')}
-          </div>
-          <p class="aide">${esc(FONCTIONS.find(f => f.id === fonction).aide)}</p>
-          <label class="pointe rouge">Pointe rouge<select id="rouge">${options(rouge)}</select></label>
-          <label class="pointe noire">Pointe noire (COM)<select id="noir">${options(noir)}</select></label>
-          <div class="nixie"><output id="lecture" class="nixie-valeur">${lecture ? esc(lecture.valeur) : ''}</output><span class="unite">${lecture ? esc(lecture.unite) : fonction === 'ohm' ? 'Ω' : 'V~'}</span></div>
-          ${lecture?.note ? `<p class="note-mesure">${esc(lecture.note)}</p>` : ''}
-          <button id="mesurer" class="btn principal" type="button">Mesurer</button>
-        </section>` : ''}
-
-      ${etat.onglet === 'pince' ? `
-        <section class="instrument">
-          <p class="aide">La pince mesure le courant d'un conducteur pendant un essai de démarrage.</p>
-          <div class="selecteur trois" role="group" aria-label="Conducteur">
-            ${PINCE.map(c => `<button type="button" data-pince="${c.id}" aria-pressed="${c.id === etat.pince}">${c.libelle}</button>`).join('')}
-          </div>
-          <button id="pince" class="btn principal" type="button">Lancer un essai, pince en place</button>
-        </section>` : ''}
-
-      ${etat.onglet === 'actions' ? `
-        <section class="instrument actions-banc">
-          <button class="btn" type="button" data-action="essai">Essai : appuyer sur Marche</button>
-          <button class="btn" type="button" data-action="collegue">${etat.marche ? 'Le collègue relâche Marche' : 'Un collègue maintient Marche'}</button>
-          <button class="btn" type="button" data-action="rearmer">Réarmer le relais thermique</button>
-          <button class="btn ${etat.consigne ? '' : 'principal'}" type="button" data-action="consigner">${etat.consigne ? 'Déconsigner (refermer Q1)' : 'Consigner le départ (Q1 + VAT)'}</button>
-          <div class="ligne-action">
-            <select id="fusible">${FUSIBLES.map(f => `<option value="${f.id}">${esc(f.libelle)}</option>`).join('')}</select>
-            <button class="btn" type="button" data-action="controlerFusible">Sortir et contrôler</button>
-          </div>
-          <div class="ligne-action">
-            <select id="piece">${banc.composants.map(c => `<option value="${c.id}">${esc(c.libelle)} · ${c.duree} min</option>`).join('')}</select>
-            <button class="btn" type="button" data-action="remplacer">Remplacer</button>
-          </div>
-          <button class="btn danger" type="button" data-action="abandonner">Abandonner et voir la panne</button>
-        </section>` : ''}
-
+      ${etat.onglet === 'multimetre' ? `<p class="aide aide-fonction">${esc(FONCTIONS.find(f => f.id === fonction).libelle)} : ${esc(FONCTIONS.find(f => f.id === fonction).aide)}</p>` : ''}
       <div id="resultat-banc">${dernier}</div>
 
       <details class="approfondir journal"><summary>Journal d'intervention (${etat.journal.length})</summary>
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('') || '<li>Rien pour l\'instant.</li>'}</ol>
-      </details>`;
+      </details>
 
+      <section class="console-banc" aria-label="Instruments">
+        ${guideHtml}
+        <nav class="segments onglets-banc" aria-label="Instruments">
+          ${[['multimetre', 'Multimètre'], ['pince', 'Pince'], ['actions', 'Actions']].map(([id, l]) => `<a href="#" data-onglet-banc="${id}"${etat.onglet === id ? ' aria-current="true"' : ''}>${l}</a>`).join('')}
+        </nav>
+
+        ${etat.onglet === 'multimetre' ? `
+          <div class="instrument">
+            <div class="selecteur fonctions" role="group" aria-label="Fonction">
+              ${FONCTIONS.map(f => `<button type="button" data-fonction="${f.id}" aria-pressed="${f.id === fonction}">${f.libelle}</button>`).join('')}
+            </div>
+            <label class="pointe rouge"><span>Rouge</span><select id="rouge" aria-label="Pointe rouge">${options(rouge)}</select></label>
+            <label class="pointe noire"><span>COM</span><select id="noir" aria-label="Pointe noire (COM)">${options(noir)}</select></label>
+            <div class="lecture-ligne">
+              <div class="nixie"><output id="lecture" class="nixie-valeur">${lecture ? esc(lecture.valeur) : ''}</output><span class="unite">${lecture ? esc(lecture.unite) : fonction === 'ohm' ? 'Ω' : 'V~'}</span></div>
+              <button id="mesurer" class="btn principal" type="button">Mesurer</button>
+            </div>
+            ${lecture?.note ? `<p class="note-mesure">${esc(lecture.note)}</p>` : ''}
+          </div>` : ''}
+
+        ${etat.onglet === 'pince' ? `
+          <div class="instrument">
+            <p class="aide">Courant d'un conducteur pendant un essai de démarrage.</p>
+            <div class="selecteur trois" role="group" aria-label="Conducteur">
+              ${PINCE.map(c => `<button type="button" data-pince="${c.id}" aria-pressed="${c.id === etat.pince}">${c.libelle}</button>`).join('')}
+            </div>
+            <button id="pince" class="btn principal" type="button">Lancer un essai, pince en place</button>
+          </div>` : ''}
+
+        ${etat.onglet === 'actions' ? `
+          <div class="instrument actions-banc">
+            <button class="btn ${etat.consigne ? '' : 'principal'}" type="button" data-action="consigner">${etat.consigne ? 'Déconsigner (refermer Q1)' : 'Consigner le départ (Q1 + VAT)'}</button>
+            <button class="btn" type="button" data-action="essai">Essai : appuyer sur Marche</button>
+            <button class="btn" type="button" data-action="collegue">${etat.marche ? 'Le collègue relâche Marche' : 'Un collègue maintient Marche'}</button>
+            <button class="btn" type="button" data-action="rearmer">Réarmer le relais thermique</button>
+            <div class="ligne-action">
+              <select id="fusible" aria-label="Fusible à contrôler">${FUSIBLES.map(f => `<option value="${f.id}">${esc(f.libelle)}</option>`).join('')}</select>
+              <button class="btn" type="button" data-action="controlerFusible">Contrôler</button>
+            </div>
+            <div class="ligne-action">
+              <select id="piece" aria-label="Pièce à remplacer">${banc.composants.map(c => `<option value="${c.id}">${esc(c.libelle)} · ${c.duree} min</option>`).join('')}</select>
+              <button class="btn" type="button" data-action="remplacer">Remplacer</button>
+            </div>
+            <button class="btn danger" type="button" data-action="abandonner">Abandonner et voir la panne</button>
+          </div>` : ''}
+      </section>`;
+
+    // La console est fixée en bas : la page réserve sa hauteur pour que rien ne passe dessous.
+    vue.classList.add('avec-console');
+    const console_ = vue.querySelector('.console-banc');
+    vue.style.setProperty('--console-h', `${console_.offsetHeight}px`);
+
+    // Le bon d'intervention se replie dès le premier geste ; l'utilisateur peut le rouvrir (son choix est gardé).
+    // (L'ouverture initiale déclenche aussi « toggle » : on ne retient que les changements faits par l'utilisateur.)
+    vue.querySelector('.bon-details').addEventListener('toggle', ev => {
+      if (ev.target.open !== (etat.bonOuvert ?? true)) etat.bonOuvert = ev.target.open;
+    });
+    const geste = () => { if (etat.bonOuvert === undefined) etat.bonOuvert = false; };
+
+    vue.querySelector('.guide-passer')?.addEventListener('click', () => { terminerGuide(); afficher(); });
     vue.querySelectorAll('[data-onglet-banc]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); etat.onglet = a.dataset.ongletBanc; afficher(); }));
     vue.querySelectorAll('[data-fonction]').forEach(b => b.addEventListener('click', () => { etat.mesure.fonction = b.dataset.fonction; etat.mesure.lecture = null; afficher(); }));
     vue.querySelectorAll('[data-pince]').forEach(b => b.addEventListener('click', () => { etat.pince = Number(b.dataset.pince); afficher(); }));
     vue.querySelector('#rouge')?.addEventListener('change', ev => { etat.mesure.rouge = ev.target.value; etat.mesure.lecture = null; afficher(); });
     vue.querySelector('#noir')?.addEventListener('change', ev => { etat.mesure.noir = ev.target.value; etat.mesure.lecture = null; afficher(); });
     const apres = () => { afficher(); vue.querySelector('#resultat-banc')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
-    vue.querySelector('#mesurer')?.addEventListener('click', () => { actions.mesurer(); afficher(); });
-    vue.querySelector('#pince')?.addEventListener('click', () => { actions.pince(); apres(); });
+    vue.querySelector('#mesurer')?.addEventListener('click', () => {
+      geste();
+      actions.mesurer();
+      avancerGuide({ mesure: etat.mesure.fonction });
+      afficher();
+    });
+    vue.querySelector('#pince')?.addEventListener('click', () => { geste(); actions.pince(); apres(); });
     vue.querySelectorAll('[data-action]').forEach(b => b.addEventListener('click', () => {
       const a = b.dataset.action;
+      geste();
       if (a === 'abandonner') { etat.abandon = true; return afficher(); }
       if (a === 'controlerFusible') actions.controlerFusible(vue.querySelector('#fusible').value);
       else if (a === 'remplacer') actions.remplacer(vue.querySelector('#piece').value);
       else actions[a]();
+      avancerGuide({ action: a });
       apres();
     }));
   };
 
+  // ---------- Visite guidée (premier passage au banc) : 3 gestes ----------
+  let guide = stockage.lire().preferences?.visiteBanc ? null : 1;
+  function terminerGuide() {
+    guide = null;
+    stockage.modifier(e => { e.preferences = { ...e.preferences, visiteBanc: true }; });
+  }
+  function avancerGuide({ mesure, action }) {
+    if (guide === 'fin') guide = null;
+    if (guide === 1 && mesure === 'hz' && etat.mesure.lecture) guide = 2;
+    else if (guide === 2 && mesure === 'loz' && etat.mesure.lecture) guide = 3;
+    else if (guide === 3 && action === 'consigner' && etat.consigne) { terminerGuide(); guide = 'fin'; }
+  }
+
   const debrief = () => {
+    vue.classList.remove('avec-console');
+    const causeCourte = resume(panne.cause, MOTS_POURQUOI);
     const inutiles = etat.remplacements.filter(r => !r.utile);
     const rapide = etat.minutes <= Math.round(panne.reference * 1.3);
     const parfait = etat.resolu && !etat.dangers.length && !inutiles.length && rapide;
@@ -332,11 +389,16 @@ function demarrer(vue, banc, panne) {
       ${etat.dangers.length ? `<div class="alerte-securite"><p class="lecon-titre">Gestes dangereux</p><p>${etat.dangers.map(d => esc(d)).join(' · ')}</p></div>` : ''}
       ${inutiles.length ? `<div class="diagnostic"><p class="lecon-titre">Fausses pistes payées en pièces</p><p>${inutiles.map(r => esc(r.libelle)).join(' · ')}</p></div>` : ''}
       <p class="reco-domaines">${pucesDomaines(panne.domaines)}</p>
-      <div class="lecon"><p class="lecon-titre">La panne</p><p>${esc(typo(panne.cause))}</p></div>
-      <div class="lecon"><p class="lecon-titre">La démarche d'un pro</p><p>${esc(typo(panne.methode))}</p></div>
-      <div class="piege-terrain"><p class="lecon-titre">Le piège de ce cas</p><p>${esc(typo(panne.piege))}</p></div>
-      ${blocRisque(panne.risque)}
-      ${ligneNorme(panne.norme)}
+      <div class="essentiel">
+        <div class="lecon"><p class="lecon-titre">La panne</p><p>${esc(typo(causeCourte.court))}</p></div>
+        ${blocRisque(panne.risque, { court: true })}
+      </div>
+      ${enSavoirPlus(`
+        ${causeCourte.complet ? '' : `<div class="lecon"><p class="lecon-titre">La panne, en détail</p><p>${esc(typo(panne.cause))}</p></div>`}
+        <div class="lecon"><p class="lecon-titre">La démarche d'un pro</p><p>${esc(typo(panne.methode))}</p></div>
+        <div class="piege-terrain"><p class="lecon-titre">Le piège de ce cas</p><p>${esc(typo(panne.piege))}</p></div>
+        ${risqueComplet(panne.risque)}
+        ${ligneNorme(panne.norme)}`, 'En savoir plus : la démarche d\'un pro, le piège, la norme')}
       <details class="approfondir journal"><summary>Ton journal d'intervention (${etat.journal.length})</summary>
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('')}</ol>
       </details>

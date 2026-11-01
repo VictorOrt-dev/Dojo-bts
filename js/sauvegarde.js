@@ -9,7 +9,7 @@
 
 export const VERSION = 1;
 export const MODES = ['reco', 'calcul', 'panne', 'banc'];
-export const MATIERES = ['bakelite', 'porcelaine'];
+export const MATIERES = ['auto', 'bakelite', 'porcelaine'];   // auto = suit le réglage clair / sombre du téléphone
 export const PROFILS = ['debutant', 'formation', 'confirme'];
 export const XP_MAX = 10_000_000;      // très au-delà du dernier rang (3 000 XP) : au-delà, c'est une donnée trafiquée
 export const TAILLE_MAX = 2_000_000;   // octets : une vraie sauvegarde fait quelques dizaines de Ko
@@ -22,7 +22,7 @@ export function etatParDefaut() {
     xp: 0,
     stats: {},               // résultats des exercices, par mode
     derniereSauvegarde: null, // horodatage du dernier export
-    preferences: { matiere: 'bakelite' },
+    preferences: { matiere: 'auto', visiteBanc: false },
     profil: null,            // 'debutant' | 'formation' | 'confirme' ; null = premier lancement pas encore fait
     positionnement: null     // { niveau: 0 à 3, score: 0 à 10, date } : résultat du test de positionnement
   };
@@ -119,6 +119,10 @@ export function controler(donnees) {
     else if (donnees.preferences.matiere !== undefined) {
       if (MATIERES.includes(donnees.preferences.matiere)) etat.preferences.matiere = donnees.preferences.matiere;
       else anomalies.push(`preferences.matiere doit valoir ${MATIERES.join(' ou ')}`);
+    }
+    if (estObjet(donnees.preferences) && donnees.preferences.visiteBanc !== undefined) {
+      if (typeof donnees.preferences.visiteBanc === 'boolean') etat.preferences.visiteBanc = donnees.preferences.visiteBanc;
+      else anomalies.push('preferences.visiteBanc doit être vrai ou faux');
     }
   }
 

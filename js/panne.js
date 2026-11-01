@@ -11,7 +11,7 @@ import { frontispice, typo, deuxChiffres } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
 import { domaine, filtrerParDomaine, pucesDomaines, barreDomaines } from './domaines.js';
-import { blocRisque, ligneNorme } from './tuteur.js';
+import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import { conseilCas } from './parcours.js';
 import * as stockage from './storage.js';
 
@@ -174,6 +174,7 @@ function jouer(vue, c, tousLesCas) {
     noterReponse('panne', c.id, parfait);
     noterSession('panne', partie.reussies, c.niveau);
 
+    const cause = resume(c.conclusion.cause, MOTS_POURQUOI);
     const message = parfait ? 'Intervention exemplaire.' : partie.alertes ? 'Panne trouvée. Attention à la sécurité.' : 'Panne trouvée.';
     const prochain = tousLesCas[tousLesCas.indexOf(c) + 1];
     vue.innerHTML = `
@@ -184,12 +185,17 @@ function jouer(vue, c, tousLesCas) {
         <p class="bilan-xp">+${xp} XP · étapes réussies du premier coup${partie.alertes ? ` · ${partie.alertes} alerte${partie.alertes > 1 ? 's' : ''} sécurité` : ''}</p>
       </section>
       <section class="rapport-panne">
-        <div class="lecon"><p class="lecon-titre">La cause</p><p>${esc(typo(c.conclusion.cause))}</p></div>
-        <div class="lecon"><p class="lecon-titre">Le remède</p><p>${esc(typo(c.conclusion.remede))}</p></div>
-        <div class="piege-terrain"><p class="lecon-titre">À retenir</p><p>${esc(typo(c.conclusion.lecon))}</p></div>
-        ${blocRisque(c.conclusion.risque)}
-        ${ligneNorme(c.conclusion.norme)}
-        ${c.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}
+        <div class="essentiel">
+          <div class="lecon"><p class="lecon-titre">La cause</p><p>${esc(typo(cause.court))}</p></div>
+          ${blocRisque(c.conclusion.risque, { court: true })}
+        </div>
+        ${enSavoirPlus(`
+          ${cause.complet ? '' : `<div class="lecon"><p class="lecon-titre">La cause, en détail</p><p>${esc(typo(c.conclusion.cause))}</p></div>`}
+          <div class="lecon"><p class="lecon-titre">Le remède</p><p>${esc(typo(c.conclusion.remede))}</p></div>
+          <div class="piege-terrain"><p class="lecon-titre">À retenir</p><p>${esc(typo(c.conclusion.lecon))}</p></div>
+          ${risqueComplet(c.conclusion.risque)}
+          ${ligneNorme(c.conclusion.norme)}
+          ${c.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}`, 'En savoir plus : remède, à retenir, norme')}
       </section>
       <div class="actions pousse-bas">
         ${prochain ? `<a class="btn principal" href="#/entrainement/panne?c=${encodeURIComponent(prochain.id)}">Cas suivant</a>` : ''}

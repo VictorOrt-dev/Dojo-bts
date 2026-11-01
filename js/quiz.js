@@ -5,7 +5,7 @@ import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
 import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
-import { blocRisque, ligneNorme } from './tuteur.js';
+import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import { conseilNiveau } from './parcours.js';
 import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
@@ -113,6 +113,11 @@ export async function renderReco({ vue, definirTitre, params }) {
       </dl>
       ${ligneNorme(q.norme)}`;
     const pourquoiPas = q.pourquoiPas?.[choisi];
+    const validation = q.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>';
+
+    // Correction en deux temps : l'essentiel d'abord, le reste sous « En savoir plus ».
+    const pourquoi = resume(pourquoiPas ?? q.explication, MOTS_POURQUOI);
+    const blocPourquoi = texte => `<div class="diagnostic"><p class="lecon-titre">${pourquoiPas ? 'Pourquoi pas ce choix' : 'Pourquoi'}</p><p>${esc(typo(texte))}</p></div>`;
 
     const derniere = session.index === session.questions.length - 1;
     const zone = vue.querySelector('#explication');
@@ -120,15 +125,14 @@ export async function renderReco({ vue, definirTitre, params }) {
       <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
-             ${ficheTechnique}
-             <details class="approfondir"><summary>Pourquoi c'est ça, et le risque</summary>${lecon}${blocRisque(q.risque)}</details>`
+             ${enSavoirPlus(`${lecon}${blocRisque(q.risque)}${ficheTechnique}${validation}`, 'Pourquoi c\'est ça, et le risque')}`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>
-             <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>
-             ${pourquoiPas ? `<div class="diagnostic"><p class="lecon-titre">Pourquoi pas « ${esc(typo(choisi))} »</p><p>${esc(typo(pourquoiPas))}</p></div>` : ''}
-             ${lecon}
-             ${blocRisque(q.risque)}
-             ${ficheTechnique}`}
-        ${q.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}
+             <div class="essentiel">
+               <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>
+               ${blocPourquoi(pourquoi.court)}
+               ${blocRisque(q.risque, { court: true })}
+             </div>
+             ${enSavoirPlus(`${pourquoi.complet || !pourquoiPas ? '' : blocPourquoi(pourquoiPas)}${lecon}${risqueComplet(q.risque)}${ficheTechnique}${validation}`)}`}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);

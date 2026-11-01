@@ -79,7 +79,18 @@ export default async function ({ t, url: U, navigateur }) {
     const metaOk = c.GENERATEURS.every(g => g.domaines?.length && g.domaines.every(d => domainesValides.includes(d)) && g.risque?.length > 60);
     const parDomaine = Object.fromEntries(domainesValides.map(d => [d, c.GENERATEURS.filter(g => g.domaines.includes(d)).length]));
     const filtreOk = [1, 2, 3].every(n => domainesValides.every(d => { const g = c.generateursDe(n, d); return !g.length || c.creerSession(n, d).exercices.every(e => e.generateur.domaines.includes(d) && e.generateur.niveau === n); }));
-    return { res, parNiveau, sessionsOk, ids, metaOk, parDomaine, filtreOk };
+    // Correction en deux temps : essentiel (valeur attendue + pourquoi + risque) ≤ 70 mots, sur 50 tirages par calcul.
+    const tuteur = await import('/js/tuteur.js');
+    const mots = x => String(x ?? '').trim().split(/\s+/).filter(Boolean).length;
+    let essentielMax = { n: 0 };
+    for (const g of c.GENERATEURS) for (let i = 0; i < 50; i++) {
+      const ex = g.creer();
+      for (const diag of [null, ...(ex.erreurs ?? []).map(e => e.message)]) {
+        const n = 11 + 5 + mots(tuteur.resume(diag ?? ex.explication, tuteur.MOTS_POURQUOI).court) + 4 + mots(tuteur.resume(g.risque, tuteur.MOTS_RISQUE).court);
+        if (n > essentielMax.n) essentielMax = { n, id: g.id };
+      }
+    }
+    return { res, parNiveau, sessionsOk, ids, metaOk, parDomaine, filtreOk, essentielMax };
   });
   for (const [id, v] of Object.entries(r.res)) if (v.pb.length) t.ok(false, `${id} : ${v.pb.join(' | ')}`);
   t.ok(Object.values(r.res).every(v => !v.pb.length), `${r.ids.length} générateurs × 300 tirages : valeurs justes, explication + piège + calcul posé présents, erreurs types diagnostiquées`);
@@ -88,6 +99,7 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(r.metaOk, 'chaque calcul : domaine(s) valide(s) et risque humain / machine rédigé');
   t.ok(Object.values(r.parDomaine).every(n => n > 0), `calculs dans les 5 domaines : ${Object.entries(r.parDomaine).map(([d, n]) => `${d} ${n}`).join(', ')}`);
   t.ok(r.filtreOk, 'séance filtrée par domaine : uniquement des calculs de ce domaine et de ce niveau');
+  t.ok(r.essentielMax.n <= 70, `calculs : essentiel de la correction le plus long = ${r.essentielMax.n} mots (${r.essentielMax.id}), plafond 70`);
 
   const qs = await p.evaluate(() => fetch('data/reconnaissance.json').then(r => r.json()));
   const DOMAINES = ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'];
@@ -141,7 +153,10 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok((await p.textContent('.niveau-seance')).includes('Fondations'), 'le niveau de la séance est affiché');
   await jouer(false, async q => {
     t.ok(await p.isVisible('.diagnostic') && (await p.textContent('.diagnostic')).includes('Pourquoi pas'), 'erreur : « pourquoi pas » la réponse choisie');
-    t.ok(await p.isVisible('.lecon') && (await p.textContent('.lecon')).length > 60, 'erreur : explication détaillée visible');
+    const mots = (await p.textContent('.essentiel')).trim().split(/\s+/).length;
+    t.ok(await p.isVisible('.essentiel .risque') && !(await p.isVisible('.lecon')) && mots <= 70, `erreur : l'essentiel d'emblée (${mots} mots : réponse, pourquoi, risque), l'explication repliée`);
+    await p.click('.en-savoir-plus summary');
+    t.ok(await p.isVisible('.lecon') && (await p.textContent('.lecon')).length > 60 && await p.isVisible('.fiche-technique'), 'erreur : « En savoir plus » déplie l\'explication détaillée, le repérage et le rôle');
   });
   t.ok(await xpDe() === 0 && !(await p.$('.bilan a[href="#/entrainement/reco?n=2"]')), 'séance ratée : 0 XP, pas de niveau suivant proposé');
   await p.click('#rejouer');
@@ -177,7 +192,10 @@ export default async function ({ t, url: U, navigateur }) {
       await composer(fmt(e.erreurs[0].valeur)); await p.click('.clavier .valider'); await p.waitForSelector('#suivant');
       if (!diagVu) {
         t.ok((await p.textContent('.diagnostic')).replace(/\s+/g, ' ').includes(e.erreurs[0].message.slice(0, 25).replace(/\s+/g, ' ').split(' ').slice(0, 3).join(' ')), 'erreur type reconnue : « ' + e.erreurs[0].message.slice(0, 60) + '… »');
-        t.ok(await p.isVisible('.lecon') && await p.isVisible('.piege-terrain') && await p.isVisible('.solution'), 'erreur : rappel de la formule, calcul posé et piège affichés');
+        const motsC = (await p.textContent('.essentiel')).trim().split(/\s+/).length;
+        t.ok(await p.isVisible('.essentiel .risque') && !(await p.isVisible('.solution')) && motsC <= 70, `erreur de calcul : l'essentiel d'emblée (${motsC} mots), calcul posé replié`);
+        await p.click('.en-savoir-plus summary');
+        t.ok(await p.isVisible('.piege-terrain') && await p.isVisible('.solution'), 'erreur : « En savoir plus » déplie le calcul posé, la méthode et le piège');
         diagVu = true;
       }
     } else {
@@ -282,7 +300,9 @@ export default async function ({ t, url: U, navigateur }) {
       await p.click(`.choix-btn[data-i="${e.choix.findIndex(x => x.verdict === 'bon')}"]`); await p.click('#suite');
     }
     await p.waitForSelector('.rapport-panne');
-    if (!(await p.isVisible('.rapport-panne .risque')) || !(await p.isVisible('.rapport-panne .norme'))) casIncomplets.push(c.id);
+    const visible = await p.isVisible('.rapport-panne .essentiel .risque');
+    await p.click('.rapport-panne .en-savoir-plus summary');
+    if (!visible || !(await p.isVisible('.rapport-panne .norme'))) casIncomplets.push(c.id);
   }
   t.ok(casIncomplets.length === 0, `les ${pannes.length} cas se jouent jusqu'au diagnostic final, avec risque et norme` + (casIncomplets.length ? ' — ' + casIncomplets.join(', ') : ''));
 

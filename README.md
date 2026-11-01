@@ -52,7 +52,7 @@ js/bienvenue.js         premier lancement : « Où en es-tu ? » (3 profils)
 js/positionnement.js    test de positionnement (10 questions, sans XP)
 js/mise-a-jour.js       enregistrement du service worker, bandeau « Nouvelle version prête »
 js/domaines.js          les 5 domaines techniques, repères couleur, filtre (barreDomaines), puces
-js/tuteur.js            blocs communs de correction : « le risque, en vrai » et référence normative
+js/tuteur.js            correction en deux temps : resume() (essentiel ≤ ~60 mots), « le risque, en vrai », norme, « En savoir plus »
 js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées, filtre par domaine)
 js/banc.js              mode Banc de mesure (panne cachée, multimètre V~ / LoZ / Ω, pince, consignation, horloge, rapport)
 js/circuit.js           petit solveur électrique du banc (potentiels en alternatif, transformateur, tensions fantômes, Ω)
@@ -62,7 +62,7 @@ js/quiz.js              mode Reconnaissance (QCM sur image, par niveau et par do
 js/calcul.js            mode Calculs flash (24 générateurs, 3 niveaux, 5 domaines, diagnostic d'erreur, clavier à l'écran)
 js/difficulte.js        les 3 niveaux de difficulté + écran de choix niveau × domaine
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
-js/theme.js             thème sombre (défaut) / clair, mémorisé dans les préférences
+js/theme.js             thème Auto (défaut, suit le téléphone) / sombre / clair, mémorisé dans les préférences
 js/mise-en-page.js      frontispice, titres de section, voyants d'état, typographie française (typo)
 fonts/                  polices auto-hébergées (Archivo, JetBrains Mono — licence OFL)
 js/util.js              esc(), plurielS()
@@ -95,15 +95,16 @@ node tests/lancer.mjs
 ```
 
 On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
-`node tests/lancer.mjs non-regression`, `banc`, `parcours` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
 
 | Fichier | Contenu |
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
+| `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, visite guidée en 3 gestes, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
 | `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
 | `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) |
 
@@ -145,6 +146,8 @@ Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphi
   - identité des modes : une **lueur de couleur** dans le coin de chaque carte (turquoise Banc, rouge Cas de panne, bleu Calculs, ambre Reconnaissance) ;
   - domaines : **repères de gaine** aux couleurs réelles des conducteurs.
 - **Formes** : cartes à grands rayons (22 px), boutons 14 px, en-tête et onglets translucides (flou d'arrière-plan).
+- **Lisibilité en atelier** : aucun texte sous 12 px (13 px pour les aides de calcul), tests à l'appui ; thème **Auto** par défaut,
+  qui suit le réglage clair / sombre du téléphone, avec choix manuel Auto / Sombre / Clair dans le Carnet.
 - **Ergonomie** : lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ; « Suivant » collé au-dessus des onglets (`.action-collee`) ;
   cibles d'au moins 44 px.
 - **Sobriété** : aucune animation en boucle, animations ≤ 180 ms sur `transform` / `opacity` (sauf le balayage de l'aiguille, une fois) ;
@@ -222,7 +225,10 @@ Aucune case vide : chaque domaine se travaille à chaque niveau, dans chaque mod
   - **« le risque, en vrai »** (`risque`) : ce que l'erreur coûte à un humain (électrisation, arc, brûlure) ou à la machine
     (bobinage grillé, démarrage intempestif, appareil qui explose) ;
   - la **référence normative** (`norme`) : NF C 15-100, NF C 18-510, NF EN 60204-1, IEC 60947…
-  Une bonne réponse garde ces blocs repliés.
+  **Correction en deux temps** (`js/tuteur.js`) : d'emblée, l'essentiel, une soixantaine de mots au plus (la bonne réponse,
+  une phrase de pourquoi, « Le risque, en vrai » résumé en phrases entières) ; le reste (explication complète, calcul posé,
+  piège, repérage, norme, remède) sous « En savoir plus ». Les tests vérifient le plafond sur tout le contenu.
+  Une bonne réponse garde tout replié.
 
 ## Format d'une question de reconnaissance (`data/reconnaissance.json`)
 
@@ -327,6 +333,11 @@ la cause, la démarche d'un pro et le piège du cas.
 - **Ajouter une panne** : un objet dans `pannes` : `{ id, symptome, ouvre: [éléments coupés], relaisDeclenche?,
   reference (minutes), domaines, cause, methode, piege, risque, norme }`. Elle doit être réparable par un élément de `composants[].repare`.
 - `#/entrainement/banc?panne=<id>` force une panne précise (tests).
+- **Sous le pouce** : la console d'instruments (onglets Multimètre / Pince / Actions, V~ / LoZ / Ω, pointe rouge et COM,
+  afficheur et « Mesurer » côte à côte) est fixée au-dessus des onglets ; le contenu (symptôme, bon d'intervention, état
+  de l'armoire, schéma, résultat, journal) défile au-dessus. Le bon d'intervention se replie au premier geste.
+- **Visite guidée** au premier passage (3 gestes : mesurer en V~, refaire en LoZ pour démasquer la tension fantôme,
+  consigner), passable, mémorisée dans `preferences.visiteBanc`.
 
 ## XP et niveaux (`js/xp.js`)
 
@@ -355,7 +366,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Contenu « niveau expert » : 12 questions, 7 calculs, 6 cas de panne ; plus aucune case vide niveau × domaine × mode
 - [x] Audit UX, chantier 4 : service worker « cache d'abord » versionné, mises à jour atomiques
 - [x] Audit UX, chantier 1 : premier lancement, « Ta prochaine séance », déblocage souple, test de positionnement
-- [ ] Audit UX, chantiers 2 et 3 : banc sous le pouce, correction en deux temps et textes ≥ 12 px
+- [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)

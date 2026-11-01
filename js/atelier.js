@@ -21,7 +21,7 @@ function galvanometre(debut, fin, progression) {
     const [x2, y2] = point(angle, 118);
     graduations += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="${majeure ? 2 : 1}"/>`;
     if (i % 10 === 0) {
-      const [xt, yt] = point(angle, 80);
+      const [xt, yt] = point(angle, 74);
       const valeur = fin === null ? (i === 20 ? '∞' : i === 0 ? debut : '') : Math.round(debut + (fin - debut) * i / 20);
       graduations += `<text x="${xt}" y="${yt}" text-anchor="middle" dominant-baseline="middle">${valeur}</text>`;
     }
@@ -32,8 +32,7 @@ function galvanometre(debut, fin, progression) {
   return `
     <svg class="galva" viewBox="0 0 300 168" role="img" aria-label="Progression vers le rang suivant : ${Math.round(progression * 100)} %">
       <path d="M${ax1} ${ay1} A118 118 0 0 1 ${ax2} ${ay2}" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="1"/>
-      <g stroke="currentColor" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="20" font-weight="700" stroke-linecap="round">${graduations}</g>
-      <text x="150" y="128" text-anchor="middle" font-family="Archivo, sans-serif" font-size="24" font-weight="800" fill="currentColor">XP</text>
+      <g stroke="currentColor" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="28" font-weight="700" stroke-linecap="round">${graduations}</g>
       <g class="aiguille" style="transform: rotate(${angleAiguille.toFixed(1)}deg)">
         <line x1="150" y1="162" x2="150" y2="34" stroke="var(--aiguille)" stroke-width="2" stroke-linecap="round"/>
         <circle cx="150" cy="166" r="5" fill="var(--aiguille)"/>

@@ -7,11 +7,13 @@ import { RACINE } from './outils.mjs';
 import { tension, resistance } from '../js/circuit.js';
 import { controler, etatParDefaut, XP_MAX } from '../js/sauvegarde.js';
 import * as P from '../js/parcours.js';
+import { resume, MOTS_POURQUOI, MOTS_RISQUE } from '../js/tuteur.js';
 
 export default async function ({ t }) {
   physiqueDuBanc(t);
   controleDesSauvegardes(t);
   parcoursGuide(t);
+  correctionEnDeuxTemps(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -78,7 +80,7 @@ function controleDesSauvegardes(t) {
       banc: { sessions: 1, meilleurScore: 1, derniereSession: null, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } }
     },
     derniereSauvegarde: 1761900000000,
-    preferences: { matiere: 'porcelaine' },
+    preferences: { matiere: 'porcelaine', visiteBanc: true },
     profil: 'formation',
     positionnement: { niveau: 2, score: 8, date: 1761900000000 }
   };
@@ -180,4 +182,29 @@ function parcoursGuide(t) {
   t.ok(P.conseilNiveau(pos, 'reco', 3) === null && P.conseilCas(pos, hta, cas) === null && P.prochaineSeance(pos, cas).code === 'B',
     'positionnement niveau II : mentions levées jusqu\'au niveau III et HTA, parcours repris au banc');
   t.ok(Object.values(P.COMPOSITION).reduce((a, b) => a + b) === 10, 'test de positionnement : 10 questions');
+}
+
+// ---------- Correction en deux temps : l'essentiel tient en une soixantaine de mots, partout ----------
+
+function correctionEnDeuxTemps(t) {
+  t.section('U4. Correction en deux temps (tuteur.js) : essentiel ≤ 70 mots sur tout le contenu');
+  const mots = x => String(x ?? '').trim().split(/\s+/).filter(Boolean).length;
+  const lire = f => JSON.parse(fs.readFileSync(path.join(RACINE, f), 'utf8'));
+  const PLAFOND = 70;
+  const r = resume('Voir la NF C 15-100, § 411.3.3, et la tension 2,4 kΩ. Deuxième phrase ici.', 12);
+  t.ok(r.court === 'Voir la NF C 15-100, § 411.3.3, et la tension 2,4 kΩ.' && !r.complet, 'phrases entières : « § 411.3.3 » et « 2,4 kΩ » ne coupent pas une phrase');
+  const long = resume('Une phrase très longue, avec une articulation au milieu : puis encore beaucoup de mots qui dépassent largement la limite fixée pour le résumé court.', 12);
+  t.ok(long.court.endsWith('…') && mots(long.court) <= 12 && !long.complet, `première phrase trop longue : coupée à une articulation, avec « … » (« ${long.court} »)`);
+
+  const pires = [];
+  for (const q of lire('data/reconnaissance.json')) {
+    for (const pp of Object.values(q.pourquoiPas)) {
+      // « Pas encore. » + « Il fallait reconnaître : <nom>. » + « Pourquoi pas ce choix » + pourquoi + « Le risque, en vrai » + risque
+      pires.push({ id: q.id, n: 2 + 3 + mots(q.nom) + 4 + mots(resume(pp, MOTS_POURQUOI).court) + 4 + mots(resume(q.risque, MOTS_RISQUE).court) });
+    }
+  }
+  for (const c of lire('data/pannes.json')) pires.push({ id: c.id, n: 2 + mots(resume(c.conclusion.cause, MOTS_POURQUOI).court) + 4 + mots(resume(c.conclusion.risque, MOTS_RISQUE).court) });
+  for (const b of lire('data/banc-depart-moteur.json').pannes) pires.push({ id: b.id, n: 2 + mots(resume(b.cause, MOTS_POURQUOI).court) + 4 + mots(resume(b.risque, MOTS_RISQUE).court) });
+  pires.sort((a, b) => b.n - a.n);
+  t.ok(pires[0].n <= PLAFOND, `reconnaissance, cas de panne, banc : essentiel le plus long = ${pires[0].n} mots (${pires[0].id}), plafond ${PLAFOND}`);
 }

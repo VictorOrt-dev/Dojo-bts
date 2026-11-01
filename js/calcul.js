@@ -7,7 +7,7 @@ import { gagnerXP, noterReponse, noterSession, BAREME } from './xp.js';
 import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annoncerMontee } from './entrainement.js';
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
-import { blocRisque, ligneNorme } from './tuteur.js';
+import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import { conseilNiveau } from './parcours.js';
 import * as stockage from './storage.js';
 import { entier, parmi, melanger } from './hasard.js';
@@ -1136,7 +1136,11 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const calculPose = `<p class="surtitre">Le calcul posé</p><p class="solution">${esc(typo(ex.solution))}</p>`;
     const rappel = `<div class="lecon"><p class="lecon-titre">Rappel</p><p>${esc(typo(ex.explication))}</p></div>`;
     const piege = `<div class="piege-terrain"><p class="lecon-titre">Piège en armoire</p><p>${esc(typo(ex.piege))}</p></div>`;
-    const risque = `${blocRisque(ex.generateur.risque)}${ligneNorme(ex.generateur.norme)}`;
+    const norme = ligneNorme(ex.generateur.norme);
+
+    // Correction en deux temps : l'essentiel (valeur attendue, une phrase de pourquoi, le risque), puis « En savoir plus ».
+    const pourquoi = resume(diagnostic ?? ex.explication, MOTS_POURQUOI);
+    const blocPourquoi = texte => `<div class="diagnostic"><p class="lecon-titre">${diagnostic ? 'Ce qui s\'est sans doute passé' : 'Le principe'}</p><p>${esc(typo(texte))}</p></div>`;
 
     const derniere = session.index === session.exercices.length - 1;
     const zone = vue.querySelector('#correction');
@@ -1144,15 +1148,14 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
-             ${calculPose}
-             <details class="approfondir"><summary>Revoir la méthode et le risque</summary>${rappel}${piege}${risque}</details>`
+             ${enSavoirPlus(`${calculPose}${rappel}${piege}${blocRisque(ex.generateur.risque)}${norme}`, 'Le calcul posé, la méthode et le risque')}`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>
-             <p class="attendu">Ta réponse : <strong class="mono">${esc(typo(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`))}</strong> — il fallait <strong class="mono">${esc(typo(attendu))}</strong>.</p>
-             ${diagnostic ? `<div class="diagnostic"><p class="lecon-titre">Ce qui s'est sans doute passé</p><p>${esc(typo(diagnostic))}</p></div>` : ''}
-             ${rappel}
-             ${calculPose}
-             ${piege}
-             ${risque}`}
+             <div class="essentiel">
+               <p class="attendu">Ta réponse : <strong class="mono">${esc(typo(ex.choix ? valeur : `${nb(valeur)} ${ex.unite}`))}</strong> — il fallait <strong class="mono">${esc(typo(attendu))}</strong>.</p>
+               ${blocPourquoi(pourquoi.court)}
+               ${blocRisque(ex.generateur.risque, { court: true })}
+             </div>
+             ${enSavoirPlus(`${pourquoi.complet ? '' : blocPourquoi(diagnostic ?? ex.explication)}${calculPose}${diagnostic ? rappel : ''}${piege}${risqueComplet(ex.generateur.risque)}${norme}`, 'En savoir plus : calcul posé, méthode, norme')}`}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);

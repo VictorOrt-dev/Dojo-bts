@@ -96,11 +96,16 @@ export default async function ({ t, url: U, navigateur }) {
   await p.goto(U + '#/entrainement'); await p.waitForSelector('a[href="#/entrainement/banc"]');
   await p.click('a[href="#/entrainement/banc"]'); await p.waitForSelector('.tableau-bord');
   t.ok(await p.isVisible('.bon-intervention'), 'accès depuis l\'accueil, panne tirée au sort');
+  // Le contenu défile au-dessus de la console fixée : on l'amène en haut de l'écran, comme le ferait le pouce.
+  await p.evaluate(() => { const e = [...document.querySelectorAll('summary')].find(x => x.textContent.includes('Voir le schéma')); scrollBy(0, e.getBoundingClientRect().top - 70); });
   await p.click('summary:has-text("Voir le schéma")'); await p.waitForTimeout(200);
   t.ok(await p.evaluate(() => { const i = document.querySelector('.schema img'); return i.complete && i.naturalWidth > 0; }), 'schéma affiché');
   await action('abandonner'); await p.waitForSelector('.bilan');
-  t.ok((await p.textContent('.bilan-message')).includes('abandonnée') && await p.isVisible('.piege-terrain'), 'abandon : la panne et la démarche sont expliquées');
-  t.ok(await p.isVisible('.bilan ~ .reco-domaines, .reco-domaines') && await p.isVisible('.risque') && await p.isVisible('.norme'), 'rapport : domaines de la panne, « le risque, en vrai » et référence normative');
+  t.ok((await p.textContent('.bilan-message')).includes('abandonnée') && await p.isVisible('.essentiel .lecon') && await p.isVisible('.essentiel .risque')
+    && !(await p.isVisible('.piege-terrain')), 'abandon : la panne et le risque d\'emblée ; démarche et piège repliés');
+  await p.click('.en-savoir-plus summary');
+  t.ok(await p.isVisible('.reco-domaines') && await p.isVisible('.piege-terrain') && await p.isVisible('.norme') && (await p.textContent('.en-savoir-plus')).includes('démarche d\'un pro'),
+    'rapport : « En savoir plus » donne la démarche d\'un pro, le piège et la référence normative');
   t.ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'pas de débordement horizontal');
   t.ok(errs.length === 0, 'console : ' + (errs.length ? errs.join(' | ') : 'aucune erreur'));
   await contexte.close();

@@ -78,11 +78,12 @@ export async function renderProfil({ vue, definirTitre }) {
     <section>
       ${titreSection('03', 'Affichage')}
       <div class="corps">
-        <div class="selecteur" role="group" aria-label="Thème d'affichage">
+        <div class="selecteur selecteur-theme" role="group" aria-label="Thème d'affichage">
+          <button type="button" data-theme="auto" aria-pressed="${theme === 'auto'}">Auto</button>
           <button type="button" data-theme="bakelite" aria-pressed="${theme === 'bakelite'}">Sombre</button>
           <button type="button" data-theme="porcelaine" aria-pressed="${theme === 'porcelaine'}">Clair</button>
         </div>
-        <p class="discret petit espace">Sombre : noir profond, économe sur écran OLED. Clair : lisible en plein soleil.</p>
+        <p class="discret petit espace">Auto : suit le réglage clair / sombre du téléphone. Sombre : noir profond, économe sur écran OLED. Clair : lisible en plein soleil.</p>
       </div>
     </section>
 
