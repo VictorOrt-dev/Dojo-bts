@@ -1,5 +1,5 @@
-// Pièces d'atelier de la charte « Bakélite & Cuivre » :
-// plaque signalétique avec galvanomètre, bornier de progression, fil de cuivre, salutation.
+// Pièces graphiques communes : carte de l'opérateur avec cadran de progression, bornier de séance, salutation.
+// Les couleurs du cadran suivent le thème (currentColor et variables CSS).
 
 import { esc } from './util.js';
 
@@ -31,24 +31,23 @@ function galvanometre(debut, fin, progression) {
   const [ax2, ay2] = point(ANGLE_MAX, 118);
   return `
     <svg class="galva" viewBox="0 0 300 168" role="img" aria-label="Progression vers le rang suivant : ${Math.round(progression * 100)} %">
-      <path d="M${ax1} ${ay1} A118 118 0 0 1 ${ax2} ${ay2}" fill="none" stroke="#1A120D" stroke-width="1"/>
-      <g stroke="#1A120D" fill="#3D3127" font-family="JetBrains Mono, monospace" font-size="20" font-weight="700" stroke-linecap="round">${graduations}</g>
-      <text x="150" y="128" text-anchor="middle" font-family="Young Serif, Georgia, serif" font-size="26" fill="#1A120D">XP</text>
+      <path d="M${ax1} ${ay1} A118 118 0 0 1 ${ax2} ${ay2}" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="1"/>
+      <g stroke="currentColor" fill="currentColor" font-family="JetBrains Mono, monospace" font-size="20" font-weight="700" stroke-linecap="round">${graduations}</g>
+      <text x="150" y="128" text-anchor="middle" font-family="Archivo, sans-serif" font-size="24" font-weight="800" fill="currentColor">XP</text>
       <g class="aiguille" style="transform: rotate(${angleAiguille.toFixed(1)}deg)">
-        <line x1="150" y1="162" x2="150" y2="34" stroke="#1A120D" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="150" cy="166" r="5" fill="#B4642F"/>
+        <line x1="150" y1="162" x2="150" y2="34" stroke="var(--aiguille)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="150" cy="166" r="5" fill="var(--aiguille)"/>
       </g>
-      <circle cx="150" cy="150" r="9" fill="#2A1E16"/>
-      <circle cx="150" cy="150" r="3" fill="#B4642F"/>
+      <circle cx="150" cy="150" r="9" fill="var(--surface-3)"/>
+      <circle cx="150" cy="150" r="3" fill="var(--aiguille)"/>
     </svg>`;
 }
 
-// Plaque signalétique émaillée de l'opérateur.
+// Carte de l'opérateur : rang, XP, cadran de progression.
 // n = niveauPour(xp) ; total = nombre de rangs ; sessions = sessions jouées.
 export function plaqueOperateur({ xp, n, total, sessions }) {
   return `
     <section class="plaque niveau">
-      <span class="vis"></span><span class="vis"></span><span class="vis"></span><span class="vis"></span>
       <p class="plaque-bandeau"><span>Elec learning</span><span>Rang ${ROMAINS[n.rang]} / ${ROMAINS[total - 1]}</span></p>
       <div class="plaque-corps">
         ${galvanometre(n.seuil, n.suivant?.seuil ?? null, n.progression)}

@@ -60,7 +60,7 @@ js/difficulte.js        les 3 niveaux de difficulté + écran de choix niveau ×
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
 js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
 js/mise-en-page.js      frontispice, titres de section, voyants d'état, typographie française (typo)
-fonts/                  polices auto-hébergées (Young Serif, Atkinson Hyperlegible, JetBrains Mono — licence OFL)
+fonts/                  polices auto-hébergées (Archivo, JetBrains Mono — licence OFL)
 js/util.js              esc(), plurielS()
 data/reconnaissance.json CONTENU des questions de reconnaissance
 data/pannes.json        CONTENU des cas de panne
@@ -125,27 +125,24 @@ modifier `PLAYWRIGHT_VERSION` dans le workflow.
 - **Mode hors ligne.** Tout nouveau fichier (JS, données, image, police) doit être ajouté à la liste `FICHIERS` de `sw.js` ; les tests le vérifient. Pas de numéro de version à changer.
 - **Une fonctionnalité par demande à l'IA, un commit Git dès que ça marche.**
 
-## Charte « Bakélite & Cuivre »
+## Charte « Graphite »
 
-Les matières du métier deviennent l'interface.
+Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphite, très peu de couleur.
 
-- **Matières** : fond bakélite `#140E0A` (quasi noir, économe sur OLED) avec un grain fin ; texte porcelaine `#F1EADF` ;
-  **cuivre** `--cuivre` pour l'action (boutons, voyant de l'onglet, score) ; **vert-de-gris** `--vert-de-gris` (cuivre oxydé) pour
-  « juste » ; **rouge fusible** `--fusible` pour une réponse fausse. Matière **Porcelaine** claire pour le plein soleil.
-- **Typographie** : Young Serif (titres, chaleureux, début XXᵉ) · Atkinson Hyperlegible (texte et interface, conçue pour la
-  lisibilité maximale) · JetBrains Mono (chiffres, unités, XP ; lueur de tube Nixie sur l'afficheur des calculs).
-  Passer tout texte de contenu par `typo()` (espaces insécables).
-- **Pièces signature** :
-  - plaque signalétique émaillée avec vis et **galvanomètre** dont l'aiguille balaie jusqu'à l'XP (`atelier.js`) ;
-  - **bornier** : une borne par question, reliée par le fil de cuivre, qui s'allume juste / raté ;
-  - **clavier en bakélite** (pavé numérique, grande touche Valider) à la place du clavier iOS ;
-  - **gaines de conducteurs** comme repères de domaine (voir « Domaines techniques ») ;
-  - barre d'onglets en **touches de poste radio** : la touche active reste enfoncée, son voyant s'allume.
-- **Ergonomie** : l'Entraînement est l'écran d'accueil, le Banc a son propre onglet ; lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ;
-  « Suivant » reste collé au-dessus des onglets (`.action-collee`) ; toutes les cibles font au moins 44 px.
-- **Sobriété** : aucune animation en boucle, animations ≤ 180 ms sur `transform` / `opacity`
-  (sauf le balayage de l'aiguille, une fois) ; `prefers-reduced-motion` respecté.
-- **Contrastes** vérifiés WCAG : AAA pour le texte dans les deux matières, AA minimum pour les couleurs d'état.
+- **Fond et surfaces** : noir `#000` (économe sur OLED), cartes `--surface` `#111113`, boutons `--surface-2`, filets d'un pixel
+  (`--filet`, blanc à 8 %). Thème **clair** pour le plein soleil (identifiant `porcelaine`, gardé pour la compatibilité des sauvegardes).
+- **Typographie** : Archivo (grotesque grasse, interlettrage serré) pour tout le texte ; JetBrains Mono pour les mesures, les unités
+  et l'afficheur. Grands titres et grands chiffres en **dégradé métallique** (`--metal`). Passer tout texte de contenu par `typo()`.
+- **La couleur porte un sens, jamais une décoration** :
+  - états : `--juste` vert, `--faux` rouge, `--attention` ambre ; action principale = pastille claire, texte noir ;
+  - identité des modes : une **lueur de couleur** dans le coin de chaque carte (turquoise Banc, rouge Cas de panne, bleu Calculs, ambre Reconnaissance) ;
+  - domaines : **repères de gaine** aux couleurs réelles des conducteurs.
+- **Formes** : cartes à grands rayons (22 px), boutons 14 px, en-tête et onglets translucides (flou d'arrière-plan).
+- **Ergonomie** : lecture en haut, actions dans la zone du pouce (`.pousse-bas`) ; « Suivant » collé au-dessus des onglets (`.action-collee`) ;
+  cibles d'au moins 44 px.
+- **Sobriété** : aucune animation en boucle, animations ≤ 180 ms sur `transform` / `opacity` (sauf le balayage de l'aiguille, une fois) ;
+  `prefers-reduced-motion` respecté.
+- **Contrastes** vérifiés WCAG : AA minimum partout, AAA pour le texte principal, dans les deux thèmes.
 
 ## Domaines techniques (`js/domaines.js`)
 

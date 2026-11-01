@@ -1,4 +1,5 @@
-// Matière d'affichage : Bakélite (sombre, par défaut, économe sur OLED) ou Porcelaine (claire, plein soleil).
+// Thème d'affichage : sombre (par défaut, noir OLED) ou clair (plein soleil).
+// Les identifiants enregistrés restent 'bakelite' / 'porcelaine' pour la compatibilité des sauvegardes.
 
 import * as stockage from './storage.js';
 

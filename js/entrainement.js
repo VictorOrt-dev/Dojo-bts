@@ -50,22 +50,22 @@ export function renderEntrainement({ vue, definirTitre }) {
     ${carteNiveau()}
 
     <nav class="modes pousse-bas" aria-label="Modes d'entraînement">
-      <a class="mode" href="#/entrainement/banc">
+      <a class="mode mode-banc" href="#/entrainement/banc">
         <span class="mode-bouton">A</span>
         <span><span class="mode-titre">Banc de mesure</span><span class="mode-desc">Panne cachée sur un départ moteur · multimètre, LoZ, pince, consignation</span></span>
         <span class="mode-record">${bancsReussis()}</span>
       </a>
-      <a class="mode" href="#/entrainement/panne">
+      <a class="mode mode-panne" href="#/entrainement/panne">
         <span class="mode-bouton">B</span>
         <span><span class="mode-titre">Cas de panne</span><span class="mode-desc">Interventions pas à pas, de la VAT au poste HTA · par domaine</span></span>
         <span class="mode-record">${casSansFaute()}</span>
       </a>
-      <a class="mode" href="#/entrainement/calcul">
+      <a class="mode mode-calcul" href="#/entrainement/calcul">
         <span class="mode-bouton">C</span>
         <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">La valeur à lire avant de mesurer · par domaine et par niveau</span></span>
         <span class="mode-record">${record('calcul')}</span>
       </a>
-      <a class="mode" href="#/entrainement/reco">
+      <a class="mode mode-reco" href="#/entrainement/reco">
         <span class="mode-bouton">D</span>
         <span><span class="mode-titre">Reconnaissance</span><span class="mode-desc">Symboles IEC, matériel, repérages · par domaine et par niveau</span></span>
         <span class="mode-record">${record('reco')}</span>

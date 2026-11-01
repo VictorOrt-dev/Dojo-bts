@@ -61,13 +61,13 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('02', 'Matière')}
+      ${titreSection('02', 'Affichage')}
       <div class="corps">
-        <div class="selecteur" role="group" aria-label="Matière d'affichage">
-          <button type="button" data-theme="bakelite" aria-pressed="${theme === 'bakelite'}">Bakélite</button>
-          <button type="button" data-theme="porcelaine" aria-pressed="${theme === 'porcelaine'}">Porcelaine</button>
+        <div class="selecteur" role="group" aria-label="Thème d'affichage">
+          <button type="button" data-theme="bakelite" aria-pressed="${theme === 'bakelite'}">Sombre</button>
+          <button type="button" data-theme="porcelaine" aria-pressed="${theme === 'porcelaine'}">Clair</button>
         </div>
-        <p class="discret petit espace">Bakélite : sombre, économe sur écran OLED. Porcelaine : claire, lisible en plein soleil.</p>
+        <p class="discret petit espace">Sombre : noir profond, économe sur écran OLED. Clair : lisible en plein soleil.</p>
       </div>
     </section>
 
