@@ -7,6 +7,9 @@ import { deuxChiffres } from './mise-en-page.js';
 import { DIFFICULTES } from './difficulte.js';
 import { esc } from './util.js';
 import { DOMAINES, puceDomaine } from './domaines.js';
+import * as stockage from './storage.js';
+import { prochaineSeance, ordreModes, conseilBanc } from './parcours.js';
+import { chargerPannes } from './panne.js';
 
 export const TAILLE_SESSION = 10;
 export const SEANCE_MIN_BONUS = 5; // bonus « sans faute » : seulement pour une séance d'au moins 5 questions
@@ -36,10 +39,35 @@ function record(mode) {
   return s.sessions ? `${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '';
 }
 
-export function renderEntrainement({ vue, definirTitre }) {
+// Les 4 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
+const MODES = {
+  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur un départ moteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
+  panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la VAT au poste HTA · par domaine', record: () => casSansFaute() },
+  calcul: { titre: 'Calculs flash', desc: 'La valeur à lire avant de mesurer · par domaine et par niveau', record: () => record('calcul') },
+  reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') }
+};
+
+// Carte « Ta prochaine séance » : l'action prioritaire de l'accueil.
+function carteProchaine(p) {
+  const progression = Math.round(p.fait / p.total * 100);
+  return `
+    <a class="prochaine" href="${p.href}">
+      <span class="prochaine-surtitre">Ta prochaine séance</span>
+      <span class="prochaine-titre">${esc(p.titre)}</span>
+      <span class="prochaine-desc">${esc(p.desc)}</span>
+      <span class="prochaine-etape"><span>${esc(p.etape)}</span><span class="prochaine-jauge" aria-hidden="true"><span style="width: ${progression}%"></span></span></span>
+      <span class="prochaine-go" aria-hidden="true">Commencer →</span>
+    </a>`;
+}
+
+export async function renderEntrainement({ vue, definirTitre }) {
   definirTitre('Entraînement');
   const { mot, jour } = salutation();
   const n = niveauPour(lireXP());
+  const etat = stockage.lire();
+  const cas = await chargerPannes().catch(() => []);
+  const prochaine = prochaineSeance(etat, cas);
+  const conseilDuBanc = conseilBanc(etat, cas);
   vue.innerHTML = `
     <header class="salut">
       <p class="salut-date">${esc(jour)}</p>
@@ -47,29 +75,17 @@ export function renderEntrainement({ vue, definirTitre }) {
       <p class="devise">Simulateur de terrain de l'électricien</p>
     </header>
 
+    ${carteProchaine(prochaine)}
+
     ${carteNiveau()}
 
     <nav class="modes pousse-bas" aria-label="Modes d'entraînement">
-      <a class="mode mode-banc" href="#/entrainement/banc">
-        <span class="mode-bouton">A</span>
-        <span><span class="mode-titre">Banc de mesure</span><span class="mode-desc">Panne cachée sur un départ moteur · multimètre, LoZ, pince, consignation</span></span>
-        <span class="mode-record">${bancsReussis()}</span>
-      </a>
-      <a class="mode mode-panne" href="#/entrainement/panne">
-        <span class="mode-bouton">B</span>
-        <span><span class="mode-titre">Cas de panne</span><span class="mode-desc">Interventions pas à pas, de la VAT au poste HTA · par domaine</span></span>
-        <span class="mode-record">${casSansFaute()}</span>
-      </a>
-      <a class="mode mode-calcul" href="#/entrainement/calcul">
-        <span class="mode-bouton">C</span>
-        <span><span class="mode-titre">Calculs flash</span><span class="mode-desc">La valeur à lire avant de mesurer · par domaine et par niveau</span></span>
-        <span class="mode-record">${record('calcul')}</span>
-      </a>
-      <a class="mode mode-reco" href="#/entrainement/reco">
-        <span class="mode-bouton">D</span>
-        <span><span class="mode-titre">Reconnaissance</span><span class="mode-desc">Symboles IEC, matériel, repérages · par domaine et par niveau</span></span>
-        <span class="mode-record">${record('reco')}</span>
-      </a>
+      ${ordreModes(etat.profil).map((id, i) => `
+      <a class="mode mode-${id}" href="#/entrainement/${id}">
+        <span class="mode-bouton">${'ABCD'[i]}</span>
+        <span><span class="mode-titre">${MODES[id].titre}</span><span class="mode-desc">${MODES[id].desc}</span>${id === 'banc' && conseilDuBanc ? `<span class="conseil">${esc(conseilDuBanc)}</span>` : ''}</span>
+        <span class="mode-record">${MODES[id].record()}</span>
+      </a>`).join('')}
     </nav>
 
     <details class="notice">

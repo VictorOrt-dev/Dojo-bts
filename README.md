@@ -40,13 +40,17 @@ Pour relancer à la main (ex. après avoir changé le réglage Pages) : onglet A
 index.html              coquille : barre du haut, zone #vue, onglets Entraînement · Banc · Carnet
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
 css/style.css           tout le style ; jetons des thèmes sombre et clair en tête de fichier
-sw.js                   service worker : mode hors connexion (réseau d'abord, cache en secours) — liste FICHIERS à tenir à jour
+sw.js                   service worker : cache d'abord en production (version injectée au déploiement), réseau d'abord en dev — liste FICHIERS à tenir à jour
 js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/banc, /panne, /calcul, /reco, #/profil
                         (anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… → accueil)
 js/storage.js           SEUL fichier qui touche localStorage (clé "elec-learning:v1", reprend l'ancienne clé "dojo:v1")
 js/sauvegarde.js        contrôle strict des données (import refusé à la moindre anomalie, stockage local nettoyé au démarrage)
 js/profil.js            progression, export/import, remise à zéro
-js/entrainement.js      accueil (Entraînement), plaque de l'opérateur, en-tête de séance, rapport, toast
+js/entrainement.js      accueil : « Ta prochaine séance », modes dans l'ordre du profil, carte de l'opérateur ; en-tête de séance, rapport, toast
+js/parcours.js          parcours guidé, logique pure : profils, prochaine séance, mentions « Conseillé après… », règle du positionnement
+js/bienvenue.js         premier lancement : « Où en es-tu ? » (3 profils)
+js/positionnement.js    test de positionnement (10 questions, sans XP)
+js/mise-a-jour.js       enregistrement du service worker, bandeau « Nouvelle version prête »
 js/domaines.js          les 5 domaines techniques, repères couleur, filtre (barreDomaines), puces
 js/tuteur.js            blocs communs de correction : « le risque, en vrai » et référence normative
 js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées, filtre par domaine)
@@ -91,14 +95,16 @@ node tests/lancer.mjs
 ```
 
 On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
-`node tests/lancer.mjs non-regression` ou `node tests/lancer.mjs banc`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+`node tests/lancer.mjs non-regression`, `banc`, `parcours` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
 
 | Fichier | Contenu |
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, `__proto__`, nettoyage au démarrage |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
+| `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
+| `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
 | `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
@@ -122,7 +128,8 @@ modifier `PLAYWRIGHT_VERSION` dans le workflow.
 - **Langue.** Interface en français, tutoiement. Noms de variables et fonctions en français.
 - **Normes.** Repérage : l'app indique les deux (IEC 81346 `-QA1`, `-KF1`… et usage français `Q1`, `KM1`…). _Noter ici celui de ton référentiel._ Symboles : IEC 60617. Unités SI, virgule décimale dans les textes.
 - **Cache GitHub Pages (10 min).** Juste après une mise en ligne, le téléphone peut mélanger anciens et nouveaux fichiers JS. Pour une nouvelle fonction partagée, préférer un nouveau fichier plutôt qu'ajouter un export à un fichier existant.
-- **Mode hors ligne.** Tout nouveau fichier (JS, données, image, police) doit être ajouté à la liste `FICHIERS` de `sw.js` ; les tests le vérifient. Pas de numéro de version à changer.
+- **Mode hors ligne.** Tout nouveau fichier (JS, données, image, police) doit être ajouté à la liste `FICHIERS` de `sw.js` ; les tests le vérifient.
+  Ne jamais modifier la ligne `const VERSION = 'dev';` : le déploiement la remplace par le commit publié.
 - **Une fonctionnalité par demande à l'IA, un commit Git dès que ça marche.**
 
 ## Charte « Graphite »
@@ -143,6 +150,37 @@ Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphi
 - **Sobriété** : aucune animation en boucle, animations ≤ 180 ms sur `transform` / `opacity` (sauf le balayage de l'aiguille, une fois) ;
   `prefers-reduced-motion` respecté.
 - **Contrastes** vérifiés WCAG : AA minimum partout, AAA pour le texte principal, dans les deux thèmes.
+
+## Hors connexion et mises à jour (`sw.js`, `js/mise-a-jour.js`)
+
+- **En production : « cache d'abord ».** Chaque fichier est servi depuis le cache du téléphone, sans attendre le réseau :
+  l'app s'ouvre en une fraction de seconde, même en sous-sol, quand le réseau affiche des barres mais ne répond pas
+  (mesuré : environ 0,1 s, contre 15,4 s avec l'ancienne stratégie « réseau d'abord », pour un réseau à 8 s par requête).
+- **Mises à jour atomiques.** Le déploiement injecte le commit dans `VERSION` : à chaque mise en ligne, le téléphone télécharge
+  **tous** les fichiers d'un bloc dans un cache neuf (tout ou rien), en arrière-plan. La nouvelle version attend : un bandeau
+  « Nouvelle version prête · Recharger » la propose, sans jamais couper une séance ; sinon elle s'applique au prochain lancement
+  à froid. Jamais de mélange d'anciens et de nouveaux fichiers. L'ancien cache est supprimé à l'activation.
+- **En développement** (`VERSION = 'dev'`, serveur local) : « réseau d'abord », pour voir ses modifications aussitôt.
+- La toute première ouverture demande du réseau (rien n'est encore en cache).
+
+## Parcours guidé (`js/parcours.js`)
+
+- **Premier lancement** (ni profil ni progression) : écran « Où en es-tu ? » à 3 choix, enregistré dans `profil`
+  (`debutant`, `formation`, `confirme`), modifiable dans le Carnet. Un utilisateur qui a déjà joué n'y est jamais renvoyé.
+- **« Ta prochaine séance »**, en tête de l'accueil : la première étape du parcours pas encore acquise.
+
+  | Profil | Parcours (R = Reconnaissance, C = Calculs, P = Cas de panne, B = Banc, T = positionnement) | Ordre des modes |
+  |---|---|---|
+  | Débutant | R1 → C1 → P1 → B → R2 → C2 → P2 → R3 → C3 → P3 | Reconnaissance, Calculs, Cas, Banc |
+  | En formation | R1 → C1 → R2 → C2 → P1 → B → P2 → R3 → C3 → P3 | idem |
+  | Confirmé | T → B → P2 → C2 → P3 → C3 → R3 → … | Banc, Cas, Calculs, Reconnaissance |
+
+  Une étape est acquise à 80 % sur une séance « tous domaines » (Reconnaissance, Calculs), par un cas réussi sans faute
+  (Cas de panne), par une panne réussie sans faute (Banc), ou par le test de positionnement.
+- **Déblocage souple, jamais de verrou.** Niveaux II et III, domaine HTA, et le Banc pour un débutant portent une mention
+  « Conseillé après… » tant que le niveau précédent n'est pas acquis ; ils restent ouvrables d'un toucher.
+- **Test de positionnement** (10 questions : 3 de niveau I, 4 de niveau II, 3 de niveau III ; sans XP) : valide d'office
+  les niveaux maîtrisés (2/3, 3/4, 2/3 requis, chaque niveau exigeant les précédents). Proposé en premier aux confirmés.
 
 ## Domaines techniques (`js/domaines.js`)
 
@@ -315,6 +353,9 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Pivot « simulateur de terrain » : fiches de cours retirées, 5 domaines techniques, risque et norme sur chaque exercice,
       nouveaux contenus TBT & CC, Sécurité (consignation / VAT) et HTA (DGPT2, couplage Dyn11, sectionneur de terre)
 - [x] Contenu « niveau expert » : 12 questions, 7 calculs, 6 cas de panne ; plus aucune case vide niveau × domaine × mode
+- [x] Audit UX, chantier 4 : service worker « cache d'abord » versionné, mises à jour atomiques
+- [x] Audit UX, chantier 1 : premier lancement, « Ta prochaine séance », déblocage souple, test de positionnement
+- [ ] Audit UX, chantiers 2 et 3 : banc sous le pouce, correction en deux temps et textes ≥ 12 px
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)

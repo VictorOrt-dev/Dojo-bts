@@ -12,6 +12,8 @@ import { melanger } from './hasard.js';
 import { esc } from './util.js';
 import { domaine, filtrerParDomaine, pucesDomaines, barreDomaines } from './domaines.js';
 import { blocRisque, ligneNorme } from './tuteur.js';
+import { conseilCas } from './parcours.js';
+import * as stockage from './storage.js';
 
 // suite : le choix permet-il de passer à l'étape suivante ?
 const VERDICTS = {
@@ -68,6 +70,7 @@ function afficherListe(vue, tousLesCas, dom) {
             <div>
               <p class="ligne-meta">${pucesDomaines(c.domaines)}${etiquetteNiveau(c.niveau)}</p>
               <h2 class="ligne-titre">${esc(typo(c.titre))}</h2>
+              ${(m => m ? `<p class="conseil">${esc(m)}</p>` : '')(conseilCas(stockage.lire(), c, tousLesCas))}
             </div>
             <span class="ligne-fin">${etat(c.id)}</span>
           </a>`).join('')}

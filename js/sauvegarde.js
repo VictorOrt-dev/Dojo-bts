@@ -10,6 +10,7 @@
 export const VERSION = 1;
 export const MODES = ['reco', 'calcul', 'panne', 'banc'];
 export const MATIERES = ['bakelite', 'porcelaine'];
+export const PROFILS = ['debutant', 'formation', 'confirme'];
 export const XP_MAX = 10_000_000;      // très au-delà du dernier rang (3 000 XP) : au-delà, c'est une donnée trafiquée
 export const TAILLE_MAX = 2_000_000;   // octets : une vraie sauvegarde fait quelques dizaines de Ko
 const ID_MAX = 100;                    // longueur maximale d'un identifiant de question, de calcul ou de panne
@@ -21,7 +22,9 @@ export function etatParDefaut() {
     xp: 0,
     stats: {},               // résultats des exercices, par mode
     derniereSauvegarde: null, // horodatage du dernier export
-    preferences: { matiere: 'bakelite' }
+    preferences: { matiere: 'bakelite' },
+    profil: null,            // 'debutant' | 'formation' | 'confirme' ; null = premier lancement pas encore fait
+    positionnement: null     // { niveau: 0 à 3, score: 0 à 10, date } : résultat du test de positionnement
   };
 }
 
@@ -117,6 +120,19 @@ export function controler(donnees) {
       if (MATIERES.includes(donnees.preferences.matiere)) etat.preferences.matiere = donnees.preferences.matiere;
       else anomalies.push(`preferences.matiere doit valoir ${MATIERES.join(' ou ')}`);
     }
+  }
+
+  if (donnees.profil !== undefined && donnees.profil !== null) {
+    if (PROFILS.includes(donnees.profil)) etat.profil = donnees.profil;
+    else anomalies.push(`profil doit valoir ${PROFILS.join(', ')}`);
+  }
+
+  if (donnees.positionnement !== undefined && donnees.positionnement !== null) {
+    const p = donnees.positionnement;
+    if (estObjet(p) && Number.isSafeInteger(p.niveau) && p.niveau >= 0 && p.niveau <= 3
+      && Number.isSafeInteger(p.score) && p.score >= 0 && p.score <= 10 && estHorodatage(p.date)) {
+      etat.positionnement = { niveau: p.niveau, score: p.score, date: p.date };
+    } else anomalies.push('positionnement : attendu { niveau 0 à 3, score 0 à 10, date }');
   }
 
   return { etat, anomalies };

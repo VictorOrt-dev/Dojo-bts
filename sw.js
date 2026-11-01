@@ -1,11 +1,22 @@
-// Service worker d'Elec learning : l'app fonctionne hors connexion (atelier, sous-sol, transports).
-// Stratégie « réseau d'abord » : en ligne, on reçoit toujours la dernière version publiée (pas de numéro
-// de version à penser à changer) ; hors ligne, ou si le réseau met plus de 3 s, on sert la copie en cache.
-// Tous les fichiers sont mis en cache dès l'installation, pour que chaque écran marche hors ligne.
+// Service worker d'Elec learning : l'app s'ouvre instantanément, même en sous-sol ou en zone blanche.
+//
+// EN PRODUCTION (VERSION injectée par le déploiement, .github/workflows/test.yml) : « cache d'abord ».
+//   - Chaque fichier de l'app est servi depuis le cache local, sans attendre le réseau : ouverture immédiate,
+//     même quand le réseau répond mal (barres affichées, réseau inutilisable).
+//   - Chaque mise en ligne change VERSION, donc le contenu de sw.js : le navigateur installe la nouvelle version
+//     EN ARRIÈRE-PLAN, télécharge TOUS les fichiers d'un bloc dans un cache neuf (cache.addAll : tout ou rien),
+//     puis attend. Jamais de mélange d'anciens et de nouveaux fichiers.
+//   - La nouvelle version prend la main quand l'utilisateur touche « Recharger » sur le bandeau de mise à jour
+//     (js/mise-a-jour.js), ou d'elle-même au prochain lancement à froid de l'app.
+// EN DÉVELOPPEMENT (VERSION = 'dev', serveur local) : « réseau d'abord », pour voir ses modifications aussitôt ;
+//   la copie en cache ne sert que si le réseau ne répond pas en 3 s.
+//
 // Ajouter un fichier à l'app = l'ajouter aussi dans FICHIERS (les tests automatiques le vérifient).
 
-const CACHE = 'elec-learning';
-const DELAI_RESEAU = 3000; // ms
+const VERSION = 'dev';
+const CACHE = `elec-learning-${VERSION}`;
+const PRODUCTION = VERSION !== 'dev';
+const DELAI_RESEAU = 3000; // ms, développement seulement
 
 const FICHIERS = [
   './',
@@ -15,14 +26,18 @@ const FICHIERS = [
   'js/app.js',
   'js/atelier.js',
   'js/banc.js',
+  'js/bienvenue.js',
   'js/calcul.js',
   'js/circuit.js',
   'js/difficulte.js',
   'js/domaines.js',
   'js/entrainement.js',
   'js/hasard.js',
+  'js/mise-a-jour.js',
   'js/mise-en-page.js',
   'js/panne.js',
+  'js/parcours.js',
+  'js/positionnement.js',
   'js/profil.js',
   'js/quiz.js',
   'js/sauvegarde.js',
@@ -73,26 +88,44 @@ const FICHIERS = [
 
 self.addEventListener('install', ev => {
   // cache: 'reload' : ne pas reprendre une copie périmée du cache HTTP du navigateur.
+  // Si un seul fichier manque, l'installation échoue et l'ancienne version reste en service.
   ev.waitUntil(
     caches.open(CACHE)
       .then(cache => cache.addAll(FICHIERS.map(f => new Request(f, { cache: 'reload' }))))
-      .then(() => self.skipWaiting())
+      .then(() => { if (!PRODUCTION) return self.skipWaiting(); })
   );
 });
 
 self.addEventListener('activate', ev => {
   ev.waitUntil(
     caches.keys()
-      .then(cles => Promise.all(cles.filter(c => c !== CACHE).map(c => caches.delete(c))))
+      .then(cles => Promise.all(cles.filter(c => c.startsWith('elec-learning') && c !== CACHE).map(c => caches.delete(c))))
       .then(() => self.clients.claim())
   );
+});
+
+// Le bandeau « Nouvelle version prête » demande d'activer la version en attente.
+self.addEventListener('message', ev => {
+  if (ev.data === 'activer') self.skipWaiting();
 });
 
 self.addEventListener('fetch', ev => {
   const requete = ev.request;
   if (requete.method !== 'GET' || new URL(requete.url).origin !== location.origin) return;
-  ev.respondWith(reseauDabord(requete));
+  ev.respondWith(PRODUCTION ? cacheDabord(requete) : reseauDabord(requete));
 });
+
+async function cacheDabord(requete) {
+  const cache = await caches.open(CACHE);
+  // ignoreSearch : css/style.css?v=7 retrouve css/style.css ; une navigation retrouve la page de l'app.
+  const copie = await cache.match(requete, { ignoreSearch: true })
+    ?? (requete.mode === 'navigate' ? await cache.match('./') : undefined);
+  if (copie) return copie;
+  // Hors de l'app (fichier non listé) : réseau, gardé en cache pour la prochaine fois.
+  const reponse = await fetch(requete);
+  if (reponse.ok) cache.put(requete, reponse.clone());
+  return reponse;
+}
 
 async function reseauDabord(requete) {
   const cache = await caches.open(CACHE);
@@ -106,7 +139,6 @@ async function reseauDabord(requete) {
       new Promise((_, refus) => setTimeout(() => refus(new Error('réseau trop lent')), DELAI_RESEAU))
     ]);
   } catch {
-    // ignoreSearch : css/style.css?v=6 retrouve css/style.css en cache.
     const copie = await cache.match(requete, { ignoreSearch: true });
     if (copie) {
       reseau.catch(() => {}); // la réponse réseau, si elle finit par arriver, met juste le cache à jour

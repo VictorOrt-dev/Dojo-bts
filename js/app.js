@@ -1,6 +1,6 @@
 // Point d'entrée : routeur par hash.
 //   #/entrainement (accueil)  #/entrainement/reco  #/entrainement/calcul  #/entrainement/panne  #/entrainement/banc
-//   #/profil (Carnet). Anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… (module retiré) → accueil.
+//   #/entrainement/positionnement  #/bienvenue (premier lancement)  #/profil (Carnet). Anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… (module retiré) → accueil.
 // Chaque écran est une fonction render*(ctx) qui remplit l'élément #vue.
 
 import { renderProfil } from './profil.js';
@@ -9,11 +9,16 @@ import { renderReco } from './quiz.js';
 import { renderCalcul } from './calcul.js';
 import { renderPanne } from './panne.js';
 import { renderBanc } from './banc.js';
+import { renderBienvenue } from './bienvenue.js';
+import { renderPositionnement } from './positionnement.js';
+import { premierLancement } from './parcours.js';
 import { appliquerTheme } from './theme.js';
 import * as stockage from './storage.js';
 import { esc } from './util.js';
+import { activerHorsConnexion } from './mise-a-jour.js';
 
-const vue = document.getElementById('vue');
+let vue = document.getElementById('vue');
+let navigation = 0;            // numéro de la navigation en cours (voir router)
 const titre = document.getElementById('titre');
 const boutonRetour = document.getElementById('retour');
 let navigationInterne = false; // vrai dès qu'on a navigué dans l'app : "Retour" peut alors utiliser l'historique
@@ -36,7 +41,7 @@ function pageParente({ page, id }) {
   return null;
 }
 
-function renderErreur(err) {
+function renderErreur(err, vue) {
   definirTitre('Oups');
   const fichierLocal = location.protocol === 'file:';
   vue.innerHTML = `
@@ -62,11 +67,19 @@ async function router() {
   boutonRetour.hidden = !pageParente(route);
   window.scrollTo(0, 0);
 
-  const ctx = { vue, definirTitre, id, params, auNettoyage: f => nettoyages.push(f) };
+  // Chaque navigation dessine dans son propre écran, qui ne remplace l'écran affiché qu'une fois prêt ET seulement
+  // s'il est toujours d'actualité : un écran lent à charger (données) ne s'affiche jamais par-dessus le suivant.
+  const jeton = ++navigation;
+  const ecran = vue.cloneNode(false);
+  const ctx = { vue: ecran, definirTitre, id, params, auNettoyage: f => nettoyages.push(f) };
   try {
     switch (page) {
+      case 'bienvenue': renderBienvenue(ctx); break;
       case 'entrainement':
-        if (!id) renderEntrainement(ctx);
+        // Premier lancement : « Où en es-tu ? » avant l'accueil.
+        if (!id && premierLancement(stockage.lire())) { location.replace('#/bienvenue'); break; }
+        if (!id) await renderEntrainement(ctx);
+        else if (id === 'positionnement') await renderPositionnement(ctx);
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
         else if (id === 'panne') await renderPanne(ctx);
@@ -80,7 +93,12 @@ async function router() {
       default: location.replace('#/entrainement');
     }
   } catch (err) {
-    renderErreur(err);
+    renderErreur(err, ecran);
+  }
+  if (jeton === navigation && ecran.hasChildNodes()) {
+    vue.replaceWith(ecran);
+    vue = ecran;
+    window.scrollTo(0, 0);
   }
 }
 
@@ -98,7 +116,5 @@ appliquerTheme();
 stockage.demanderPersistance();
 router();
 
-// Mode hors ligne (voir sw.js). Ignoré si le navigateur ne le permet pas ou si l'app est ouverte en fichier local.
-if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('sw.js').catch(err => console.warn('Mode hors ligne indisponible :', err));
-}
+// Mode hors ligne et mises à jour (voir sw.js et mise-a-jour.js).
+activerHorsConnexion();

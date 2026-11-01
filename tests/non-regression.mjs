@@ -135,7 +135,7 @@ export default async function ({ t, url: U, navigateur }) {
     }
     await p.waitForSelector('.bilan');
   };
-  await p.click('a[href="#/entrainement/reco"]'); await p.waitForSelector('a[href="#/entrainement/reco?n=1"]');
+  await p.click('a.mode-reco'); await p.waitForSelector('.filtres-domaines');
   t.ok(await p.locator('.modes .mode').count() === 3, 'écran de choix : 3 niveaux proposés');
   await p.click('a[href="#/entrainement/reco?n=1"]');
   t.ok((await p.textContent('.niveau-seance')).includes('Fondations'), 'le niveau de la séance est affiché');
@@ -294,7 +294,7 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(manifeste.name === 'Elec learning' && manifeste.short_name === 'Elec learning', 'manifeste : Elec learning');
   await p.goto(U + '#/dojo/reco?n=2'); await p.waitForTimeout(400);
   t.ok(p.url().endsWith('#/entrainement/reco?n=2') && await p.isVisible('.choix-btn'), 'ancien lien #/dojo/reco?n=2 redirigé');
-  const { contexte: ctx2, page: p2 } = await nouvellePage(navigateur);
+  const { contexte: ctx2, page: p2 } = await nouvellePage(navigateur, { profil: null });
   await ctx2.addInitScript(() => { if (!sessionStorage.getItem('fait')) { sessionStorage.setItem('fait', 1); localStorage.setItem('dojo:v1', JSON.stringify({ version: 1, xp: 777, fichesVues: {}, stats: {} })); } });
   await p2.goto(U); await p2.waitForSelector('.plaque');
   const cles = await p2.evaluate(() => ({ nouv: JSON.parse(localStorage.getItem('elec-learning:v1') || '{}').xp, anc: localStorage.getItem('dojo:v1') }));
@@ -371,7 +371,7 @@ async function importSecurise(t, U, navigateur, dossierTemp) {
   t.ok(somme === 310, `après les tentatives, gagner 10 XP donne ${JSON.stringify(somme)} (une addition, pas « 30010 »)`);
 
   // Démarrage avec un stockage local abîmé : l'app nettoie et démarre.
-  await p.evaluate(() => localStorage.setItem('elec-learning:v1', JSON.stringify({ version: 1, xp: '100', fichesVues: { ok: 1761900000000 }, stats: { reco: 'abîmé' }, preferences: { matiere: 'porcelaine' } })));
+  await p.evaluate(() => localStorage.setItem('elec-learning:v1', JSON.stringify({ version: 1, xp: '100', fichesVues: { ok: 1761900000000 }, stats: { reco: 'abîmé' }, preferences: { matiere: 'porcelaine' }, profil: 'formation' })));
   await p.goto(U + '#/entrainement'); await p.reload(); await p.waitForSelector('.plaque');
   const apres = await p.evaluate(async () => { const xp = await import('/js/xp.js'); xp.gagnerXP(10); return { xp: xp.lireXP(), theme: document.documentElement.dataset.theme }; });
   t.ok(apres.xp === 10 && apres.theme === 'porcelaine', 'stockage local abîmé : l\'app démarre, xp remis à 0 puis +10 = 10, le reste (thème) est gardé');

@@ -6,10 +6,12 @@ import path from 'node:path';
 import { RACINE } from './outils.mjs';
 import { tension, resistance } from '../js/circuit.js';
 import { controler, etatParDefaut, XP_MAX } from '../js/sauvegarde.js';
+import * as P from '../js/parcours.js';
 
 export default async function ({ t }) {
   physiqueDuBanc(t);
   controleDesSauvegardes(t);
+  parcoursGuide(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -76,7 +78,9 @@ function controleDesSauvegardes(t) {
       banc: { sessions: 1, meilleurScore: 1, derniereSession: null, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } }
     },
     derniereSauvegarde: 1761900000000,
-    preferences: { matiere: 'porcelaine' }
+    preferences: { matiere: 'porcelaine' },
+    profil: 'formation',
+    positionnement: { niveau: 2, score: 8, date: 1761900000000 }
   };
   const r = controler(valide);
   t.ok(r.anomalies.length === 0 && isDeepStrictEqual(r.etat, valide), 'sauvegarde conforme : acceptée telle quelle');
@@ -102,6 +106,9 @@ function controleDesSauvegardes(t) {
   refuse({ version: 1, stats: { banc: { derniereSession: 'hier' } } }, 'derniereSession', 'date de séance en texte');
   refuse({ version: 1, derniereSauvegarde: 'hier' }, 'derniereSauvegarde', 'date de sauvegarde en texte');
   refuse({ version: 1, preferences: { matiere: '<img src=x onerror=alert(1)>' } }, 'matiere', 'thème inconnu (injection)');
+  refuse({ version: 1, profil: 'expert' }, 'profil', 'profil inconnu');
+  refuse({ version: 1, positionnement: { niveau: 5, score: 8, date: 1 } }, 'positionnement', 'niveau de positionnement hors de 0 à 3');
+  refuse({ version: 1, positionnement: { niveau: 2, score: '8', date: 1 } }, 'positionnement', 'score de positionnement en texte');
   refuse({ version: 1, stats: { reco: { elements: { ['x'.repeat(500)]: { essais: 1, reussites: 1 } } } } }, 'clé', 'identifiant démesuré');
 
   // Pollution de prototype : JSON.parse crée une vraie clé « __proto__ ».
@@ -126,4 +133,51 @@ function controleDesSauvegardes(t) {
     && Object.keys(abime.etat.stats.reco.elements).join() === 'q', 'nettoyage : seuls les champs abîmés reprennent leur valeur par défaut');
   const apres = abime.etat.xp + 10;
   t.ok(typeof apres === 'number' && apres === 10, 'après contrôle, xp + 10 est une addition (plus de concaténation « 100 » + 10)');
+}
+
+// ---------- Parcours guidé (parcours.js, logique pure) ----------
+
+function parcoursGuide(t) {
+  t.section('U3. Parcours guidé (parcours.js)');
+  const cas = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/pannes.json'), 'utf8'));
+  const etat = (autres = {}) => ({ ...etatParDefaut(), ...autres });
+  const reco = n => ({ reco: { sessions: 1, meilleurScore: 9, derniereSession: 1, elements: {}, niveaux: { [n]: 9 } } });
+
+  t.ok(P.premierLancement(etat()) && !P.premierLancement(etat({ profil: 'debutant' })) && !P.premierLancement(etat({ xp: 40 }))
+    && !P.premierLancement(etat({ stats: reco(1) })), 'premier lancement : seulement sans profil ET sans progression (un ancien utilisateur n\'est pas renvoyé à l\'accueil)');
+
+  const d = etat({ profil: 'debutant' });
+  const suite = [];
+  let e = d;
+  // On acquiert les étapes une à une et on relève la recommandation à chaque fois.
+  const acquerir = (x, code) => {
+    const stats = structuredClone(x.stats);
+    if (code === 'B') stats.banc = { sessions: 1, meilleurScore: 1, derniereSession: 1, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } };
+    else if (code[0] === 'P') { const c = cas.find(k => k.niveau === Number(code[1])); stats.panne ??= { sessions: 0, meilleurScore: 0, derniereSession: null, elements: {} }; stats.panne.elements[c.id] = { essais: 1, reussites: 1 }; }
+    else { const m = code[0] === 'R' ? 'reco' : 'calcul'; stats[m] ??= { sessions: 0, meilleurScore: 0, derniereSession: null, elements: {}, niveaux: {} }; stats[m].niveaux[code[1]] = 8; }
+    return { ...x, stats };
+  };
+  for (let i = 0; i < 11; i++) { const p = P.prochaineSeance(e, cas); suite.push(p.code); if (p.code === 'libre') break; e = acquerir(e, p.code); }
+  t.ok(suite.join(' ') === 'R1 C1 P1 B R2 C2 P2 R3 C3 P3 libre', `parcours Débutant : ${suite.join(' → ')}`);
+  t.ok(P.prochaineSeance(d, cas).href === '#/entrainement/reco?n=1' && P.ordreModes('debutant').join() === 'reco,calcul,panne,banc',
+    'débutant : première séance Reconnaissance niveau I ; accueil ordonné Reconnaissance → Calculs → Cas → Banc');
+  t.ok(P.ordreModes('confirme')[0] === 'banc' && P.prochaineSeance(etat({ profil: 'confirme' }), cas).code === 'T', 'confirmé : le banc en premier, et la première recommandation est le test de positionnement');
+  t.ok(P.prochaineSeance(etat({ stats: reco(1) }), cas).code === 'C1', 'reconnaissance niveau I à 80 % : la séance suivante passe aux calculs');
+  const p1 = P.prochaineSeance(acquerir(acquerir(d, 'R1'), 'C1'), cas);
+  t.ok(p1.code === 'P1' && !cas.find(c => p1.href.endsWith(encodeURIComponent(c.id))).domaines.includes('hta'), 'premier cas de panne proposé : un cas de niveau I hors HTA');
+
+  t.ok(P.conseilNiveau(d, 'reco', 1) === null && /80 % au niveau I/.test(P.conseilNiveau(d, 'reco', 2)) && /niveau II/.test(P.conseilNiveau(d, 'calcul', 3)),
+    'mentions : niveau I libre, niveau II « conseillé après 80 % au niveau I », niveau III après le II');
+  t.ok(P.conseilNiveau(etat({ stats: reco(1) }), 'reco', 2) === null, 'niveau I acquis : plus de mention sur le niveau II');
+  t.ok(/expert/.test(P.conseilNiveau(d, 'reco', 1, { domaine: 'hta' })), 'domaine HTA : mention « domaine expert » même au niveau I tant que le II n\'est pas acquis');
+  const hta = cas.find(c => c.domaines.includes('hta') && c.niveau === 1);
+  t.ok(/HTA/.test(P.conseilCas(d, hta, cas)) && P.conseilCas(d, cas.find(c => c.niveau === 1 && !c.domaines.includes('hta')), cas) === null, 'cas de panne : HTA mentionné, niveau I hors HTA libre');
+  t.ok(P.conseilBanc(d, cas) && P.conseilBanc(etat({ profil: 'confirme' }), cas) === null, 'banc : conseillé après un premier cas réussi (sauf profil confirmé)');
+
+  t.ok(P.niveauValide({ 1: 3, 2: 4, 3: 3 }) === 3 && P.niveauValide({ 1: 2, 2: 3, 3: 0 }) === 2 && P.niveauValide({ 1: 1, 2: 4, 3: 3 }) === 0 && P.niveauValide({ 1: 3, 2: 2, 3: 3 }) === 1,
+    'positionnement : un niveau n\'est validé que si les précédents le sont (3/3·4/4·3/3 → III ; 1/3 → aucun)');
+  const pos = etat({ profil: 'confirme', positionnement: { niveau: 2, score: 8, date: 1 } });
+  t.ok(P.conseilNiveau(pos, 'reco', 3) === null && P.conseilCas(pos, hta, cas) === null && P.prochaineSeance(pos, cas).code === 'B',
+    'positionnement niveau II : mentions levées jusqu\'au niveau III et HTA, parcours repris au banc');
+  t.ok(Object.values(P.COMPOSITION).reduce((a, b) => a + b) === 10, 'test de positionnement : 10 questions');
 }

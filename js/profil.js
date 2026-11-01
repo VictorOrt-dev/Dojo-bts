@@ -6,6 +6,7 @@ import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
 import { frontispice, titreSection, ligneEtat, deuxChiffres } from './mise-en-page.js';
 import { esc, plurielS } from './util.js';
+import { PROFILS } from './parcours.js';
 
 const JOUR = 24 * 60 * 60 * 1000;
 
@@ -61,7 +62,21 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('02', 'Affichage')}
+      ${titreSection('02', 'Ton profil')}
+      <div class="corps">
+        <div class="selecteur selecteur-profil" role="group" aria-label="Profil">
+          ${PROFILS.map(p => `<button type="button" data-profil="${p.id}" aria-pressed="${etat.profil === p.id}">${esc(p.court)}</button>`).join('')}
+        </div>
+        <p class="discret petit espace">Le profil règle l'ordre de ton parcours et de l'accueil. Rien n'est jamais verrouillé.</p>
+        ${etat.positionnement
+          ? ligneEtat('ok', `Positionnement : ${etat.positionnement.score}/10, ${etat.positionnement.niveau ? `niveau ${['', 'I', 'II', 'III'][etat.positionnement.niveau]} validé` : 'aucun niveau validé d’office'}.`)
+          : ligneEtat('neutre', 'Test de positionnement pas encore passé.')}
+        <div class="actions"><a class="btn" href="#/entrainement/positionnement">${etat.positionnement ? 'Refaire le test de positionnement' : 'Passer le test de positionnement'}</a></div>
+      </div>
+    </section>
+
+    <section>
+      ${titreSection('03', 'Affichage')}
       <div class="corps">
         <div class="selecteur" role="group" aria-label="Thème d'affichage">
           <button type="button" data-theme="bakelite" aria-pressed="${theme === 'bakelite'}">Sombre</button>
@@ -72,7 +87,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section class="sauvegarde">
-      ${titreSection('03', 'Sauvegarde')}
+      ${titreSection('04', 'Sauvegarde')}
       <div class="corps">
         ${ligneEtat(sauvegarde.etat, sauvegarde.texte)}
         <p class="discret petit">Tes données restent sur ce téléphone. Exporte un fichier régulièrement (Fichiers, iCloud, Drive ou mail).</p>
@@ -87,7 +102,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('04', 'Appareil')}
+      ${titreSection('05', 'Appareil')}
       <div class="corps">
         ${estInstallee()
           ? ligneEtat('ok', 'App installée sur l’écran d’accueil.')
@@ -102,7 +117,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('05', 'Remise à zéro')}
+      ${titreSection('06', 'Remise à zéro')}
       <div class="corps">
         <button id="btn-effacer" class="btn danger" type="button">Tout effacer</button>
       </div>
@@ -112,9 +127,14 @@ export async function renderProfil({ vue, definirTitre }) {
     vue.querySelector('#message').innerHTML = ligneEtat(etatMessage, esc(texte));
   };
 
-  vue.querySelectorAll('.selecteur button').forEach(b => b.addEventListener('click', () => {
+  vue.querySelectorAll('[data-profil]').forEach(b => b.addEventListener('click', () => {
+    stockage.modifier(e => { e.profil = b.dataset.profil; });
+    renderProfil({ vue, definirTitre });
+  }));
+
+  vue.querySelectorAll('.selecteur button[data-theme]').forEach(b => b.addEventListener('click', () => {
     changerTheme(b.dataset.theme);
-    vue.querySelectorAll('.selecteur button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    vue.querySelectorAll('.selecteur button[data-theme]').forEach(x => x.setAttribute('aria-pressed', x === b));
   }));
 
   vue.querySelector('#btn-export').addEventListener('click', async () => {

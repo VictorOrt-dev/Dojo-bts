@@ -779,3 +779,72 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .journal li .mono { margin-right: 8px; color: var(--texte-1); }
 .journal li.danger { color: var(--faux); }
 .bilan-score.horloge-bilan { font-size: clamp(48px, 17vw, 76px); white-space: nowrap; }
+
+/* ---------- Bandeau de mise à jour ---------- */
+.bandeau-maj {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 10px);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 576px;
+  margin: 0 auto;
+  padding: 10px 10px 10px 18px;
+  border-radius: 18px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--filet-fort), var(--ombre);
+  font: 600 15px/1.3 var(--texte);
+  animation: entree 180ms ease-out;
+}
+.bandeau-maj .btn { width: auto; min-height: 44px; padding: 0 18px; font-size: 15px; }
+
+/* ---------- Parcours guidé ---------- */
+.prochaine {                              /* « Ta prochaine séance » : l'action prioritaire de l'accueil */
+  position: relative;
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 14px;
+  padding: 18px 20px 20px;
+  border-radius: var(--rayon-carte);
+  background: var(--principal);
+  color: var(--sur-principal);
+  text-decoration: none;
+  transition: transform 90ms ease-out;
+}
+.prochaine:active { transform: scale(.985); }
+.prochaine-surtitre { font: 700 13px/1 var(--texte); opacity: .6; }
+.prochaine-titre { font: 800 26px/1.05 var(--texte); letter-spacing: -.035em; }
+.prochaine-desc { font-size: .95rem; line-height: 1.4; opacity: .75; }
+.prochaine-etape { display: grid; gap: 8px; margin-top: 8px; font: 500 12px/1.3 var(--mono); opacity: .7; }
+.prochaine-jauge { display: block; height: 4px; border-radius: 2px; background: rgb(128 128 128 / .3); overflow: hidden; }
+.prochaine-jauge span { display: block; height: 100%; border-radius: 2px; background: currentColor; }
+.prochaine-go {                           /* pleine largeur, en bas de la carte : sous le pouce */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  margin-top: 12px;
+  border-radius: 14px;
+  background: var(--sur-principal);
+  color: var(--principal);
+  font: 700 16px/1 var(--texte);
+}
+.conseil {                                /* déblocage souple : jamais un verrou, une indication */
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 0;
+  font: 600 13px/1.3 var(--texte);
+  color: var(--attention);
+}
+.conseil::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.choix-profils { padding-top: 10px; }
+.mode-profil { width: 100%; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.mode-profil-debutant { --teinte: rgb(255 170 60 / .42); }
+.mode-profil-formation { --teinte: rgb(90 130 255 / .5); }
+.mode-profil-confirme { --teinte: rgb(44 210 190 / .5); }
+.selecteur-profil { grid-template-columns: repeat(3, 1fr); }

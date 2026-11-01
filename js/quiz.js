@@ -6,6 +6,8 @@ import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annonce
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, ligneNorme } from './tuteur.js';
+import { conseilNiveau } from './parcours.js';
+import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
@@ -46,7 +48,8 @@ export async function renderReco({ vue, definirTitre, params }) {
       sousTitre: 'Symboles IEC, matériel d\'armoire, repérages et réglages : ce que tu dois lire d\'un coup d\'œil devant l\'armoire.',
       nombre: (n, d) => filtrerParDomaine(toutes, d).filter(q => q.niveau === n).length,
       unite: 'planches',
-      domaine: dom
+      domaine: dom,
+      conseil: (n, d) => conseilNiveau(stockage.lire(), 'reco', n, { domaine: d })
     });
     return;
   }

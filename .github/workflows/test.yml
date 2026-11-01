@@ -89,6 +89,16 @@ jobs:
           mkdir _site
           cp -r index.html manifest.webmanifest sw.js .nojekyll css js data fonts img _site/
 
+      # Version de l'app = commit déployé : le service worker change à chaque mise en ligne, le téléphone télécharge
+      # tous les fichiers d'un bloc en arrière-plan et propose « Recharger ». Sans version, l'app resterait en
+      # mode développement (réseau d'abord) : le déploiement échoue plutôt que de publier ça.
+      - name: Injecter la version dans le service worker
+        run: |
+          VERSION="${GITHUB_SHA::12}"
+          sed -i "s/^const VERSION = 'dev';/const VERSION = '$VERSION';/" _site/sw.js
+          grep -q "^const VERSION = '$VERSION';" _site/sw.js || { echo "Version non injectée dans sw.js"; exit 1; }
+          echo "Service worker en version $VERSION"
+
       # Garde-fou : chaque fichier listé dans sw.js (mode hors connexion) doit être présent dans le site.
       - name: Vérifier le site assemblé
         run: |

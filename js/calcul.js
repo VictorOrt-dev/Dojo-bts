@@ -8,6 +8,8 @@ import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annonce
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, ligneNorme } from './tuteur.js';
+import { conseilNiveau } from './parcours.js';
+import * as stockage from './storage.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
 import { typo } from './mise-en-page.js';
@@ -1026,7 +1028,8 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       sousTitre: 'Dix calculs, des valeurs différentes à chaque séance : la valeur que tu dois lire avant de sortir le multimètre. Réponse acceptée à ±2 % (au volt près pour une tension à lire).',
       nombre: (n, d) => generateursDe(n, d).length,
       unite: 'types de calcul',
-      domaine: dom
+      domaine: dom,
+      conseil: (n, d) => conseilNiveau(stockage.lire(), 'calcul', n, { domaine: d })
     });
     return;
   }

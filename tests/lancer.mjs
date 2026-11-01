@@ -2,7 +2,7 @@
 //
 //   node tests/lancer.mjs                    toutes les suites
 //   node tests/lancer.mjs unitaires          sans navigateur (solveur du banc, contrôle des sauvegardes)
-//   node tests/lancer.mjs non-regression banc
+//   node tests/lancer.mjs non-regression banc parcours service-worker
 //
 // Code de sortie : 0 si tout passe, 1 en cas d'échec (utilisable par une intégration continue).
 
@@ -11,7 +11,9 @@ import { creerTesteur, demarrerServeur, chargerPlaywright } from './outils.mjs';
 const SUITES = {
   'unitaires': { fichier: './unitaires.mjs', navigateur: false, titre: 'Tests unitaires (Node)' },
   'non-regression': { fichier: './non-regression.mjs', navigateur: true, titre: 'Non-régression (navigateur iPhone 13)' },
-  'banc': { fichier: './banc.mjs', navigateur: true, titre: 'Parcours du banc de mesure (navigateur iPhone 13)' }
+  'banc': { fichier: './banc.mjs', navigateur: true, titre: 'Parcours du banc de mesure (navigateur iPhone 13)' },
+  'parcours': { fichier: './parcours.mjs', navigateur: true, titre: 'Premier lancement et parcours guidé (navigateur iPhone 13)' },
+  'service-worker': { fichier: './service-worker.mjs', navigateur: true, titre: 'Service worker en production : réseau lent, hors ligne, mise à jour' }
 };
 
 const demandees = process.argv.slice(2);

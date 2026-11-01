@@ -96,6 +96,8 @@ En moyenne, une question de Reconnaissance affiche après une erreur : 19 mots d
 - **Toute première ouverture sans réseau** : impossible, l'app n'est pas encore en cache. C'est inévitable ; il faut juste le dire à l'installation.
 - **Réseau faible** (barres affichées, réseau inutilisable : le cas des sous-sols et des locaux techniques) : **c'est le point noir.** Le service worker essaie d'abord le réseau et n'abandonne qu'après **3 s par fichier**. Or l'app charge ses modules par vagues : la plus longue chaîne d'imports compte **7 niveaux** (`app.js → profil.js → entrainement.js → difficulte.js → xp.js → storage.js → sauvegarde.js`). **Estimation (calculée, non mesurée) : 20 à 25 s d'écran noir avant l'affichage.** C'est exactement le moment où le technicien range son téléphone.
 
+> **Mesure faite après coup (2 novembre).** Le serveur de test retarde désormais lui-même ses réponses, ce qui donne une mesure fiable. Avec l'ancienne stratégie, ouverture en **15,4 s** pour un réseau à 8 s par requête : moins que l'estimation, mais le constat tient. Avec la stratégie « cache d'abord » (chantier 4) : **environ 0,1 s**.
+
 ---
 
 ## 3. DA « Graphite » en atelier
