@@ -39,7 +39,7 @@ Pour relancer à la main (ex. après avoir changé le réglage Pages) : onglet A
 ```
 index.html              coquille : barre du haut, zone #vue, onglets Entraînement · Banc · Carnet
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
-css/style.css           tout le style ; jetons Bakélite / Porcelaine en tête de fichier
+css/style.css           tout le style ; jetons des thèmes sombre et clair en tête de fichier
 sw.js                   service worker : mode hors connexion (réseau d'abord, cache en secours) — liste FICHIERS à tenir à jour
 js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/banc, /panne, /calcul, /reco, #/profil
                         (anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… → accueil)
@@ -58,7 +58,7 @@ js/quiz.js              mode Reconnaissance (QCM sur image, par niveau et par do
 js/calcul.js            mode Calculs flash (24 générateurs, 3 niveaux, 5 domaines, diagnostic d'erreur, clavier à l'écran)
 js/difficulte.js        les 3 niveaux de difficulté + écran de choix niveau × domaine
 js/hasard.js            tirages aléatoires (entier, parmi, melanger)
-js/theme.js             matière Bakélite (défaut) / Porcelaine, mémorisée dans les préférences
+js/theme.js             thème sombre (défaut) / clair, mémorisé dans les préférences
 js/mise-en-page.js      frontispice, titres de section, voyants d'état, typographie française (typo)
 fonts/                  polices auto-hébergées (Archivo, JetBrains Mono — licence OFL)
 js/util.js              esc(), plurielS()
