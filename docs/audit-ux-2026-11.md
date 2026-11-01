@@ -104,7 +104,7 @@ En moyenne, une question de Reconnaissance affiche après une erreur : 19 mots d
 
 | Paire (thème sombre) | Ratio | Paire (thème clair) | Ratio |
 |---|---|---|---|
-| texte principal / fond | 19,8 : 1 | texte principal / fond | 18,1 : 1 |
+| texte principal / fond | 19,3 : 1 | texte principal / fond | 17,6 : 1 |
 | texte secondaire / fond | 8,4 : 1 | texte secondaire / fond | 7,9 : 1 |
 | texte discret / carte | 5,2 : 1 | texte discret / carte | 6,3 : 1 |
 | vert « juste » / carte | 10,1 : 1 | vert « juste » / carte | 5,0 : 1 |
