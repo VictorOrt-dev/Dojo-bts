@@ -2,7 +2,7 @@
 
 *Fichier généré par `node outils/relecture.mjs` : ne pas modifier à la main.*
 
-**89 éléments sur 89 à valider.** Pour chaque ligne, le formateur vérifie l'exactitude
+**123 éléments sur 123 à valider.** Pour chaque ligne, le formateur vérifie l'exactitude
 technique, le niveau, le risque et la référence normative (édition comprise), puis passe `"verifie": true` dans le fichier source
 (`data/*.json` ; pour un calcul, ajouter `verifie: true` au générateur dans `js/calcul.js`).
 
@@ -67,6 +67,20 @@ Les éditions sont ajoutées automatiquement depuis `js/normes.js` : les confirm
 | Reconnaissance | `reco-epi-vat` | II | securite | Tu dois vérifier l'absence de tension en aval de ce disjoncteur, dans une armoire 400 V. Q | NF C 18-510:2012+A1:2020 · NF EN 60903 (gants isolants) | ☐ |
 | Reconnaissance | `reco-prises-25` | II | mono-bt | Circuit de prises 16 A en cuivre 2,5 mm². Calibre maximal du disjoncteur qui le protège ? | NF C 15-100:2002 (partie 7-771, circuits de prises) | ☐ |
 | Reconnaissance | `reco-sens-rotation` | I | tri | Ce moteur triphasé tourne à l'envers après un remplacement. Comment inverses-tu son sens d | IEC 60034-8:2007 (repérage des bornes et sens de rotation) | ☐ |
+| Reconnaissance | `reco-cat-marquage` | I | securite | Ce multimètre porte le marquage « CAT III 1000 V ». Que garantit la catégorie de mesure ? | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | ☐ |
+| Reconnaissance | `reco-vat-appareil` | I | securite | Quel appareil utilises-tu pour la vérification d'absence de tension (VAT) avant de toucher | NF C 18-510:2012+A1:2020 · NF EN 61243-3:2014 | ☐ |
+| Reconnaissance | `reco-cadenas-pancarte` | I | securite | Ce cadenas et cette pancarte sont posés sur la poignée d'un sectionneur ouvert. À quoi ser | NF C 18-510:2012+A1:2020 (consignation) | ☐ |
+| Reconnaissance | `reco-couleur-neutre` | I | mono-bt | Dans ce câble d'un circuit monophasé, à quoi est réservé le conducteur bleu clair ? | IEC 60445:2021 · NF C 15-100:2002 | ☐ |
+| Reconnaissance | `reco-cat-tgbt` | II | securite | Tu dois mesurer à l'origine de l'installation, juste en aval du disjoncteur de branchement | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | ☐ |
+| Reconnaissance | `reco-capteur-3fils` | II | tbt-cc | Détecteur inductif PNP à trois fils. Sur quel fil arrive le signal envoyé à l'entrée de l' | IEC 60947-5-2:2019 | ☐ |
+| Reconnaissance | `reco-renvoi-folio` | II | tbt-cc | Sur le folio 3 d'un schéma, ce conducteur se termine par une flèche portant le repère « 5. | IEC 61082-1:2014 (documents électrotechniques) | ☐ |
+| Reconnaissance | `reco-repere-bornier` | II | tbt-cc | Sur le schéma, un conducteur passe par le repère « -X1:12 ». Où le trouves-tu dans l'armoi | IEC 81346-2:2019 · IEC 61666:2010 | ☐ |
+| Reconnaissance | `reco-megohmmetre-prep` | II | securite, tri | Avant de mesurer au mégohmmètre (500 V DC) l'isolement du câble d'un moteur alimenté par v | IEC 61557-2:2019 · IEC 60364-6:2016 · NF C 18-510:2012+A1:2020 | ☐ |
+| Reconnaissance | `reco-plaque-poles` | II | tri | Plaque d'un moteur asynchrone : 1 450 tr/min, 50 Hz. Combien de pôles a-t-il ? | IEC 60034-1:2022 | ☐ |
+| Reconnaissance | `reco-cat-fusibles` | III | securite | Pourquoi un multimètre de catégorie III ou IV protège-t-il sa borne « A » par un fusible s | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | ☐ |
+| Reconnaissance | `reco-auto-maintien` | III | tbt-cc | Le contact 13-14 de KM1 doit être câblé en parallèle du bouton Marche. Que se passe-t-il s | IEC 60617 (base en ligne) · NF EN 60204-1:2018 | ☐ |
+| Reconnaissance | `reco-au-deux-canaux` | III | securite, tbt-cc | Pourquoi l'arrêt d'urgence d'une machine récente passe-t-il souvent par un module de sécur | ISO 13849-1:2023 · ISO 13850:2015 · NF EN 60204-1:2018 | ☐ |
+| Reconnaissance | `reco-ddr-type-f` | III | mono-bt, securite | Ce différentiel protège une pompe à chaleur à variateur monophasé. Quel type choisis-tu, s | NF C 15-100:2002 · IEC 62423:2009 | ☐ |
 | Calcul | `ohm` | I | tbt-cc, mono-bt | Loi d'Ohm |  | ☐ |
 | Calcul | `puissance` | I | mono-bt | Puissance et énergie | NF C 15-100:2002 | ☐ |
 | Calcul | `tension-attendue` | I | mono-bt | Tension attendue au récepteur | NF C 15-100:2002 (§ 525) | ☐ |
@@ -91,6 +105,14 @@ Les éditions sont ajoutées automatiquement depuis `js/normes.js` : les confirm
 | Calcul | `lmax-tn` | III | securite, mono-bt | Longueur maximale protégée en TN | NF C 15-100:2002 (§ 411.4) · guide UTE C 15-105:2003 | ☐ |
 | Calcul | `boucle-4-20` | III | tbt-cc | Boucle de courant 4-20 mA | IEC 60381-1:1982 · NAMUR NE 43 | ☐ |
 | Calcul | `neutre-coupe` | III | mono-bt, tri | Neutre coupé | NF C 15-100:2002 (le neutre n'est jamais coupé ni protégé seul) | ☐ |
+| Calcul | `magnetique-courbe` | I | mono-bt | Seuil magnétique d'un disjoncteur | IEC 60898-1:2015 | ☐ |
+| Calcul | `energie-condensateur` | I | securite, tri | Énergie restée dans un variateur | NF C 18-510:2012+A1:2020 (énergies résiduelles) · IEC 61800-5-1:2022 | ☐ |
+| Calcul | `sortie-api` | I | tbt-cc | Courant d'une sortie d'automate | IEC 61131-2:2017 | ☐ |
+| Calcul | `iz-correction` | II | mono-bt, tri | Courant admissible corrigé d'un câble | NF C 15-100:2002 (§ 523) · IEC 60364-5-52:2009 | ☐ |
+| Calcul | `isolement-attendu` | II | securite, tri | Résistance d'isolement attendue | IEC 60364-6:2016 · IEC 61557-2:2019 | ☐ |
+| Calcul | `glissement` | II | tri | Glissement d'un moteur asynchrone | IEC 60034-1:2022 | ☐ |
+| Calcul | `icc-aval` | III | tri | Courant de court-circuit en aval d'un câble | IEC 60909-0:2016 · NF C 15-100:2002 (§ 434) | ☐ |
+| Calcul | `reglage-ir` | III | tri, mono-bt | Réglage du thermique d'un disjoncteur | NF C 15-100:2002 (§ 433) · IEC 60947-2:2016 | ☐ |
 | Cas de panne | `commande-hs` | I | tbt-cc | La pompe ne démarre plus, rien ne se passe | NF EN 60204-1:2018 (§ 9.4.3) | ☐ |
 | Cas de panne | `differentiel-perceuse` | I | mono-bt, securite | Le différentiel saute quand on branche la perceuse | NF C 15-100:2002 (§ 411.3.3) | ☐ |
 | Cas de panne | `consignation-contacteur` | I | securite, tri | Changer le contacteur d'un départ moteur : la consignation | NF C 18-510:2012+A1:2020 · NF EN 61243-3:2014 (VAT) | ☐ |
@@ -105,6 +127,18 @@ Les éditions sont ajoutées automatiquement depuis `js/normes.js` : les confirm
 | Cas de panne | `hta-dgpt2` | III | hta, securite | Poste HTA/BT : le transformateur a déclenché sur son DGPT2 | NF C 18-510:2012+A1:2020 · NF C 13-100:2015 · IEC 60076 (série) | ☐ |
 | Cas de panne | `sorties-grillees` | III | tbt-cc | Une sortie d'automate grille pour la deuxième fois en un mois | NF EN 60204-1:2018 · IEC 61131-2:2017 | ☐ |
 | Cas de panne | `neutre-tgbt` | III | mono-bt, tri | Lundi matin : onduleurs grillés et lampes qui brillent trop | NF C 15-100:2002 (le neutre n'est jamais coupé ni protégé seul) · NF C 18-510:2012+A1:2020 | ☐ |
+| Cas de panne | `vat-procedure` | I | securite, mono-bt | Remplacer un disjoncteur : consigner et vérifier l'absence de tension | NF C 18-510:2012+A1:2020 (consignation, VAT) · NF EN 61243-3:2014 (détecteurs de tension) | ☐ |
+| Cas de panne | `isolement-moteur-lavage` | II | tri, securite | Défaut terre au démarrage après le lavage haute pression | IEC 60364-6:2016 (mesure d'isolement) · IEC 61557-2:2019 (mégohmmètres) · NF C 18-510:2012+A1:2020 | ☐ |
+| Cas de panne | `it-premier-defaut` | III | securite, mono-bt | Schéma IT : le contrôleur d'isolement sonne en pleine production | NF C 15-100:2002 (§ 411.6, schéma IT) · IEC 61557-8:2014 (CPI) · IEC 61557-9:2014 (recherche de défaut) | ☐ |
+| Cas de panne | `selectivite-tgbt` | III | tri, mono-bt | Un court-circuit sur une meuleuse arrête tout l'atelier | NF C 15-100:2002 (§ 535, sélectivité) · IEC 60947-2:2016 | ☐ |
+| Cas de panne | `hta-manoeuvre-serrures` | III | hta, securite | Poste HTA : mettre le transformateur hors tension par les serrures | NF C 18-510:2012+A1:2020 (manœuvres et consignation HTA) · NF C 13-100:2015 (poste de livraison) · IEC 62271-200:2021 | ☐ |
+| Cas de panne | `telerupteur-couloir` | I | mono-bt | Les lampes du couloir restent allumées et le tableau bourdonne | NF C 15-100:2002 · IEC 60669-2-2:2006 (télérupteurs) | ☐ |
+| Cas de panne | `moteur-sens-inverse` | I | tri | Moteur neuf, extraction très faible dans la cabine de peinture | NF EN 60204-1:2018 (§ 18, vérifications) · IEC 60034-8:2007 (sens de rotation) | ☐ |
+| Cas de panne | `capteur-pnp-npn` | II | tbt-cc | Détecteur remplacé : le convoyeur ne s'arrête plus | IEC 60947-5-2:2019 (détecteurs de proximité) · IEC 61131-2:2017 (entrées automate) | ☐ |
+| Cas de panne | `neutre-partage-ddr` | II | mono-bt, securite | Le différentiel de l'éclairage saute quand on branche l'établi | NF C 15-100:2002 (un neutre propre à chaque circuit) | ☐ |
+| Cas de panne | `double-source` | II | securite, mono-bt | Circuit consigné, mais le VAT indique encore 230 V | NF C 18-510:2012+A1:2020 (séparation de toutes les sources, VAT) | ☐ |
+| Cas de panne | `energie-residuelle-variateur` | II | securite, tri | Variateur consigné : peut-on ouvrir le capot ? | NF C 18-510:2012+A1:2020 (énergies résiduelles) · IEC 61800-5-1:2022 (variateurs) | ☐ |
+| Cas de panne | `demarrage-intempestif-24v` | III | tbt-cc, securite | La presse a démarré seule pendant un réglage | NF EN 60204-1:2018 (§ 9.4.3, défauts à la terre du circuit de commande) | ☐ |
 | Banc | `fu1-fondu` | I | mono-bt, tri | Rien ne se passe à l'appui sur Marche. Le voyant « sous tension » H1 est éteint. | NF EN 60204-1:2018 (§ 7.2.4) | ☐ |
 | Banc | `contact-95-96` | II | mono-bt, tri | Rien ne se passe à l'appui sur Marche. Le voyant H1 est allumé. Le relais thermique ne sem | IEC 60947-4-1:2018 | ☐ |
 | Banc | `bobine-coupee` | I | mono-bt, tri | Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1  | NF EN 61243-3:2014 (VAT) | ☐ |

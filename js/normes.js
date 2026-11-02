@@ -43,7 +43,18 @@ export const EDITIONS = [
   { code: 'IEC 60076', edition: 'série', libre: true },
   { code: 'IEC 60255', edition: 'série', libre: true },
   { code: 'IEC 60269', edition: 'série', libre: true },
-  { code: 'NF EN 60269', edition: 'série', libre: true }
+  { code: 'NF EN 60269', edition: 'série', libre: true },
+  { code: 'IEC 61557-9', edition: '2014' },
+  { code: 'IEC 62271-200', edition: '2021' },
+  { code: 'IEC 60669-2-2', edition: '2006' },
+  { code: 'IEC 61082-1', edition: '2014' },
+  { code: 'IEC 61666', edition: '2010' },
+  { code: 'IEC 61010-2-030', edition: '2017' },
+  { code: 'ISO 13849-1', edition: '2023' },
+  { code: 'IEC 62423', edition: '2009' },
+  { code: 'IEC 60898-1', edition: '2015' },
+  { code: 'IEC 60364-5-52', edition: '2009' },
+  { code: 'IEC 60909-0', edition: '2016' }
 ];
 
 const echapper = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

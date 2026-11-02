@@ -84,7 +84,14 @@ const FICHIERS = [
   'img/reco/sym-terre-protection.svg',
   'img/reco/sym-thermique.svg',
   'img/reco/sym-transfo.svg',
-  'img/reco/sym-voyant.svg'
+  'img/reco/sym-voyant.svg',
+  'img/reco/mat-multimetre.svg',
+  'img/reco/mat-vat.svg',
+  'img/reco/mat-cadenas.svg',
+  'img/reco/mat-conducteurs.svg',
+  'img/reco/mat-capteur.svg',
+  'img/reco/sym-renvoi.svg',
+  'img/reco/mat-megohmmetre.svg'
 ];
 
 self.addEventListener('install', ev => {

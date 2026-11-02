@@ -1342,5 +1342,1015 @@
       "norme": "NF C 15-100 (le neutre n'est jamais coupé ni protégé seul) · NF C 18-510"
     },
     "verifie": false
+  },
+  {
+    "id": "vat-procedure",
+    "niveau": 1,
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "titre": "Remplacer un disjoncteur : consigner et vérifier l'absence de tension",
+    "contexte": "Tableau d'atelier 230/400 V. Tu dois remplacer un disjoncteur divisionnaire 16 A qui ne réarme plus. Tu es habilité BR, le chargé d'exploitation t'a confié le tableau.",
+    "etapes": [
+      {
+        "situation": "Le disjoncteur à remplacer est ouvert. Ses bornes du haut sont raccordées au peigne de la rangée.",
+        "question": "Que consignes-tu ?",
+        "choix": [
+          {
+            "texte": "L'appareil de tête qui alimente le peigne de la rangée",
+            "verdict": "bon",
+            "explication": "Le peigne reste sous tension tant que l'appareil de tête est fermé. C'est lui qu'on sépare, qu'on condamne et qu'on identifie."
+          },
+          {
+            "texte": "Rien de plus : le disjoncteur ouvert isole déjà ses bornes",
+            "verdict": "danger",
+            "explication": "Un disjoncteur ouvert sépare l'aval de l'amont, mais ses bornes du haut restent reliées au peigne, sous 230/400 V."
+          },
+          {
+            "texte": "Le disjoncteur du banc de test, en aval de ce départ",
+            "verdict": "mauvais",
+            "explication": "Consigner en aval ne coupe rien en amont : le peigne et les bornes du haut restent sous tension."
+          }
+        ]
+      },
+      {
+        "situation": "Appareil de tête ouvert, cadenassé, pancarte posée. Tu sors ton détecteur de tension bipolaire (VAT).",
+        "question": "Comment vérifies-tu l'absence de tension ?",
+        "choix": [
+          {
+            "texte": "Tester le VAT sur une source connue, vérifier, retester",
+            "verdict": "bon",
+            "explication": "Le test avant et après prouve que le VAT fonctionnait pendant la vérification. Sans lui, un « rien » peut venir d'un appareil en panne."
+          },
+          {
+            "texte": "Vérifier entre phases et neutre, sans tester le VAT avant",
+            "verdict": "mauvais",
+            "explication": "Un VAT à la pile vide ou au cordon coupé n'indique rien, même sous tension. On le teste avant et après."
+          },
+          {
+            "texte": "Se fier au voyant éteint du tableau, plus rapide qu'un VAT",
+            "verdict": "danger",
+            "explication": "Un voyant éteint peut être grillé ou alimenté ailleurs. Seule la VAT, sur chaque conducteur, prouve l'absence de tension."
+          },
+          {
+            "texte": "Vérifier au multimètre en V~, calibre 600 V, sur chaque pôle",
+            "verdict": "mauvais",
+            "explication": "Un multimètre n'est pas un VAT : mauvais calibre, cordon débranché, pile faible… il peut afficher 0 V sous tension."
+          }
+        ]
+      },
+      {
+        "situation": "Le disjoncteur neuf est posé, serré au couple, le tableau refermé.",
+        "question": "Qui remet sous tension ?",
+        "choix": [
+          {
+            "texte": "Celui qui a consigné, après ton avis de fin de travail",
+            "verdict": "bon",
+            "explication": "La remise sous tension suit la fin de travail signalée : la personne qui a consigné vérifie que plus personne n'est exposé."
+          },
+          {
+            "texte": "Toi, en coupant le cadenas d'un collègue parti en pause",
+            "verdict": "danger",
+            "explication": "Un cadenas protège celui qui l'a posé : le retirer sans lui peut remettre sous tension un circuit où il travaille."
+          },
+          {
+            "texte": "N'importe qui : le tableau est fermé, le risque a disparu",
+            "verdict": "mauvais",
+            "explication": "Le tableau fermé ne dit rien des autres intervenants. La déconsignation suit une procédure, pas une impression."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Un disjoncteur ouvert n'isole pas ses bornes amont : seule la consignation de l'appareil de tête, vérifiée au VAT, met la zone de travail hors tension.",
+      "remede": "Consigner en cinq temps : séparer, condamner, identifier, vérifier l'absence de tension (VAT testé avant et après), mettre à la terre et en court-circuit si une réalimentation est possible. À la fin : avis de fin de travail, puis déconsignation par la personne qui a consigné.",
+      "lecon": "Ce qui est ouvert n'est pas consigné ; ce qui est consigné n'est sûr qu'après la VAT.",
+      "piege": "Le VAT peut être défaillant : pile vide, pointe cassée. Sans test sur une source connue avant et après, un « rien » au VAT ne prouve rien.",
+      "risque": "Le peigne reste sous 230/400 V même disjoncteur ouvert : toucher ses bornes du haut, c'est l'électrisation directe, et un tournevis qui glisse entre deux phases crée un arc qui brûle mains et visage.",
+      "norme": "NF C 18-510 (consignation, VAT) · NF EN 61243-3 (détecteurs de tension)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "isolement-moteur-lavage",
+    "niveau": 2,
+    "domaines": [
+      "tri",
+      "securite"
+    ],
+    "titre": "Défaut terre au démarrage après le lavage haute pression",
+    "contexte": "Station de lavage d'une usine agroalimentaire. Après le nettoyage haute pression de la nuit, la pompe (moteur 5,5 kW, 400 V, alimenté par variateur) met le variateur en défaut « terre » à chaque démarrage.",
+    "etapes": [
+      {
+        "situation": "Le variateur affiche « défaut terre ». Le moteur et sa boîte à bornes ruissellent encore.",
+        "question": "Ta première démarche ?",
+        "choix": [
+          {
+            "texte": "Consigner, puis mesurer l'isolement au mégohmmètre",
+            "verdict": "bon",
+            "explication": "Le variateur voit une fuite vers la terre. On met hors tension et on mesure l'isolement : c'est la grandeur qui a changé."
+          },
+          {
+            "texte": "Réarmer le défaut et relancer : l'eau va sécher en tournant",
+            "verdict": "mauvais",
+            "explication": "Relancer sur un isolement affaibli entretient la fuite et peut amorcer un arc dans le bobinage : on mesure d'abord."
+          },
+          {
+            "texte": "Désactiver la détection de défaut terre le temps du séchage",
+            "verdict": "danger",
+            "explication": "La détection protège le variateur, le moteur et les personnes. La neutraliser laisse une carcasse en défaut sans coupure."
+          }
+        ]
+      },
+      {
+        "situation": "Variateur consigné, VAT faite. Tu prépares le mégohmmètre, 500 V DC.",
+        "question": "Où le branches-tu ?",
+        "choix": [
+          {
+            "texte": "Sur le moteur, câble débranché des bornes du variateur",
+            "verdict": "bon",
+            "explication": "On isole le moteur et son câble de toute électronique : les 500 V DC pourraient détruire l'étage de sortie du variateur."
+          },
+          {
+            "texte": "Aux bornes de sortie du variateur, câble moteur raccordé",
+            "verdict": "mauvais",
+            "explication": "Les 500 V DC appliqués à la sortie du variateur peuvent claquer ses transistors, et la mesure inclut son électronique."
+          },
+          {
+            "texte": "Partout : en continuité, au calibre Ω du multimètre",
+            "verdict": "mauvais",
+            "explication": "La continuité vérifie qu'un courant passe sous quelques volts. L'isolement se mesure sous 500 V DC, en MΩ, au mégohmmètre."
+          }
+        ]
+      },
+      {
+        "situation": "Sous 500 V DC : 0,3 MΩ entre les phases du moteur et la terre. Le câble seul donne plus de 200 MΩ.",
+        "question": "Que décides-tu ?",
+        "choix": [
+          {
+            "texte": "Sécher le moteur à l'étuve, puis remesurer l'isolement",
+            "verdict": "bon",
+            "explication": "L'isolement tombé par l'humidité remonte souvent au séchage. On ne remet en service que sur une valeur stable et conforme."
+          },
+          {
+            "texte": "Remettre en service : 0,3 MΩ, cela fait encore 300 000 Ω",
+            "verdict": "mauvais",
+            "explication": "Pour l'isolement d'un moteur, on raisonne en MΩ : 0,3 MΩ est bien en dessous des valeurs minimales usuelles."
+          },
+          {
+            "texte": "Remplacer le moteur par celui du magasin, sans autre contrôle",
+            "verdict": "acceptable",
+            "explication": "Ça remet la ligne en route, mais le moteur mouillé est souvent récupérable, et le neuf noiera de la même façon au prochain lavage."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Eau infiltrée dans la boîte à bornes et le bobinage pendant le lavage haute pression : l'isolement est tombé à 0,3 MΩ, le variateur détecte la fuite vers la terre.",
+      "remede": "Sécher le moteur, remesurer l'isolement jusqu'à une valeur stable et conforme, refaire l'étanchéité de la boîte à bornes et des presse-étoupes, vérifier que l'indice de protection convient au lavage (IPX5, IPX6 ou IP69K selon le procédé) ou protéger le moteur pendant le nettoyage.",
+      "lecon": "Isolement et continuité ne se mesurent pas avec le même appareil : l'isolement se mesure au mégohmmètre, sous 500 V DC, hors tension, électronique débranchée.",
+      "piege": "Mégohmmètre branché sur un circuit qui comporte un variateur : les 500 V DC peuvent détruire son électronique, et la mesure ne veut plus rien dire.",
+      "risque": "Un moteur à 0,3 MΩ remis sous tension dans un local mouillé peut porter sa carcasse à un potentiel dangereux si la liaison à la terre est imparfaite ; l'arc interne finit de détruire le bobinage.",
+      "norme": "IEC 60364-6 (mesure d'isolement) · IEC 61557-2 (mégohmmètres) · NF C 18-510"
+    },
+    "verifie": false
+  },
+  {
+    "id": "it-premier-defaut",
+    "niveau": 3,
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "titre": "Schéma IT : le contrôleur d'isolement sonne en pleine production",
+    "contexte": "Usine de chimie en marche continue, distribution en schéma IT (neutre isolé) surveillée par un contrôleur permanent d'isolement (CPI). L'alarme sonne : isolement 8 kΩ pour un seuil d'alarme réglé à 50 kΩ.",
+    "etapes": [
+      {
+        "situation": "Le chef de quart te demande d'acquitter l'alarme et de revenir à l'arrêt annuel.",
+        "question": "Que réponds-tu ?",
+        "choix": [
+          {
+            "texte": "On cherche le défaut maintenant, sans arrêter la ligne",
+            "verdict": "bon",
+            "explication": "En IT, le premier défaut ne coupe rien : c'est voulu. Ce délai sert à le trouver avant qu'un second défaut ne fasse tout déclencher."
+          },
+          {
+            "texte": "D'accord : en IT, un premier défaut n'est jamais dangereux",
+            "verdict": "danger",
+            "explication": "Seul, il ne l'est pas. Mais il fait d'un second défaut un court-circuit entre phases à travers les masses."
+          },
+          {
+            "texte": "On coupe tout le site pour trouver le défaut plus vite",
+            "verdict": "mauvais",
+            "explication": "Le schéma IT a été choisi pour la continuité de service : tout couper, c'est perdre ce qu'il apporte."
+          }
+        ]
+      },
+      {
+        "situation": "Le tableau dispose d'un injecteur de recherche et de tores sur chaque départ.",
+        "question": "Comment localises-tu le départ en défaut ?",
+        "choix": [
+          {
+            "texte": "Lire le départ signalé par les tores, puis affiner à la pince",
+            "verdict": "bon",
+            "explication": "L'injecteur fait circuler un faible signal qui ne suit que le chemin du défaut : les tores, puis la pince de recherche, le suivent sous tension."
+          },
+          {
+            "texte": "Ouvrir les départs un par un jusqu'à ce que l'alarme cesse",
+            "verdict": "acceptable",
+            "explication": "Ça finit par trouver le départ, mais chaque ouverture arrête une partie de la production, ce que l'IT cherche à éviter."
+          },
+          {
+            "texte": "Mesurer l'isolement de chaque départ, au mégohmmètre, sous tension",
+            "verdict": "danger",
+            "explication": "Un mégohmmètre ne s'utilise que hors tension : sous tension, il est détruit et l'opérateur exposé."
+          }
+        ]
+      },
+      {
+        "situation": "Défaut localisé : le câble d'une pompe doseuse, une phase à 6 kΩ de la masse. La pompe est indispensable.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Programmer la réparation au plus tôt, CPI sous surveillance",
+            "verdict": "bon",
+            "explication": "On garde la production, mais le délai n'est pas illimité : la réparation est planifiée, et l'alarme reste active."
+          },
+          {
+            "texte": "Rien : avec un seul défaut, l'installation est sûre indéfiniment",
+            "verdict": "mauvais",
+            "explication": "Le premier défaut n'est sûr que tant qu'il reste seul. Tout nouveau défaut sur une autre phase déclenche."
+          },
+          {
+            "texte": "Débrancher le CPI pour arrêter l'alarme jusqu'à l'arrêt annuel",
+            "verdict": "danger",
+            "explication": "Sans CPI, le second défaut arrive sans prévenir : c'est perdre la seule protection du schéma IT."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Le câble d'une pompe doseuse est abîmé : une phase touche la masse. En IT, ce premier défaut ne fait circuler qu'un faible courant par les capacités du réseau : rien ne déclenche, le CPI alerte.",
+      "remede": "Localiser le départ avec l'injecteur et les tores, confirmer à la pince de recherche, réparer dès que possible hors production, vérifier que l'isolement remonte au-dessus du seuil.",
+      "lecon": "En IT, l'alarme du CPI n'est pas une gêne : c'est le délai que le schéma donne pour réparer avant le second défaut.",
+      "piege": "Un second défaut sur une autre phase transforme le réseau en court-circuit entre phases à travers les masses : les protections coupent alors comme en TN, et la production s'arrête quand même.",
+      "risque": "Avec un premier défaut ignoré, un second défaut sur une autre phase porte deux masses à des potentiels différents : un opérateur qui les touche en même temps subit la tension entre phases.",
+      "norme": "NF C 15-100 (§ 411.6, schéma IT) · IEC 61557-8 (CPI) · IEC 61557-9 (recherche de défaut)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "selectivite-tgbt",
+    "niveau": 3,
+    "domaines": [
+      "tri",
+      "mono-bt"
+    ],
+    "titre": "Un court-circuit sur une meuleuse arrête tout l'atelier",
+    "contexte": "Atelier de mécanique. Un court-circuit sur une meuleuse (départ prises 16 A, disjoncteur courbe C) a fait déclencher le disjoncteur général du TGBT (250 A) : tout l'atelier s'est arrêté. C'est la deuxième fois.",
+    "etapes": [
+      {
+        "situation": "Le directeur veut un disjoncteur général « plus costaud ».",
+        "question": "Ta première démarche ?",
+        "choix": [
+          {
+            "texte": "Relever les réglages du général et du départ en défaut",
+            "verdict": "bon",
+            "explication": "La question est la sélectivité : qui déclenche, à partir de quel courant, et en combien de temps. On commence par les réglages."
+          },
+          {
+            "texte": "Remplacer le général 250 A par un 400 A qui tiendra mieux",
+            "verdict": "danger",
+            "explication": "Un général surcalibré ne protège plus les câbles qu'il alimente, et reste non sélectif s'il est instantané."
+          },
+          {
+            "texte": "Changer le 16 A de la meuleuse, il n'a pas coupé assez vite",
+            "verdict": "mauvais",
+            "explication": "Il a coupé : le défaut est éliminé. Le problème est que le général a coupé en même temps."
+          }
+        ]
+      },
+      {
+        "situation": "Général électronique : Ir = 250 A, court retard Isd = 1 500 A, temporisation tsd = 0. Court-circuit estimé au départ prises : 3 kA.",
+        "question": "Pourquoi les deux ont-ils déclenché ?",
+        "choix": [
+          {
+            "texte": "3 kA dépasse l'Isd du général : il coupe aussi, sans délai",
+            "verdict": "bon",
+            "explication": "Le courant de défaut traverse les deux appareils. Au-delà de son seuil court retard, non temporisé, le général coupe en même temps que le départ."
+          },
+          {
+            "texte": "Le 16 A est défectueux : il aurait dû couper seul et plus tôt",
+            "verdict": "mauvais",
+            "explication": "Le 16 A a fait son travail. Un aval qui coupe ne garantit pas que l'amont ne coupe pas aussi."
+          },
+          {
+            "texte": "Le général a vu une surcharge thermique au-delà de ses 250 A",
+            "verdict": "mauvais",
+            "explication": "La protection thermique (Ir) agit en secondes ou en minutes ; ici tout s'est joué en millisecondes, sur le court retard."
+          }
+        ]
+      },
+      {
+        "situation": "Le constructeur fournit les tables de sélectivité de ses appareils.",
+        "question": "Quelle correction proposes-tu ?",
+        "choix": [
+          {
+            "texte": "Temporiser le court retard du général, contrôlé aux tables",
+            "verdict": "bon",
+            "explication": "Un tsd de quelques dizaines de millisecondes laisse le temps au départ de couper seul. Les tables confirment la sélectivité, la tenue des câbles est vérifiée."
+          },
+          {
+            "texte": "Monter l'Ir du général au maximum pour le retarder",
+            "verdict": "mauvais",
+            "explication": "Ir règle la protection contre les surcharges : il ne change rien au déclenchement sur court-circuit."
+          },
+          {
+            "texte": "Monter l'Isd du général au maximum, sans consulter les tables",
+            "verdict": "mauvais",
+            "explication": "Sans les tables, on ne sait pas si c'est sélectif, et on risque de ne plus protéger les câbles du TGBT."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Défaut de sélectivité : le court-circuit sur le départ prises (≈ 3 kA) dépasse le seuil court retard du général (1 500 A), réglé sans temporisation. Les deux appareils déclenchent ensemble.",
+      "remede": "Régler une temporisation court retard sur le général (et au besoin son Isd), vérifier la sélectivité dans les tables du constructeur et la tenue des câbles, consigner les réglages dans le dossier de l'installation.",
+      "lecon": "Deux appareils peuvent être bien calibrés et pas sélectifs : la sélectivité se vérifie avec les courbes et les tables du constructeur.",
+      "piege": "Un général « plus gros » ne règle rien : il ne protège plus ses câbles, et reste non sélectif tant que son déclenchement magnétique est instantané.",
+      "risque": "Sans sélectivité, un défaut sur une prise coupe tout l'atelier, éclairage et extractions compris : des opérateurs se retrouvent dans le noir près de machines en ralentissement.",
+      "norme": "NF C 15-100 (§ 535, sélectivité) · IEC 60947-2"
+    },
+    "verifie": false
+  },
+  {
+    "id": "hta-manoeuvre-serrures",
+    "niveau": 3,
+    "domaines": [
+      "hta",
+      "securite"
+    ],
+    "titre": "Poste HTA : mettre le transformateur hors tension par les serrures",
+    "contexte": "Poste de livraison HTA/BT : cellule interrupteur-fusibles qui protège le transformateur, verrouillage par serrures interverrouillées (une clé prisonnière passe d'un appareil à l'autre). Tu dois intervenir dans la case du transformateur, ordre de manœuvre en main.",
+    "etapes": [
+      {
+        "situation": "Tout est en service, le transformateur alimente l'usine.",
+        "question": "Par quoi commences-tu ?",
+        "choix": [
+          {
+            "texte": "Ouvrir le disjoncteur général BT pour couper la charge",
+            "verdict": "bon",
+            "explication": "On coupe d'abord la charge côté BT. Sa clé, libérée, autorise la suite des manœuvres côté HTA : c'est l'ordre imposé par les serrures."
+          },
+          {
+            "texte": "Ouvrir l'interrupteur HTA, transformateur toujours en charge",
+            "verdict": "mauvais",
+            "explication": "La cellule n'est pas prévue pour être manœuvrée en premier : la clé de la BT doit d'abord être libérée."
+          },
+          {
+            "texte": "Ouvrir la case du transformateur pour faire un premier constat",
+            "verdict": "danger",
+            "explication": "La case contient des pièces nues sous 20 kV. Elle ne s'ouvre qu'avec la clé libérée par le sectionneur de terre fermé."
+          }
+        ]
+      },
+      {
+        "situation": "BT ouverte, sa clé libérée. Interrupteur HTA ouvert. La porte de la case est verrouillée.",
+        "question": "Ensuite ?",
+        "choix": [
+          {
+            "texte": "Fermer le sectionneur de terre, ce qui libère la clé de porte",
+            "verdict": "bon",
+            "explication": "La mise à la terre du côté HTA précède l'accès : la clé de porte n'est libérée qu'une fois le sectionneur de terre fermé."
+          },
+          {
+            "texte": "Forcer la serrure grippée : l'interrupteur HTA est déjà ouvert",
+            "verdict": "danger",
+            "explication": "Une serrure qui résiste signale une manœuvre oubliée. La forcer, c'est ouvrir une case peut-être encore sous tension."
+          },
+          {
+            "texte": "Ouvrir avec le double de la clé rangé dans l'armoire du poste",
+            "verdict": "danger",
+            "explication": "Un double contourne tout l'interverrouillage : plus rien ne garantit que la terre est fermée."
+          }
+        ]
+      },
+      {
+        "situation": "Porte ouverte. Le côté HTA du transformateur est mis à la terre par la cellule.",
+        "question": "Avant de toucher les bornes du transformateur ?",
+        "choix": [
+          {
+            "texte": "VAT côté HTA et BT, puis terre et court-circuit côté BT",
+            "verdict": "bon",
+            "explication": "La terre de la cellule protège le côté HTA. Une réalimentation par la BT (groupe, retour) reste possible : on la neutralise aussi."
+          },
+          {
+            "texte": "Rien de plus : la terre de la cellule protège tout le transformateur",
+            "verdict": "mauvais",
+            "explication": "Un groupe électrogène ou un retour par la BT réalimente le secondaire, et le transformateur remonte la tension en HTA."
+          },
+          {
+            "texte": "Décharger les bornes avec une perche de terre, sans faire la VAT",
+            "verdict": "mauvais",
+            "explication": "La VAT précède toujours la mise à la terre : elle évite de court-circuiter un conducteur encore sous tension."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Intervention programmée : l'enjeu est l'ordre des manœuvres et le respect des serrures d'interverrouillage.",
+      "remede": "Ouvrir la BT, ouvrir l'interrupteur HTA, fermer le sectionneur de terre (libère la clé de porte), VAT côté HTA et BT, mise à la terre et en court-circuit côté BT, attestation de consignation. À la fin, ordre inverse.",
+      "lecon": "Les serrures imposent l'ordre sûr : une clé qui ne tourne pas signale une manœuvre oubliée, jamais une serrure à forcer.",
+      "piege": "La terre fermée par la cellule protège le côté HTA, pas le côté BT : un groupe électrogène ou un retour par la BT peut réalimenter le transformateur, qui remonte alors la tension en HTA.",
+      "risque": "En HTA, l'amorçage se fait sans contact, à quelques centimètres. Forcer une serrure ou ouvrir une case non mise à la terre, c'est l'arc électrique, des brûlures graves et souvent la mort.",
+      "norme": "NF C 18-510 (manœuvres et consignation HTA) · NF C 13-100 (poste de livraison) · IEC 62271-200"
+    },
+    "verifie": false
+  },
+  {
+    "id": "telerupteur-couloir",
+    "niveau": 1,
+    "domaines": [
+      "mono-bt"
+    ],
+    "titre": "Les lampes du couloir restent allumées et le tableau bourdonne",
+    "contexte": "Couloir d'un bâtiment administratif : quatre boutons-poussoirs commandent l'éclairage par un télérupteur au tableau. Signalé : les lampes ne s'éteignent plus et un bourdonnement sort du tableau.",
+    "etapes": [
+      {
+        "situation": "Le bourdonnement vient du télérupteur.",
+        "question": "Que soupçonnes-tu en premier ?",
+        "choix": [
+          {
+            "texte": "Sa bobine reste alimentée : un poussoir est bloqué",
+            "verdict": "bon",
+            "explication": "Un télérupteur ne reçoit que des impulsions. S'il bourdonne, sa bobine est alimentée en continu : on cherche ce qui la maintient."
+          },
+          {
+            "texte": "Le télérupteur est usé : on le remplace tout de suite",
+            "verdict": "mauvais",
+            "explication": "Sans trouver ce qui alimente la bobine en continu, le télérupteur neuf bourdonnera et chauffera à son tour."
+          },
+          {
+            "texte": "Une lampe en court-circuit qui fait vibrer le télérupteur",
+            "verdict": "mauvais",
+            "explication": "Un court-circuit côté lampes ferait déclencher le disjoncteur. Le bourdonnement vient de la bobine, côté commande."
+          }
+        ]
+      },
+      {
+        "situation": "Tu essaies chaque poussoir : celui près de la machine à café reste enfoncé.",
+        "question": "Avant de démonter ce poussoir ?",
+        "choix": [
+          {
+            "texte": "Consigner le circuit de commande au tableau, puis VAT",
+            "verdict": "bon",
+            "explication": "Le poussoir est raccordé sous 230 V. Coupé, condamné, vérifié : le démontage se fait hors tension."
+          },
+          {
+            "texte": "Le démonter sous tension : ce n'est qu'un bouton-poussoir",
+            "verdict": "danger",
+            "explication": "Ses bornes sont sous 230 V. Un bouton n'est pas « petit » pour le corps humain."
+          },
+          {
+            "texte": "Couper seulement le disjoncteur des lampes, sans VAT",
+            "verdict": "mauvais",
+            "explication": "La commande peut venir d'un autre circuit. Sans VAT au poussoir, rien ne prouve qu'il est hors tension."
+          }
+        ]
+      },
+      {
+        "situation": "Poussoir encrassé, remplacé. Le télérupteur a chauffé : son boîtier est un peu déformé.",
+        "question": "Que fais-tu du télérupteur ?",
+        "choix": [
+          {
+            "texte": "Le remplacer aussi : il a chauffé au-delà de ses limites",
+            "verdict": "bon",
+            "explication": "Sa bobine n'est pas faite pour une alimentation continue. Un boîtier déformé signale un échauffement anormal : on le change."
+          },
+          {
+            "texte": "Le garder : il marche encore, la déformation est esthétique",
+            "verdict": "mauvais",
+            "explication": "Un isolant déformé par la chaleur a perdu une partie de ses qualités : c'est un point chaud en puissance."
+          },
+          {
+            "texte": "Le garder et le surveiller à la prochaine visite",
+            "verdict": "acceptable",
+            "explication": "Prudent sur le papier, mais un appareil qui a surchauffé reste un risque d'ici là ; le remplacer coûte peu."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Un poussoir bloqué enfoncé (encrassé) alimentait en permanence la bobine du télérupteur, prévue pour des impulsions : elle a chauffé et bourdonne.",
+      "remede": "Remplacer le poussoir (modèle étanche près d'un point d'eau ou d'un distributeur), remplacer le télérupteur échauffé, essayer chaque poussoir.",
+      "lecon": "Un télérupteur qui bourdonne, c'est une bobine alimentée en continu : on cherche le poussoir avant d'accuser l'appareil.",
+      "piege": "Changer seulement le télérupteur : le poussoir bloqué grille aussi le neuf en quelques heures.",
+      "risque": "Une bobine alimentée en permanence chauffe jusqu'à déformer son boîtier : départ de feu possible dans le tableau, souvent la nuit, dans un local sans surveillance.",
+      "norme": "NF C 15-100 · IEC 60669-2-2 (télérupteurs)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "moteur-sens-inverse",
+    "niveau": 1,
+    "domaines": [
+      "tri"
+    ],
+    "titre": "Moteur neuf, extraction très faible dans la cabine de peinture",
+    "contexte": "Ventilateur d'extraction d'une cabine de peinture : le moteur (4 kW, 400 V) a été remplacé par l'équipe de nuit. Au matin, l'extraction est faible et les peintres sentent les solvants.",
+    "etapes": [
+      {
+        "situation": "Le moteur tourne, son courant est normal, mais le débit d'air est très faible.",
+        "question": "Ta première vérification ?",
+        "choix": [
+          {
+            "texte": "Le sens de rotation, comparé à la flèche du carter",
+            "verdict": "bon",
+            "explication": "Un moteur neuf qui tourne, courant normal, débit faible : c'est le symptôme d'une turbine qui tourne à l'envers."
+          },
+          {
+            "texte": "La courroie et la turbine : un problème mécanique, sans doute",
+            "verdict": "mauvais",
+            "explication": "Possible, mais le changement de cette nuit est électrique : on vérifie d'abord ce qui a été touché."
+          },
+          {
+            "texte": "Le réglage du relais thermique, qui bride sûrement le moteur",
+            "verdict": "mauvais",
+            "explication": "Un relais thermique coupe ou laisse passer : il ne bride pas un moteur. Et le courant est normal."
+          }
+        ]
+      },
+      {
+        "situation": "Le moteur tourne à l'envers.",
+        "question": "Comment corriges-tu ?",
+        "choix": [
+          {
+            "texte": "Consigner, puis permuter deux phases à la boîte à bornes",
+            "verdict": "bon",
+            "explication": "Permuter deux phases inverse le champ tournant. Hors tension, à la boîte à bornes du moteur, sans toucher au reste."
+          },
+          {
+            "texte": "Permuter deux phases sous tension, moteur simplement arrêté",
+            "verdict": "danger",
+            "explication": "Moteur arrêté ne veut pas dire hors tension : les bornes restent sous 400 V tant que le départ n'est pas consigné."
+          },
+          {
+            "texte": "Permuter les trois phases entre elles, pour être sûr",
+            "verdict": "mauvais",
+            "explication": "Une permutation circulaire des trois phases garde le même ordre : le moteur tourne toujours dans le même sens."
+          }
+        ]
+      },
+      {
+        "situation": "Phases permutées, départ déconsigné.",
+        "question": "Avant de rendre l'installation ?",
+        "choix": [
+          {
+            "texte": "Contrôler sens de rotation, courant absorbé et débit d'air",
+            "verdict": "bon",
+            "explication": "On vérifie le résultat : le bon sens, un courant cohérent avec la plaque, et l'extraction qui fait vraiment son travail."
+          },
+          {
+            "texte": "Rien : permuter deux phases inverse toujours le sens",
+            "verdict": "mauvais",
+            "explication": "C'est vrai en théorie. Mais une erreur de bornier est vite arrivée : on contrôle avant de rendre."
+          },
+          {
+            "texte": "Seulement le serrage des bornes, le reste a été vu cette nuit",
+            "verdict": "mauvais",
+            "explication": "La nuit, le sens n'avait justement pas été vérifié. Le contrôle final est ce qui manquait."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Le moteur neuf a été raccordé dans un ordre de phases différent de l'ancien : il tourne à l'envers, la turbine brasse peu d'air.",
+      "remede": "Permuter deux phases à la boîte à bornes, hors tension ; contrôler sens, courant et débit ; repérer l'ordre des phases sur le câble pour la prochaine fois.",
+      "lecon": "Après tout remplacement de moteur : sens de rotation vérifié avant de rendre l'installation.",
+      "piege": "Permuter les trois phases ne change rien : c'est une permutation circulaire, le champ tourne toujours dans le même sens.",
+      "risque": "Un ventilateur d'extraction à l'envers laisse s'accumuler les vapeurs de solvant : intoxication des peintres, risque d'explosion. Sur une pompe ou un convoyeur, la rotation inverse casse la mécanique.",
+      "norme": "NF EN 60204-1 (§ 18, vérifications) · IEC 60034-8 (sens de rotation)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "capteur-pnp-npn",
+    "niveau": 2,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "titre": "Détecteur remplacé : le convoyeur ne s'arrête plus",
+    "contexte": "Ligne de conditionnement : un détecteur inductif de présence carton a été remplacé hier par un modèle « équivalent » du magasin. Depuis, le convoyeur ne s'arrête plus au poste d'étiquetage.",
+    "etapes": [
+      {
+        "situation": "La LED du détecteur s'allume quand un carton passe. Le voyant de l'entrée automate reste éteint.",
+        "question": "Qu'en déduis-tu ?",
+        "choix": [
+          {
+            "texte": "Il détecte : le défaut est entre sa sortie et l'entrée",
+            "verdict": "bon",
+            "explication": "La LED prouve la détection. L'entrée éteinte montre que l'information n'arrive pas : on regarde le câblage et le type de sortie."
+          },
+          {
+            "texte": "Le détecteur neuf est défectueux : on en monte un autre",
+            "verdict": "mauvais",
+            "explication": "Il détecte, sa LED le montre. Le remplacer à l'identique reproduira exactement le même défaut."
+          },
+          {
+            "texte": "L'automate est en panne : son programme ne lit plus l'entrée",
+            "verdict": "mauvais",
+            "explication": "Le voyant d'entrée est câblé côté matériel, avant le programme : s'il reste éteint, aucun signal n'arrive."
+          }
+        ]
+      },
+      {
+        "situation": "Ancien détecteur : PNP, contact NO. Neuf : NPN, NO. Brun au +24 V, bleu au 0 V, noir sur l'entrée.",
+        "question": "Pourquoi l'entrée ne voit rien ?",
+        "choix": [
+          {
+            "texte": "Un NPN commute sa sortie vers le 0 V, pas vers le +24 V",
+            "verdict": "bon",
+            "explication": "L'entrée de l'automate, en logique positive, attend du +24 V sur le fil noir. Un NPN y met du 0 V : rien ne s'allume."
+          },
+          {
+            "texte": "Il faut le fil noir au +24 V et le brun sur l'entrée",
+            "verdict": "mauvais",
+            "explication": "Les couleurs sont les mêmes en PNP et en NPN : brun +24 V, bleu 0 V, noir sortie. Les inverser ne change pas le type."
+          },
+          {
+            "texte": "Les deux détecteurs sont équivalents : le câble est coupé",
+            "verdict": "mauvais",
+            "explication": "La plaque dit le contraire : PNP et NPN ne sont pas interchangeables sur une même entrée."
+          }
+        ]
+      },
+      {
+        "situation": "Pas de détecteur PNP en stock avant demain matin.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Commander un PNP NO identique et noter la bonne référence",
+            "verdict": "bon",
+            "explication": "On remet le bon matériel et on corrige la référence au magasin, pour que l'erreur ne se reproduise pas."
+          },
+          {
+            "texte": "Câbler un relais d'interface provisoire, signalé et noté",
+            "verdict": "acceptable",
+            "explication": "Ça peut dépanner, à condition d'être documenté et retiré au remplacement : sinon le provisoire devient définitif."
+          },
+          {
+            "texte": "Forcer l'entrée dans le programme pour faire tourner la ligne",
+            "verdict": "mauvais",
+            "explication": "Une entrée forcée ne voit plus les cartons : la ligne tourne en aveugle, et le forçage est vite oublié."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Un détecteur NPN a été monté à la place d'un PNP : sa sortie commute vers le 0 V, alors que l'entrée de l'automate attend le +24 V (logique positive).",
+      "remede": "Remplacer par un détecteur PNP NO de même portée et même tension, contrôler le voyant d'entrée et la variable dans l'automate, corriger la référence au magasin.",
+      "lecon": "La LED d'un détecteur prouve la détection, pas la transmission : on regarde aussi le voyant d'entrée de l'automate.",
+      "piege": "Brun, bleu, noir : les couleurs sont les mêmes en PNP et en NPN. Seule la plaque ou la référence dit ce que fait le fil noir.",
+      "risque": "Un détecteur mal choisi sur une fonction d'arrêt rend la machine aveugle : les cartons s'écrasent dans l'étiqueteuse, et l'opérateur qui intervient pour dégager se fait happer.",
+      "norme": "IEC 60947-5-2 (détecteurs de proximité) · IEC 61131-2 (entrées automate)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "neutre-partage-ddr",
+    "niveau": 2,
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
+    "titre": "Le différentiel de l'éclairage saute quand on branche l'établi",
+    "contexte": "Atelier rénové : le différentiel 30 mA de l'éclairage déclenche dès qu'on branche un appareil sur les prises de l'établi, protégées par un autre différentiel 30 mA. Les appareils sont sains.",
+    "etapes": [
+      {
+        "situation": "Le défaut se produit avec n'importe quel appareil branché sur l'établi.",
+        "question": "Quelle hypothèse privilégies-tu ?",
+        "choix": [
+          {
+            "texte": "Un neutre commun à deux circuits, sur deux différentiels",
+            "verdict": "bon",
+            "explication": "Si le retour d'un circuit passe par le différentiel de l'autre, chacun voit un déséquilibre et déclenche, sans fuite à la terre."
+          },
+          {
+            "texte": "Un différentiel trop sensible, à remplacer par un 300 mA",
+            "verdict": "danger",
+            "explication": "Le 30 mA protège les personnes : le remplacer par un 300 mA supprime cette protection sans régler la cause."
+          },
+          {
+            "texte": "Une fuite à la terre dans les appareils branchés à l'établi",
+            "verdict": "mauvais",
+            "explication": "Tous les appareils déclenchent, et ils sont sains : une fuite commune à tous est très improbable."
+          }
+        ]
+      },
+      {
+        "situation": "Les deux circuits sont consignés.",
+        "question": "Comment confirmes-tu ?",
+        "choix": [
+          {
+            "texte": "Continuité entre le neutre des prises et celui des lampes",
+            "verdict": "bon",
+            "explication": "Neutres déconnectés au tableau, une continuité entre eux prouve qu'ils sont reliés quelque part sur le chantier."
+          },
+          {
+            "texte": "Mesurer l'isolement entre phase et neutre de chaque circuit",
+            "verdict": "mauvais",
+            "explication": "Ça cherche un défaut d'isolement. Le problème ici est un mauvais raccordement, pas une isolation abîmée."
+          },
+          {
+            "texte": "Mesurer la résistance de la prise de terre de l'atelier",
+            "verdict": "mauvais",
+            "explication": "La terre n'intervient pas : le déclenchement vient d'un retour de courant mal aiguillé, pas d'une fuite."
+          }
+        ]
+      },
+      {
+        "situation": "Une boîte de dérivation au plafond relie les neutres des deux circuits.",
+        "question": "La correction ?",
+        "choix": [
+          {
+            "texte": "Séparer les neutres : chaque circuit garde le sien",
+            "verdict": "bon",
+            "explication": "Chaque circuit doit avoir son propre neutre, protégé par le même différentiel que sa phase."
+          },
+          {
+            "texte": "Ramener le neutre de l'éclairage en amont des différentiels",
+            "verdict": "danger",
+            "explication": "Le neutre ne serait plus surveillé : le différentiel de l'éclairage ne verrait plus rien, et ne protégerait plus personne."
+          },
+          {
+            "texte": "Regrouper les deux circuits sous un seul différentiel",
+            "verdict": "mauvais",
+            "explication": "Les déclenchements cessent, mais le neutre reste partagé : couper un circuit ne met plus son neutre hors tension."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Un neutre a été « emprunté » : celui des prises sert aussi de retour à l'éclairage. Le courant revient par un autre différentiel que celui de l'aller : chacun voit un déséquilibre et déclenche.",
+      "remede": "Séparer les neutres pour que chaque circuit ait le sien, protégé par le même différentiel que sa phase ; repérer les conducteurs ; essayer les deux différentiels.",
+      "lecon": "Un différentiel compare l'aller et le retour : si le retour passe ailleurs, il déclenche sans aucun défaut d'isolement.",
+      "piege": "Couper le disjoncteur de l'éclairage ne met pas son neutre hors tension : le neutre partagé reste parcouru par le courant des prises.",
+      "risque": "On croit le circuit d'éclairage coupé, on déconnecte son neutre… parcouru par le courant de l'établi : électrisation, et arc à l'ouverture du conducteur.",
+      "norme": "NF C 15-100 (un neutre propre à chaque circuit)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "double-source",
+    "niveau": 2,
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "titre": "Circuit consigné, mais le VAT indique encore 230 V",
+    "contexte": "Salle serveurs d'une usine : tu dois remplacer une prise défectueuse. Le départ indiqué sur le schéma est ouvert au tableau principal, cadenas et pancarte posés.",
+    "etapes": [
+      {
+        "situation": "VAT testé sur une source connue : la prise indique 230 V entre phase et neutre.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Arrêter tout : une autre source alimente encore la prise",
+            "verdict": "bon",
+            "explication": "La VAT a fait son travail : elle révèle une source non consignée. On cherche laquelle avant toute intervention."
+          },
+          {
+            "texte": "Continuer avec des gants isolants : le départ est consigné",
+            "verdict": "danger",
+            "explication": "La VAT dit le contraire : la prise est sous tension. Les gants ne transforment pas un travail sous tension en travail hors tension."
+          },
+          {
+            "texte": "Changer de VAT : la mesure est forcément incohérente",
+            "verdict": "mauvais",
+            "explication": "Le VAT a été testé sur une source connue : il fonctionne. C'est la consignation qui est incomplète."
+          }
+        ]
+      },
+      {
+        "situation": "Sur place : tableau principal → onduleur → tableau secouru → prise. Le schéma n'en disait rien.",
+        "question": "Que consignes-tu ?",
+        "choix": [
+          {
+            "texte": "Son départ au tableau secouru, puis nouvelle VAT",
+            "verdict": "bon",
+            "explication": "La prise est alimentée par le tableau secouru : c'est là qu'on la sépare, by-pass de l'onduleur compris."
+          },
+          {
+            "texte": "L'onduleur, en l'arrêtant depuis l'écran de commande",
+            "verdict": "mauvais",
+            "explication": "Un arrêt par l'écran n'est pas une séparation : un by-pass ou un redémarrage peut réalimenter la prise."
+          },
+          {
+            "texte": "Rien de plus : débrancher la batterie de l'onduleur suffit",
+            "verdict": "mauvais",
+            "explication": "Le by-pass de l'onduleur peut encore alimenter le tableau secouru depuis le réseau, sans batterie."
+          }
+        ]
+      },
+      {
+        "situation": "Bon départ consigné, VAT : absence de tension. La prise est remplacée.",
+        "question": "Que reste-t-il à faire ?",
+        "choix": [
+          {
+            "texte": "Corriger le schéma, signaler la double alimentation",
+            "verdict": "bon",
+            "explication": "Le prochain intervenant tombera dans le même piège si le schéma n'est pas corrigé : on documente."
+          },
+          {
+            "texte": "Rien : l'erreur de la première consignation n'a pas eu de suite",
+            "verdict": "mauvais",
+            "explication": "Elle n'en a pas eu grâce à la VAT. Sans correction du schéma, elle se reproduira."
+          },
+          {
+            "texte": "Retirer le premier cadenas, posé pour rien, avant la fin",
+            "verdict": "mauvais",
+            "explication": "On ne modifie pas une consignation en cours : on la lève à la fin, dans l'ordre prévu."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "La prise n'était pas alimentée par le départ consigné mais par un tableau secouru, derrière un onduleur : ouvrir l'arrivée normale ne coupe rien en aval de l'onduleur, qui prend le relais sur batterie.",
+      "remede": "Identifier toutes les sources, consigner le départ au tableau secouru, VAT, intervenir, puis corriger le schéma et le repérage du tableau.",
+      "lecon": "La VAT n'est pas une formalité : c'est elle qui révèle la source oubliée.",
+      "piege": "Un onduleur bascule sur batterie sans bruit et sans voyant visible au tableau : couper son arrivée, c'est justement le faire débiter.",
+      "risque": "Sans la VAT, l'intervenant aurait démonté une prise sous 230 V en se croyant consigné : électrisation, et court-circuit sur un onduleur capable de débiter longtemps.",
+      "norme": "NF C 18-510 (séparation de toutes les sources, VAT)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "energie-residuelle-variateur",
+    "niveau": 2,
+    "domaines": [
+      "securite",
+      "tri"
+    ],
+    "titre": "Variateur consigné : peut-on ouvrir le capot ?",
+    "contexte": "Un variateur de 30 kW est en défaut « surtension bus continu ». Tu dois remplacer sa carte de commande. Le variateur vient d'être consigné ; son afficheur s'est éteint.",
+    "etapes": [
+      {
+        "situation": "Consignation faite il y a une minute.",
+        "question": "Peux-tu ouvrir le capot tout de suite ?",
+        "choix": [
+          {
+            "texte": "Non : attendre le temps de décharge indiqué",
+            "verdict": "bon",
+            "explication": "Les condensateurs du bus continu restent chargés après la coupure. Le constructeur indique un temps d'attente : on le respecte."
+          },
+          {
+            "texte": "Oui : l'afficheur est éteint, donc tout est déchargé",
+            "verdict": "danger",
+            "explication": "L'afficheur s'éteint bien avant que le bus continu soit déchargé : il ne prouve rien."
+          },
+          {
+            "texte": "Oui, puisque la VAT en amont du variateur est bonne",
+            "verdict": "mauvais",
+            "explication": "La VAT en amont prouve que le réseau est coupé, pas que l'énergie stockée dans le variateur a disparu."
+          }
+        ]
+      },
+      {
+        "situation": "Le temps d'attente indiqué (15 min) est écoulé. Capot ouvert.",
+        "question": "Avant de toucher la carte ?",
+        "choix": [
+          {
+            "texte": "Mesurer entre DC+ et DC− : la tension doit être quasi nulle",
+            "verdict": "bon",
+            "explication": "C'est la vérification de l'énergie résiduelle : on mesure le bus continu, en V continu, avec un appareil de catégorie adaptée."
+          },
+          {
+            "texte": "Vérifier l'absence de tension entre les phases d'entrée",
+            "verdict": "mauvais",
+            "explication": "L'entrée est consignée : elle est à zéro. L'énergie résiduelle est sur le bus continu, pas sur l'entrée."
+          },
+          {
+            "texte": "Court-circuiter DC+ et DC− au tournevis pour finir la décharge",
+            "verdict": "danger",
+            "explication": "Court-circuiter un bus chargé crée un arc et projette du métal fondu : on décharge avec un outil prévu pour."
+          }
+        ]
+      },
+      {
+        "situation": "Entre DC+ et DC− : 380 V, après 15 minutes.",
+        "question": "Ce que ça signifie ?",
+        "choix": [
+          {
+            "texte": "Décharge HS : ne rien toucher, décharger avec l'outil prévu",
+            "verdict": "bon",
+            "explication": "Les résistances de décharge ne font plus leur travail. On décharge le bus par une résistance isolée prévue à cet effet, puis on vérifie 0 V."
+          },
+          {
+            "texte": "Le multimètre est réglé en V~ : la mesure DC est fausse",
+            "verdict": "mauvais",
+            "explication": "Rien ne l'indique. Dans le doute, on refait la mesure en V continu, mais on ne touche à rien."
+          },
+          {
+            "texte": "Normal pour un 30 kW : on peut travailler avec des gants",
+            "verdict": "danger",
+            "explication": "380 V continus derrière des milliers de µF peuvent tuer. Des gants ne rendent pas ce travail sûr."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Les résistances de décharge du bus continu sont défaillantes, sans doute en lien avec le défaut de surtension : après 15 minutes, les condensateurs gardent 380 V.",
+      "remede": "Décharger le bus continu avec une résistance de décharge isolée prévue à cet effet, vérifier 0 V, puis intervenir. Signaler la défaillance au constructeur ou remplacer le variateur.",
+      "lecon": "Après consignation, une énergie peut rester stockée : on attend le temps indiqué, puis on le vérifie par une mesure entre DC+ et DC−.",
+      "piege": "L'afficheur éteint ne prouve rien : il s'éteint bien avant que le bus continu soit déchargé.",
+      "risque": "Un bus continu de plusieurs centaines de volts derrière des condensateurs de plusieurs milliers de µF : le contact peut tuer, et un court-circuit au tournevis projette du métal fondu.",
+      "norme": "NF C 18-510 (énergies résiduelles) · IEC 61800-5-1 (variateurs)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "demarrage-intempestif-24v",
+    "niveau": 3,
+    "domaines": [
+      "tbt-cc",
+      "securite"
+    ],
+    "titre": "La presse a démarré seule pendant un réglage",
+    "contexte": "Presse d'un atelier de découpe : circuit de commande en 24 V continu par une alimentation à découpage, 0 V non relié à la terre. Hier, la presse a démarré seule pendant un réglage, sans appui sur Marche. Personne n'a été blessé.",
+    "etapes": [
+      {
+        "situation": "La presse est arrêtée. Le responsable veut savoir si elle peut reprendre.",
+        "question": "Ta première action ?",
+        "choix": [
+          {
+            "texte": "Consigner la presse, interdite jusqu'au diagnostic",
+            "verdict": "bon",
+            "explication": "Un démarrage intempestif est un incident grave : la machine reste consignée tant que la cause n'est pas trouvée."
+          },
+          {
+            "texte": "Faire des essais de démarrage pour reproduire le défaut",
+            "verdict": "danger",
+            "explication": "Provoquer volontairement un démarrage intempestif, c'est exposer quiconque est près de l'outil."
+          },
+          {
+            "texte": "Remplacer le bouton Marche, sûrement collé à l'intérieur",
+            "verdict": "mauvais",
+            "explication": "Peut-être, mais rien ne le prouve. Changer une pièce au hasard sur une fonction de sécurité ne règle rien."
+          }
+        ]
+      },
+      {
+        "situation": "Isolement du circuit de commande, alimentation débranchée : un fil du +24 V touche le bâti, et un fil entre le bouton Marche et l'entrée est blessé au même endroit.",
+        "question": "Comment la presse a-t-elle démarré ?",
+        "choix": [
+          {
+            "texte": "Deux défauts à la masse ont shunté Marche par le bâti",
+            "verdict": "bon",
+            "explication": "Le +24 V touchait le bâti ; le fil d'après le bouton aussi. Le bâti a fait le pont : c'est comme appuyer sur Marche."
+          },
+          {
+            "texte": "Le +24 V à la masse a fait monter la tension de l'alimentation",
+            "verdict": "mauvais",
+            "explication": "Une alimentation régulée ne monte pas parce qu'un fil touche la masse. Le mécanisme est un pont par le bâti."
+          },
+          {
+            "texte": "Une surtension du réseau a traversé l'alimentation 24 V",
+            "verdict": "mauvais",
+            "explication": "Rien ne l'indique, et la mesure d'isolement vient de montrer deux défauts précis au même endroit."
+          }
+        ]
+      },
+      {
+        "situation": "Les deux fils sont remplacés et protégés.",
+        "question": "Que corriges-tu en plus ?",
+        "choix": [
+          {
+            "texte": "Relier le 0 V à la terre : le 1er défaut fera couper",
+            "verdict": "bon",
+            "explication": "Avec le 0 V à la terre, un fil du +24 V qui touche le bâti crée un court-circuit : la protection coupe au premier défaut."
+          },
+          {
+            "texte": "Rien : une fois les fils réparés, le risque a disparu",
+            "verdict": "mauvais",
+            "explication": "Tant que le circuit reste flottant, le prochain premier défaut passera encore inaperçu."
+          },
+          {
+            "texte": "Ajouter un second bouton Marche en série pour doubler l'ordre",
+            "verdict": "mauvais",
+            "explication": "Les défauts shuntent les boutons par le bâti : un second bouton peut être shunté de la même façon."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Deux défauts d'isolement sur un circuit de commande non relié à la terre : le +24 V et le fil d'après le bouton Marche touchaient le bâti. Le bâti a fait le pont : la presse a démarré seule.",
+      "remede": "Réparer et protéger les fils (passe-fils, goulotte), relier le 0 V au circuit de protection ou installer un contrôleur d'isolement, vérifier la protection de l'alimentation, essayer toutes les fonctions de sécurité avant la remise en service.",
+      "lecon": "Un circuit de commande flottant masque le premier défaut : c'est le second qui provoque l'accident.",
+      "piege": "Le premier défaut ne se voit pas : tout fonctionne, aucun fusible ne fond. On ne le découvre qu'à la mesure d'isolement, ou au second défaut.",
+      "risque": "Un démarrage intempestif de presse pendant un réglage, c'est la main ou le bras de l'opérateur dans l'outil : amputation.",
+      "norme": "NF EN 60204-1 (§ 9.4.3, défauts à la terre du circuit de commande)"
+    },
+    "verifie": false
   }
 ]

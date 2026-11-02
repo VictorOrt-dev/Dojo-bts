@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200">
+  <defs><pattern id="vj" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="20" fill="#16a34a"/><rect x="10" width="10" height="20" fill="#facc15"/></pattern></defs>
+  <rect width="240" height="200" fill="#e7ebf0"/>
+  <rect x="0" y="80" width="70" height="40" rx="6" fill="#d6d3cd" stroke="#8d939a" stroke-width="2"/>
+  <path d="M66 90 C 120 90, 140 50, 200 50" fill="none" stroke="#7c4a22" stroke-width="12" stroke-linecap="round"/>
+  <path d="M66 100 C 120 100, 140 100, 200 100" fill="none" stroke="#60a5fa" stroke-width="12" stroke-linecap="round"/>
+  <path d="M66 110 C 120 110, 140 150, 200 150" fill="none" stroke="url(#vj)" stroke-width="12" stroke-linecap="round"/>
+  <g fill="#c58b45"><rect x="200" y="46" width="22" height="8" rx="2"/><rect x="200" y="96" width="22" height="8" rx="2"/><rect x="200" y="146" width="22" height="8" rx="2"/></g>
+</svg>

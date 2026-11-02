@@ -192,10 +192,11 @@ function jouer(vue, c, tousLesCas) {
         ${enSavoirPlus(`
           ${cause.complet ? '' : `<div class="lecon"><p class="lecon-titre">La cause, en détail</p><p>${esc(typo(c.conclusion.cause))}</p></div>`}
           <div class="lecon"><p class="lecon-titre">Le remède</p><p>${esc(typo(c.conclusion.remede))}</p></div>
-          <div class="piege-terrain"><p class="lecon-titre">À retenir</p><p>${esc(typo(c.conclusion.lecon))}</p></div>
+          ${c.conclusion.piege ? `<div class="piege-terrain"><p class="lecon-titre">Le piège en armoire</p><p>${esc(typo(c.conclusion.piege))}</p></div>` : ''}
+          <div class="${c.conclusion.piege ? 'lecon' : 'piege-terrain'}"><p class="lecon-titre">À retenir</p><p>${esc(typo(c.conclusion.lecon))}</p></div>
           ${risqueComplet(c.conclusion.risque)}
           ${ligneNorme(c.conclusion.norme)}
-          ${c.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}`, 'En savoir plus : remède, à retenir, norme')}
+          ${c.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>'}`, 'En savoir plus : remède, piège, à retenir, norme')}
       </section>
       <div class="actions pousse-bas">
         ${prochain ? `<a class="btn principal" href="#/entrainement/panne?c=${encodeURIComponent(prochain.id)}">Cas suivant</a>` : ''}

@@ -963,6 +963,255 @@ export const GENERATEURS = [
         ]
       };
     }
+  },
+
+  // ---------------------------------------------------------------- Calculs de terrain (audit pédagogique, P1)
+  {
+    id: 'magnetique-courbe',
+    niveau: 1,
+    titre: 'Seuil magnétique d\'un disjoncteur',
+    domaines: ['mono-bt'],
+    norme: 'IEC 60898-1',
+    risque: "Si le courant de court-circuit en bout de ligne n'atteint pas le seuil magnétique, le disjoncteur ne coupe qu'au bout de plusieurs secondes, sur son thermique : le câble chauffe, l'isolant fond, et une masse en défaut reste sous tension trop longtemps.",
+    creer() {
+      const { courbe, bas, haut } = parmi([{ courbe: 'B', bas: 3, haut: 5 }, { courbe: 'C', bas: 5, haut: 10 }, { courbe: 'D', bas: 10, haut: 20 }]);
+      const In = parmi([6, 10, 16, 20, 25, 32]);
+      const I = haut * In;
+      return {
+        enonce: `Disjoncteur modulaire ${courbe}${In}. À partir de quel courant son déclenchement magnétique (instantané) est-il garanti ?`,
+        aide: 'Courbes : B de 3 à 5 In · C de 5 à 10 In · D de 10 à 20 In',
+        unite: 'A', reponse: I, donnees: { courbe, In, bas, haut },
+        solution: `Courbe ${courbe} : déclenchement magnétique entre ${bas} et ${haut} In. Garanti à ${haut} × ${In} = ${I} A`,
+        explication: `La lettre donne la plage du déclenchement magnétique : en dessous de ${bas} In, jamais d'instantané ; au-delà de ${haut} In, toujours. Entre les deux, cela dépend de l'appareil. Pour vérifier une protection, on prend la borne haute.`,
+        piege: 'Calculer avec la borne basse donne une fausse assurance : un courant de défaut à 6 In fait déclencher certains C16 instantanément, pas tous.',
+        erreurs: [
+          { valeur: bas * In, message: `C'est la borne basse : en dessous, jamais d'instantané. Le déclenchement n'est garanti qu'à ${haut} In.` },
+          { valeur: In, message: 'In est le calibre, la limite du thermique. Le magnétique agit à plusieurs fois In.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'energie-condensateur',
+    niveau: 1,
+    titre: 'Énergie restée dans un variateur',
+    domaines: ['securite', 'tri'],
+    norme: 'NF C 18-510 (énergies résiduelles) · IEC 61800-5-1',
+    risque: "Un bus continu de variateur chargé à plusieurs centaines de volts peut tuer au contact, même consigné, et un court-circuit au tournevis crée un arc qui projette du métal fondu. D'où le temps d'attente affiché et la mesure entre DC+ et DC− avant de toucher.",
+    creer() {
+      const C = parmi([1000, 2200, 4700]);
+      if (parmi([true, false])) {
+        const U = parmi([325, 540, 565]);
+        const W = 0.5 * C * 1e-6 * U ** 2;
+        return {
+          enonce: `Bus continu d'un variateur : condensateurs de ${nb(C, 0)} µF chargés à ${U} V. Énergie stockée, en joules ?`,
+          aide: 'W = ½ × C × U², avec C en farads',
+          unite: 'J', reponse: W, donnees: { type: 'energie', C, U },
+          solution: `W = ½ × ${nb(C * 1e-6, 4)} F × ${U}² = ${nb(W, 0)} J`,
+          explication: 'Un condensateur stocke W = ½ × C × U². L\'énergie croît comme le carré de la tension : à 540 V, quelques milliers de µF stockent des centaines de joules, de quoi provoquer une électrisation grave et un arc.',
+          piege: 'Convertis les µF en farads (÷ 1 000 000) et n\'oublie ni le ½ ni le carré.',
+          erreurs: [
+            { valeur: C * 1e-6 * U ** 2, message: 'Il manque le ½ : W = ½ × C × U².' },
+            { valeur: 0.5 * C * 1e-6 * U, message: 'La tension est au carré : W = ½ × C × U².' }
+          ]
+        };
+      }
+      const R = parmi([47, 100, 220]);
+      const t = 5 * R * 1e3 * C * 1e-6 / 60;
+      return {
+        enonce: `Condensateurs de ${nb(C, 0)} µF déchargés par une résistance de ${R} kΩ. Temps pour une décharge quasi complète (5 R·C), en minutes ?`,
+        aide: 'τ = R × C (Ω × F = secondes) · décharge quasi complète en 5 τ',
+        unite: 'min', reponse: t, donnees: { type: 'decharge', C, R },
+        solution: `τ = ${R} 000 Ω × ${nb(C * 1e-6, 4)} F = ${nb(R * C / 1000, 1)} s ; 5 τ = ${nb(5 * R * C / 1000, 0)} s = ${nb(t, 1)} min`,
+        explication: 'La tension d\'un condensateur décroît en exponentielle : après une constante de temps τ = R × C, il reste 37 % ; après 5 τ, moins de 1 %. C\'est ce calcul qui fixe le temps d\'attente affiché sur le variateur.',
+        piege: 'Le temps affiché suppose des résistances de décharge en bon état. S\'il reste de la tension au-delà, elles sont en panne : on mesure toujours entre DC+ et DC−.',
+        erreurs: [
+          { valeur: t / 5, message: 'Tu as calculé une seule constante de temps : il reste encore 37 % de la tension. La décharge quasi complète demande 5 τ.' },
+          { valeur: t * 60, message: 'Résultat en secondes : divise par 60 pour l\'avoir en minutes.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'sortie-api',
+    niveau: 1,
+    titre: 'Courant d\'une sortie d\'automate',
+    domaines: ['tbt-cc'],
+    norme: 'IEC 61131-2',
+    risque: "Une sortie d'automate surchargée chauffe puis claque : la machine perd une commande, parfois en position « marche » si le transistor se met en court-circuit. Une bobine de contacteur trop gourmande se pilote par un relais d'interface.",
+    creer() {
+      const P = parmi([1.2, 2, 2.4, 3, 4.8, 6]);
+      const I = P / 24 * 1000;
+      return {
+        enonce: `Une sortie 24 V DC d'automate pilote une bobine de relais de ${nb(P, 1)} W. Courant demandé à la sortie, en mA ?`,
+        unite: 'mA', reponse: I, donnees: { P },
+        solution: `I = P / U = ${nb(P, 1)} / 24 = ${nb(P / 24, 3)} A = ${nb(I, 0)} mA`,
+        explication: 'I = P / U. Une sortie à transistor supporte typiquement 0,5 A : on compare le courant de la charge au courant admissible de la sortie, et au total admissible du groupe de sorties.',
+        piege: 'Le courant d\'appel d\'une bobine et les lampes à incandescence dépassent largement le courant nominal : la notice de la sortie donne aussi une limite pour ces charges.',
+        erreurs: [
+          { valeur: P * 24, message: 'Tu as multiplié P par U : le courant, c\'est I = P / U.' },
+          { valeur: P / 24, message: 'Résultat en ampères : multiplie par 1 000 pour l\'avoir en mA.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'iz-correction',
+    niveau: 2,
+    titre: 'Courant admissible corrigé d\'un câble',
+    domaines: ['mono-bt', 'tri'],
+    norme: 'NF C 15-100 (§ 523) · IEC 60364-5-52',
+    risque: "Un câble qui chauffe au-delà de sa température admissible vieillit en quelques mois : isolant durci, fissuré, puis court-circuit ou défaut à la terre dans la goulotte, souvent loin du tableau et sans témoin.",
+    creer() {
+      const Iz0 = parmi([24, 32, 41, 57, 76]);
+      const { T, Kt } = parmi([{ T: 35, Kt: 0.94 }, { T: 40, Kt: 0.87 }, { T: 45, Kt: 0.79 }]);
+      const { n, Kg } = parmi([{ n: 2, Kg: 0.80 }, { n: 3, Kg: 0.70 }, { n: 4, Kg: 0.65 }]);
+      const Iz = Iz0 * Kt * Kg;
+      return {
+        enonce: `Câble isolé PVC : le tableau donne Iz = ${Iz0} A, posé seul à 30 °C. Il est jointif avec ${n - 1} autre${n > 2 ? 's' : ''} circuit${n > 2 ? 's' : ''} (facteur ${nb(Kg, 2)}) dans un local à ${T} °C (facteur ${nb(Kt, 2)}). Courant admissible corrigé ?`,
+        unite: 'A', reponse: Iz, donnees: { Iz0, Kt, Kg },
+        solution: `Iz = ${Iz0} × ${nb(Kt, 2)} × ${nb(Kg, 2)} = ${nb(Iz, 1)} A`,
+        explication: 'Les tableaux donnent le courant d\'un câble seul à 30 °C. Chaque condition plus défavorable (température, câbles voisins, mode de pose) se traduit par un facteur inférieur à 1 : on les multiplie tous. La protection doit ensuite respecter In ≤ Iz corrigé.',
+        piege: 'Le groupement est souvent oublié : quatre circuits dans le même conduit perdent un tiers de leur courant admissible, même à température normale.',
+        erreurs: [
+          { valeur: Iz0 * Kt, message: 'Tu as appliqué la température, pas le groupement : les facteurs se multiplient tous.' },
+          { valeur: Iz0 * Kg, message: 'Tu as appliqué le groupement, pas la température : les facteurs se multiplient tous.' },
+          { valeur: Iz0 / (Kt * Kg), message: 'Tu as divisé par les facteurs : ils réduisent le courant admissible, on multiplie.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'isolement-attendu',
+    niveau: 2,
+    titre: 'Résistance d\'isolement attendue',
+    domaines: ['securite', 'tri'],
+    norme: 'IEC 60364-6 · IEC 61557-2',
+    risque: "Une mesure d'isolement mal interprétée laisse en service un câble ou un moteur dont l'isolant se dégrade : défaut à la terre, carcasse sous tension, puis court-circuit. À l'inverse, on remplace pour rien un matériel sain.",
+    creer() {
+      if (parmi([true, false])) {
+        const Rkm = parmi([100, 200, 500]);
+        const L = parmi([150, 250, 400, 800]);
+        const R = Rkm / (L / 1000);
+        return {
+          enonce: `La fiche d'un câble neuf donne une résistance d'isolement de ${Rkm} MΩ·km. Valeur attendue pour une longueur de ${L} m, en MΩ ?`,
+          aide: 'Les isolants de chaque mètre sont en parallèle',
+          unite: 'MΩ', reponse: R, donnees: { type: 'longueur', Rkm, L },
+          solution: `R = ${Rkm} MΩ·km / ${nb(L / 1000, 2)} km = ${nb(R, 0)} MΩ`,
+          explication: 'La fuite à travers l\'isolant se fait sur toute la longueur : chaque mètre est une résistance en parallèle avec les autres. Plus le câble est long, plus la résistance d\'isolement est faible : R = R(km) / L(km).',
+          piege: 'Un câble long qui donne une valeur plus basse qu\'un câble court n\'est pas forcément abîmé : on compare à la valeur attendue pour sa longueur.',
+          erreurs: [
+            { valeur: Rkm * L / 1000, message: 'Tu as multiplié par la longueur : l\'isolement diminue quand le câble s\'allonge, on divise.' },
+            { valeur: Rkm, message: 'C\'est la valeur pour 1 km : ramène-la à la longueur réelle.' }
+          ]
+        };
+      }
+      const Rm = parmi([20, 50, 80, 150]);
+      const T = parmi([30, 40, 50]);
+      const R20 = Rm * 2 ** ((T - 20) / 10);
+      return {
+        enonce: `Moteur chaud : isolement mesuré ${Rm} MΩ à ${T} °C. Avec la règle pratique « l'isolement est divisé par 2 tous les 10 °C », valeur ramenée à 20 °C ?`,
+        unite: 'MΩ', reponse: R20, donnees: { type: 'temperature', Rm, T },
+        solution: `${(T - 20) / 10} × 10 °C au-dessus de 20 °C : R20 = ${Rm} × 2^${(T - 20) / 10} = ${nb(R20, 0)} MΩ`,
+        explication: 'L\'isolement chute quand la température monte. Pour comparer des mesures dans le temps, on les ramène à une même température. La règle « divisé par 2 tous les 10 °C » est une approximation courante pour les bobinages.',
+        piege: 'Comparer une mesure à chaud et une mesure à froid sans correction fait croire à une dégradation, ou masque une vraie.',
+        erreurs: [
+          { valeur: Rm / 2 ** ((T - 20) / 10), message: 'À 20 °C, plus froid, l\'isolement est plus élevé : on multiplie par 2 tous les 10 °C.' },
+          { valeur: Rm, message: 'Il faut corriger la mesure : elle a été faite à chaud.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'glissement',
+    niveau: 2,
+    titre: 'Glissement d\'un moteur asynchrone',
+    domaines: ['tri'],
+    norme: 'IEC 60034-1',
+    risque: "Un glissement anormalement fort signale un moteur surchargé ou sous-alimenté : il chauffe, son isolant vieillit vite, et la machine entraînée tourne trop lentement (pompe qui ne débite plus, convoyeur qui cale).",
+    creer() {
+      const { poles, ns, n } = parmi([
+        ...[2850, 2880, 2910, 2940].map(n => ({ poles: 2, ns: 3000, n })),
+        ...[1420, 1440, 1450, 1465].map(n => ({ poles: 4, ns: 1500, n })),
+        ...[940, 955, 960, 970].map(n => ({ poles: 6, ns: 1000, n }))
+      ]);
+      const g = (ns - n) / ns * 100;
+      const erreurs = [{ valeur: ns - n, message: `${ns - n} tr/min, c'est l'écart de vitesse : le glissement s'exprime en % de la vitesse de synchronisme.` }];
+      if (poles > 2) erreurs.push({ valeur: (3000 - n) / 3000 * 100, message: `Un ${poles} pôles n'a pas 3 000 tr/min de synchronisme : ns = 60 × f / p, avec p le nombre de paires de pôles.` });
+      return {
+        enonce: `Moteur asynchrone ${poles} pôles, 50 Hz. La plaque indique ${nb(n, 0)} tr/min. Glissement nominal, en % ?`,
+        aide: 'ns = 60 × f / p (p : paires de pôles)',
+        unite: '%', reponse: g, donnees: { ns, n },
+        solution: `ns = 60 × 50 / ${poles / 2} = ${ns} tr/min ; g = (${ns} − ${n}) / ${ns} = ${nb(g, 2)} %`,
+        explication: 'Le rotor tourne toujours un peu moins vite que le champ : c\'est ce retard, le glissement, qui crée le couple. Il vaut quelques % en charge nominale ; il augmente avec la charge.',
+        piege: '« Pôles » et « paires de pôles » : un 4 pôles a 2 paires, son synchronisme est 1 500 tr/min, pas 750.',
+        erreurs
+      };
+    }
+  },
+
+  {
+    id: 'icc-aval',
+    niveau: 3,
+    titre: 'Courant de court-circuit en aval d\'un câble',
+    domaines: ['tri'],
+    norme: 'IEC 60909-0 · NF C 15-100 (§ 434)',
+    risque: "Un appareil de protection dont le pouvoir de coupure est inférieur au courant de court-circuit explose au premier défaut. À l'inverse, un Icc surestimé en bout de ligne fait croire qu'un disjoncteur coupera instantanément alors qu'il restera sur son thermique.",
+    creer() {
+      const Icc1 = parmi([10, 15, 20, 25]);
+      const L = parmi([20, 40, 60, 80]);
+      const S = parmi([16, 25, 35, 50]);
+      const Za = 400 / (RACINE3 * Icc1 * 1000);
+      const Rc = 0.0225 * L / S;
+      const Icc2 = 400 / (RACINE3 * (Za + Rc)) / 1000;
+      return {
+        enonce: `Au TGBT (400 V), Icc = ${Icc1} kA. Un câble cuivre de ${L} m, ${S} mm² par phase, alimente un coffret. Icc triphasé au coffret, en kA ? (réactances négligées, ρ = 0,0225 Ω·mm²/m)`,
+        aide: 'Z amont = U / (√3 × Icc) · R câble = ρ × L / S · Icc = U / (√3 × Z totale)',
+        unite: 'kA', reponse: Icc2, donnees: { Icc1, L, S },
+        solution: `Z amont = 400 / (√3 × ${Icc1} 000) = ${nb(Za * 1000, 1)} mΩ ; R câble = 0,0225 × ${L} / ${S} = ${nb(Rc * 1000, 1)} mΩ ; Icc = 400 / (√3 × ${nb((Za + Rc) * 1000, 1)} mΩ) = ${nb(Icc2, 2)} kA`,
+        explication: 'Le courant de court-circuit est limité par toutes les impédances en série : celle du réseau amont (déduite de l\'Icc au TGBT) et celle du câble. Plus on s\'éloigne du TGBT, plus l\'Icc baisse.',
+        piege: 'En triphasé, le court-circuit franc entre phases se calcule avec l\'impédance d\'un seul conducteur (pas l\'aller-retour) et la tension simple U / √3.',
+        erreurs: [
+          { valeur: 400 / (RACINE3 * Rc) / 1000, message: 'Tu as oublié l\'impédance du réseau amont : elle s\'ajoute à celle du câble.' },
+          { valeur: Icc1, message: 'L\'Icc baisse le long du câble : sa résistance s\'ajoute à l\'impédance amont.' },
+          { valeur: 400 / (RACINE3 * (Za + 2 * Rc)) / 1000, message: 'En triphasé franc, on compte un seul conducteur par phase, pas l\'aller-retour.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'reglage-ir',
+    niveau: 3,
+    titre: 'Réglage du thermique d\'un disjoncteur',
+    domaines: ['tri', 'mono-bt'],
+    norme: 'NF C 15-100 (§ 433) · IEC 60947-2',
+    risque: "Ir réglé au-dessus du courant admissible du câble : une surcharge prolongée le cuit sans que rien ne coupe. Réglé sous le courant d'emploi : déclenchements à répétition, et la tentation de « monter le réglage » sans réfléchir.",
+    creer() {
+      const In = parmi([100, 160, 250]);
+      const k = entier(9, 19);                       // Ir = k × 0,05 × In, de 0,45 à 0,95 In
+      const Ir = k * 0.05 * In;
+      const Ib = Math.round((Ir - parmi([0.025, 0.03, 0.035]) * In) * 10) / 10;
+      const Iz = Math.round(Ir * parmi([1.15, 1.2, 1.3]));
+      return {
+        enonce: `Disjoncteur ${In} A, Ir réglable de 0,4 à 1 × In par pas de 0,05. Départ : Ib = ${nb(Ib, 1)} A, câble Iz = ${Iz} A. Réglage Ir le plus bas possible, en ampères ?`,
+        aide: 'Ib ≤ Ir ≤ Iz · Ir = coefficient × In',
+        unite: 'A', reponse: Ir, donnees: { In, Ib, Iz },
+        solution: `Ib / In = ${nb(Ib / In, 3)} → pas supérieur : ${nb(k * 0.05, 2)} × ${In} = ${nb(Ir, 0)} A ; contrôle : ${nb(Ib, 1)} ≤ ${nb(Ir, 0)} ≤ ${Iz} A`,
+        explication: 'Le thermique doit laisser passer le courant d\'emploi (Ir ≥ Ib) et protéger le câble (Ir ≤ Iz). On prend le premier cran au-dessus de Ib : la protection la plus serrée qui ne déclenche pas en service normal.',
+        piege: 'Régler sur Iz « pour être tranquille » laisse le câble sans marge, et régler sur In (100 %) ne protège plus du tout un câble plus petit que le calibre.',
+        erreurs: [
+          { valeur: Ib, message: 'Ir se règle par pas de 0,05 × In : prends le premier cran au-dessus de Ib.' },
+          { valeur: Iz, message: 'Régler sur Iz protège le câble de justesse : on prend le cran le plus proche de Ib.' },
+          { valeur: Ir - 0.05 * In, message: 'Ce cran est sous Ib : le disjoncteur déclencherait en fonctionnement normal.' }
+        ]
+      };
+    }
   }
 ];
 

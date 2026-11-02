@@ -305,7 +305,7 @@ Aucune case vide : chaque domaine se travaille à chaque niveau, dans chaque mod
       ]
     }
   ],
-  "conclusion": { "cause": "…", "remede": "…", "lecon": "…", "risque": "…", "norme": "…" },
+  "conclusion": { "cause": "…", "remede": "…", "lecon": "…", "piege": "…", "risque": "…", "norme": "…" },
   "verifie": false
 }
 ```
@@ -399,6 +399,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
+- [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)

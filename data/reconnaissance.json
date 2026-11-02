@@ -1258,5 +1258,386 @@
     ],
     "norme": "IEC 60034-8 (repérage des bornes et sens de rotation)",
     "risque": "Une pompe qui tourne à l'envers se désamorce et détruit sa garniture ; un convoyeur, un pont ou une vis sans fin qui part à l'envers surprend l'opérateur et peut le happer. On contrôle toujours le sens avant de remettre la machine en production."
+  },
+  {
+    "id": "reco-cat-marquage",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-multimetre.svg",
+    "question": "Ce multimètre porte le marquage « CAT III 1000 V ». Que garantit la catégorie de mesure ?",
+    "nom": "Sa tenue aux surtensions du lieu de mesure",
+    "faux": [
+      "La précision de la mesure sur ce calibre",
+      "Le courant maximal mesurable sur la borne A",
+      "La tension maximale de ses piles internes"
+    ],
+    "pourquoiPas": {
+      "La précision de la mesure sur ce calibre": "La précision figure dans les caractéristiques de l'appareil, pas dans sa catégorie de mesure.",
+      "Le courant maximal mesurable sur la borne A": "Le courant maximal est indiqué près de la borne A, avec son fusible. La catégorie concerne les surtensions.",
+      "La tension maximale de ses piles internes": "Les piles alimentent l'électronique : leur tension n'a rien à voir avec la catégorie de mesure."
+    },
+    "explication": "La catégorie (CAT II, III, IV) dit quelles surtensions transitoires l'appareil supporte sans exploser : plus on est près de l'origine de l'installation, plus elles sont fortes. La tension (1000 V) est la tension maximale par rapport à la terre dans cette catégorie.",
+    "reperage": "Marquage près des bornes d'entrée : CAT II (prises), CAT III (tableaux de distribution, installation fixe), CAT IV (origine de l'installation, comptage).",
+    "role": "Choisir l'appareil selon l'endroit où l'on mesure : un CAT II sur un tableau de distribution n'est pas adapté.",
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "IEC 61010-2-030 · NF C 18-510",
+    "risque": "Une surtension de manœuvre ou de foudre, fréquente en tête d'installation, peut faire exploser un appareil sous-dimensionné entre les mains : arc, brûlures au visage et aux mains."
+  },
+  {
+    "id": "reco-vat-appareil",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-vat.svg",
+    "question": "Quel appareil utilises-tu pour la vérification d'absence de tension (VAT) avant de toucher un conducteur ?",
+    "nom": "Ce détecteur de tension bipolaire",
+    "faux": [
+      "Un multimètre réglé en V~",
+      "Un tournevis testeur à une pointe",
+      "Une pince ampèremétrique"
+    ],
+    "pourquoiPas": {
+      "Un multimètre réglé en V~": "Un multimètre peut afficher 0 V sous tension : mauvais calibre, cordon débranché, pile faible. Ce n'est pas un VAT.",
+      "Un tournevis testeur à une pointe": "Un tournevis testeur dépend du contact du corps et de l'éclairage ambiant : il n'est pas fiable pour une VAT.",
+      "Une pince ampèremétrique": "Une pince mesure un courant. Un conducteur hors charge ne fait circuler aucun courant, même sous tension."
+    },
+    "explication": "Le détecteur de tension bipolaire est conçu pour une seule chose : indiquer sans ambiguïté la présence d'une tension, sans réglage possible. On le teste sur une source connue avant et après la vérification.",
+    "reperage": "Deux poignées reliées par un cordon, indication par voyants ou afficheur, sans sélecteur de calibre.",
+    "role": "Dernière étape avant de toucher : VAT sur chaque conducteur actif, entre eux et par rapport à la terre.",
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "NF C 18-510 · NF EN 61243-3",
+    "risque": "Une VAT faite avec le mauvais appareil donne une fausse assurance : l'intervenant touche un conducteur qu'il croit hors tension."
+  },
+  {
+    "id": "reco-cadenas-pancarte",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-cadenas.svg",
+    "question": "Ce cadenas et cette pancarte sont posés sur la poignée d'un sectionneur ouvert. À quoi servent-ils ?",
+    "nom": "Condamner l'appareil ouvert et signaler l'intervention",
+    "faux": [
+      "Indiquer que l'appareil est en panne et doit être changé",
+      "Interdire l'ouverture de l'appareil en production",
+      "Remplacer la vérification d'absence de tension"
+    ],
+    "pourquoiPas": {
+      "Indiquer que l'appareil est en panne et doit être changé": "Une pancarte de consignation signale une intervention en cours, pas une panne de l'appareil.",
+      "Interdire l'ouverture de l'appareil en production": "Le cadenas bloque l'appareil en position ouverte : il empêche la refermeture, pas l'ouverture.",
+      "Remplacer la vérification d'absence de tension": "La condamnation empêche la remise sous tension. La VAT reste obligatoire : elle prouve l'absence de tension."
+    },
+    "explication": "La condamnation fait partie de la consignation : elle maintient l'organe de séparation ouvert. La pancarte dit pourquoi et qui intervient. Chaque intervenant pose son propre cadenas.",
+    "reperage": "Cadenas personnel (une clé par intervenant), pancarte « Ne pas manœuvrer, travaux en cours » avec nom et date.",
+    "role": "Séparer, condamner, identifier, vérifier l'absence de tension, mettre à la terre et en court-circuit si nécessaire.",
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "NF C 18-510 (consignation)",
+    "risque": "Sans condamnation, quelqu'un referme le sectionneur sans savoir qu'un collègue travaille en aval : électrisation ou électrocution de l'intervenant."
+  },
+  {
+    "id": "reco-couleur-neutre",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-conducteurs.svg",
+    "question": "Dans ce câble d'un circuit monophasé, à quoi est réservé le conducteur bleu clair ?",
+    "nom": "Au neutre, et à rien d'autre",
+    "faux": [
+      "À la phase, en monophasé",
+      "Au conducteur de protection",
+      "Au retour lampe d'un va-et-vient"
+    ],
+    "pourquoiPas": {
+      "À la phase, en monophasé": "La phase est le plus souvent brune, noire ou grise. Le bleu clair est réservé au neutre quand il existe.",
+      "Au conducteur de protection": "Le conducteur de protection est toujours vert-jaune, et cette couleur ne sert à rien d'autre.",
+      "Au retour lampe d'un va-et-vient": "Un retour lampe est une phase commandée : il ne doit pas être bleu clair, pour ne jamais être pris pour un neutre."
+    },
+    "explication": "Repérage normalisé : vert-jaune pour la protection (PE), bleu clair pour le neutre, les autres couleurs pour les phases. Un conducteur bleu clair utilisé comme phase est une erreur dangereuse.",
+    "reperage": "Câble 3G2,5 : marron (phase), bleu clair (neutre), vert-jaune (PE).",
+    "role": "Identifier sans mesure ce qu'on a sous les doigts : la couleur est la première information, la VAT la confirme.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "IEC 60445 · NF C 15-100",
+    "risque": "Un bleu utilisé comme phase est pris pour un neutre « inoffensif » : on le déconnecte sous tension, on se fait électriser."
+  },
+  {
+    "id": "reco-cat-tgbt",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-multimetre.svg",
+    "question": "Tu dois mesurer à l'origine de l'installation, juste en aval du disjoncteur de branchement. Ton multimètre est marqué « CAT III 1000 V · CAT IV 600 V ». Est-il adapté ?",
+    "nom": "Oui : CAT IV 600 V couvre ce réseau 230/400 V",
+    "faux": [
+      "Oui, grâce au CAT III 1000 V : 1000 V > 400 V",
+      "Non : il faudrait un appareil CAT IV 1000 V",
+      "Non : à l'origine, il faut un appareil CAT II"
+    ],
+    "pourquoiPas": {
+      "Oui, grâce au CAT III 1000 V : 1000 V > 400 V": "La catégorie compte autant que la tension : CAT III ne couvre pas l'origine de l'installation, quelle que soit sa tension.",
+      "Non : il faudrait un appareil CAT IV 1000 V": "Dans un réseau 230/400 V, la tension par rapport à la terre est de 230 V : CAT IV 600 V suffit largement.",
+      "Non : à l'origine, il faut un appareil CAT II": "C'est l'inverse : CAT II correspond aux prises, la catégorie la moins exposée aux surtensions."
+    },
+    "explication": "À l'origine de l'installation, les surtensions de foudre et de manœuvre sont les plus fortes : il faut CAT IV. La tension de la catégorie se compare à la tension par rapport à la terre (230 V ici).",
+    "reperage": "Lire les deux marquages : la catégorie adaptée au lieu, puis la tension associée à cette catégorie.",
+    "role": "Avant chaque mesure en tête d'installation ou au TGBT : vérifier catégorie, tension, état des cordons et des pointes.",
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "IEC 61010-2-030 · NF C 18-510",
+    "risque": "Un appareil CAT III utilisé à l'origine de l'installation peut s'amorcer sur une surtension : arc dans l'appareil, entre les mains de l'opérateur."
+  },
+  {
+    "id": "reco-capteur-3fils",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-capteur.svg",
+    "question": "Détecteur inductif PNP à trois fils. Sur quel fil arrive le signal envoyé à l'entrée de l'automate ?",
+    "nom": "Le noir (BK)",
+    "faux": [
+      "Le brun (BN)",
+      "Le bleu (BU)",
+      "Le blanc (WH)"
+    ],
+    "pourquoiPas": {
+      "Le brun (BN)": "Le brun reçoit le +24 V : il alimente le détecteur.",
+      "Le bleu (BU)": "Le bleu va au 0 V : c'est le retour de l'alimentation.",
+      "Le blanc (WH)": "Le blanc n'existe que sur les détecteurs à quatre fils (sortie complémentaire)."
+    },
+    "explication": "Code couleur des détecteurs : brun +24 V, bleu 0 V, noir sortie. En PNP, la sortie commute le +24 V vers l'entrée de l'automate quand l'objet est détecté.",
+    "reperage": "Plaque ou corps du détecteur : PNP ou NPN, NO ou NF, tension, portée.",
+    "role": "Les couleurs sont identiques en PNP et en NPN : seule la référence dit si la sortie met du +24 V ou du 0 V.",
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60947-5-2",
+    "risque": "Un détecteur mal raccordé sur une fonction d'arrêt laisse la machine aveugle : elle continue de tourner alors que quelqu'un est dans la zone."
+  },
+  {
+    "id": "reco-renvoi-folio",
+    "niveau": 2,
+    "type": "symbole",
+    "image": "img/reco/sym-renvoi.svg",
+    "question": "Sur le folio 3 d'un schéma, ce conducteur se termine par une flèche portant le repère « 5.2 ». Que signifie-t-elle ?",
+    "nom": "Le fil continue au folio 5, colonne 2",
+    "faux": [
+      "Le fil porte le numéro 5.2 au bornier",
+      "Sa section vaut 5,2 mm² sur ce tronçon",
+      "Il va au relais K5, sur sa borne 2"
+    ],
+    "pourquoiPas": {
+      "Le fil porte le numéro 5.2 au bornier": "Le numéro de fil est inscrit le long du conducteur, pas au bout d'une flèche de renvoi.",
+      "Sa section vaut 5,2 mm² sur ce tronçon": "La section n'est pas indiquée par un renvoi, et 5,2 mm² n'est pas une section normalisée.",
+      "Il va au relais K5, sur sa borne 2": "Un relais se repère par sa lettre et son numéro (-K5) et ses bornes (13, 14…), pas par une flèche."
+    },
+    "explication": "Un renvoi relie deux morceaux du même conducteur sur deux folios : numéro de folio, puis colonne (ou case). On suit le circuit de folio en folio.",
+    "reperage": "Repère de renvoi : folio.colonne, parfois folio.ligne.colonne selon le cartouche.",
+    "role": "C'est ce qui permet de suivre un circuit de commande sur un dossier de plusieurs dizaines de folios.",
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 61082-1 (documents électrotechniques)",
+    "risque": "Mal lire un renvoi, c'est chercher la panne sur le mauvais circuit… ou consigner le mauvais départ."
+  },
+  {
+    "id": "reco-repere-bornier",
+    "niveau": 2,
+    "type": "symbole",
+    "image": "img/reco/sym-renvoi.svg",
+    "question": "Sur le schéma, un conducteur passe par le repère « -X1:12 ». Où le trouves-tu dans l'armoire ?",
+    "nom": "À la borne 12 du bornier X1",
+    "faux": [
+      "Au fil 12 du câble X1",
+      "Au contact 1-2 du relais X1",
+      "Au folio 12, colonne 1"
+    ],
+    "pourquoiPas": {
+      "Au fil 12 du câble X1": "Un câble se repère par W (-W1) ; ses conducteurs par leur numéro ou leur couleur.",
+      "Au contact 1-2 du relais X1": "Un relais se repère par K (-K1). X désigne un bornier ou un connecteur.",
+      "Au folio 12, colonne 1": "Un folio n'a pas de repère d'appareil : -X1 désigne un objet physique de l'armoire."
+    },
+    "explication": "Le repère « -X1:12 » se lit : appareil X1 (bornier), borne 12. Le deux-points sépare l'appareil de sa borne.",
+    "reperage": "Bornier repéré X1, X2… sur l'étiquette de rail ; bornes numérotées dans l'ordre.",
+    "role": "Le bornier est le point de mesure privilégié : on y mesure sans démonter, entre l'armoire et le terrain.",
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 81346-2 · IEC 61666",
+    "risque": "Une mesure sur la mauvaise borne, c'est un diagnostic faux : on change une pièce saine et on laisse la panne."
+  },
+  {
+    "id": "reco-megohmmetre-prep",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-megohmmetre.svg",
+    "question": "Avant de mesurer au mégohmmètre (500 V DC) l'isolement du câble d'un moteur alimenté par variateur, que dois-tu faire ?",
+    "nom": "Consigner et débrancher le variateur du câble",
+    "faux": [
+      "Rien : la mesure se fait toujours sous tension",
+      "Relier une phase au PE pour la référence",
+      "Choisir 1000 V pour une mesure bien plus fine"
+    ],
+    "pourquoiPas": {
+      "Rien : la mesure se fait toujours sous tension": "Un mégohmmètre s'utilise hors tension : sous tension, il est détruit et l'opérateur exposé.",
+      "Relier une phase au PE pour la référence": "Relier une phase au PE fausse tout : la mesure se fait justement entre les phases et le PE.",
+      "Choisir 1000 V pour une mesure bien plus fine": "La tension d'essai dépend de la tension du circuit (500 V pour un 400 V), pas d'une recherche de finesse."
+    },
+    "explication": "La mesure d'isolement applique une tension continue élevée : circuit consigné, électronique débranchée (variateur, automate), puis mesure entre conducteurs actifs et PE.",
+    "reperage": "Sélecteur de tension d'essai (250, 500, 1000 V DC), lecture en MΩ, cordons rouge et noir.",
+    "role": "Après un défaut terre, un lavage, une remise en service : c'est la mesure qui dit si l'isolant tient.",
+    "verifie": false,
+    "domaines": [
+      "securite",
+      "tri"
+    ],
+    "norme": "IEC 61557-2 · IEC 60364-6 · NF C 18-510",
+    "risque": "Le câble se charge comme un condensateur pendant la mesure : on le décharge avant de le toucher, sinon on prend une décharge."
+  },
+  {
+    "id": "reco-plaque-poles",
+    "niveau": 2,
+    "type": "symbole",
+    "image": "img/reco/sym-moteur.svg",
+    "question": "Plaque d'un moteur asynchrone : 1 450 tr/min, 50 Hz. Combien de pôles a-t-il ?",
+    "nom": "4 pôles",
+    "faux": [
+      "2 pôles",
+      "6 pôles",
+      "8 pôles"
+    ],
+    "pourquoiPas": {
+      "2 pôles": "Un 2 pôles tourne vers 3 000 tr/min à vide (moins le glissement).",
+      "6 pôles": "Un 6 pôles tourne vers 1 000 tr/min, un peu moins en charge.",
+      "8 pôles": "Un 8 pôles tourne vers 750 tr/min."
+    },
+    "explication": "Vitesse de synchronisme : ns = 60 × f / p (p = paires de pôles). À 50 Hz : 3 000, 1 500, 1 000, 750 tr/min. 1 450 tr/min, c'est 1 500 moins le glissement : 2 paires, 4 pôles.",
+    "reperage": "Plaque : vitesse nominale en charge, fréquence, puissance, tensions et courants des deux couplages.",
+    "role": "Un moteur de rechange doit avoir la même vitesse : un 2 pôles à la place d'un 4 pôles double la vitesse de la machine.",
+    "verifie": false,
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 60034-1",
+    "risque": "Monter un moteur de mauvaise vitesse emballe la mécanique : pompe en surpression, ventilateur qui casse, convoyeur dangereux."
+  },
+  {
+    "id": "reco-cat-fusibles",
+    "niveau": 3,
+    "type": "materiel",
+    "image": "img/reco/mat-multimetre.svg",
+    "question": "Pourquoi un multimètre de catégorie III ou IV protège-t-il sa borne « A » par un fusible spécial à fort pouvoir de coupure ?",
+    "nom": "Couper l'arc si la borne A touche une tension",
+    "faux": [
+      "Limiter le courant mesuré au calibre affiché",
+      "Protéger la pile pendant une mesure de courant",
+      "Éviter l'usure des contacts du sélecteur rotatif"
+    ],
+    "pourquoiPas": {
+      "Limiter le courant mesuré au calibre affiché": "Le calibre se choisit au sélecteur. Le fusible n'intervient qu'en cas d'erreur : un court-circuit franc.",
+      "Protéger la pile pendant une mesure de courant": "La pile n'est pas dans le chemin du courant mesuré : le fusible protège contre le court-circuit.",
+      "Éviter l'usure des contacts du sélecteur rotatif": "Le sélecteur n'est pas en cause : le fusible sert à couper un courant de court-circuit de plusieurs kA."
+    },
+    "explication": "En position ampèremètre, l'appareil présente une résistance quasi nulle. Posé sur une tension, c'est un court-circuit franc : seul un fusible à fort pouvoir de coupure éteint l'arc à l'intérieur du boîtier.",
+    "reperage": "Fusibles céramique à haut pouvoir de coupure (plusieurs kA) derrière la borne A ; à remplacer à l'identique.",
+    "role": "On ne remplace jamais ce fusible par un modèle « qui tient » ou par un fil : la protection de l'opérateur en dépend.",
+    "verifie": false,
+    "domaines": [
+      "securite"
+    ],
+    "norme": "IEC 61010-2-030 · NF C 18-510",
+    "risque": "Un fusible remplacé par un modèle à faible pouvoir de coupure laisse l'arc se maintenir : l'appareil explose dans la main, brûlures et projections."
+  },
+  {
+    "id": "reco-auto-maintien",
+    "niveau": 3,
+    "type": "symbole",
+    "image": "img/reco/sym-contact-no.svg",
+    "question": "Le contact 13-14 de KM1 doit être câblé en parallèle du bouton Marche. Que se passe-t-il s'il est câblé en série avec lui ?",
+    "nom": "KM1 ne colle jamais, même bouton appuyé",
+    "faux": [
+      "KM1 colle et reste collé sans arrêt possible",
+      "KM1 colle tant qu'on appuie sur Marche",
+      "KM1 colle, puis bat sans s'arrêter"
+    ],
+    "pourquoiPas": {
+      "KM1 colle et reste collé sans arrêt possible": "Ce serait le cas d'un auto-maintien sans bouton Arrêt, pas d'un contact en série.",
+      "KM1 colle tant qu'on appuie sur Marche": "En série, le 13-14 ouvert au repos empêche toute alimentation de la bobine, même bouton appuyé.",
+      "KM1 colle, puis bat sans s'arrêter": "Le battement vient d'un contact NF de KM1 dans son propre circuit. Ici, la bobine n'est jamais alimentée."
+    },
+    "explication": "Le 13-14 est ouvert au repos. En parallèle de Marche, il prend le relais quand on relâche : c'est l'auto-maintien. En série, il faudrait qu'il soit déjà fermé pour que KM1 colle : la bobine n'est jamais alimentée.",
+    "reperage": "Auto-maintien : Arrêt (NF) en série, puis Marche (NO) en parallèle avec le 13-14 de KM1, puis la bobine A1-A2.",
+    "role": "Lire un circuit de commande, c'est se demander dans quel état est chaque contact au repos, puis à l'appui.",
+    "verifie": false,
+    "domaines": [
+      "tbt-cc"
+    ],
+    "norme": "IEC 60617 · NF EN 60204-1",
+    "risque": "Une erreur de câblage de l'auto-maintien peut rendre l'arrêt inopérant : la machine ne s'arrête plus qu'au sectionneur."
+  },
+  {
+    "id": "reco-au-deux-canaux",
+    "niveau": 3,
+    "type": "materiel",
+    "image": "img/reco/mat-arret-urgence.svg",
+    "question": "Pourquoi l'arrêt d'urgence d'une machine récente passe-t-il souvent par un module de sécurité à deux canaux ?",
+    "nom": "Pour qu'un seul défaut ne supprime pas l'arrêt",
+    "faux": [
+      "Pour couper le moteur deux fois plus vite qu'un NF",
+      "Parce qu'un NF ne tient pas le 24 V continu",
+      "Pour pouvoir réarmer à distance sans risque"
+    ],
+    "pourquoiPas": {
+      "Pour couper le moteur deux fois plus vite qu'un NF": "La vitesse de coupure dépend des contacteurs, pas du nombre de canaux.",
+      "Parce qu'un NF ne tient pas le 24 V continu": "Les contacts NF fonctionnent très bien en 24 V continu : ce n'est pas la raison.",
+      "Pour pouvoir réarmer à distance sans risque": "Le réarmement reste manuel et volontaire. Les deux canaux servent à détecter les défauts."
+    },
+    "explication": "Avec deux canaux surveillés, un contact soudé ou un fil court-circuité est détecté par le module : la machine ne redémarre pas. Avec un seul contact, ce même défaut supprime silencieusement l'arrêt d'urgence.",
+    "reperage": "Module de sécurité (relais de sécurité) : entrées S11-S12 et S21-S22, réarmement, contacts de sortie 13-14 / 23-24.",
+    "role": "Ne jamais ponter un canal pour « dépanner » : on supprime la redondance qui fait la sécurité.",
+    "verifie": false,
+    "domaines": [
+      "securite",
+      "tbt-cc"
+    ],
+    "norme": "ISO 13849-1 · ISO 13850 · NF EN 60204-1",
+    "risque": "Un canal ponté ou un contact soudé non détecté : le jour où l'on frappe l'arrêt d'urgence, la machine continue. Happement, écrasement."
+  },
+  {
+    "id": "reco-ddr-type-f",
+    "niveau": 3,
+    "type": "symbole",
+    "image": "img/reco/sym-differentiel.svg",
+    "question": "Ce différentiel protège une pompe à chaleur à variateur monophasé. Quel type choisis-tu, sauf exigence contraire de la notice ?",
+    "nom": "Type F (fréquences mixtes)",
+    "faux": [
+      "Type AC (alternatif seul)",
+      "Type A (alternatif et redressé)",
+      "Aucun : le variateur protège"
+    ],
+    "pourquoiPas": {
+      "Type AC (alternatif seul)": "Le type AC ne voit que les fuites alternatives sinusoïdales : il peut être aveuglé par celles d'un variateur.",
+      "Type A (alternatif et redressé)": "Le type A voit les fuites redressées, mais pas les fréquences mixtes produites par un variateur monophasé.",
+      "Aucun : le variateur protège": "Le variateur protège son électronique, pas les personnes contre un défaut d'isolement."
+    },
+    "explication": "Un variateur monophasé produit des courants de fuite à fréquences mixtes : le type F les détecte. Un variateur triphasé peut produire des fuites continues lisses : il faut alors un type B, si la notice l'exige.",
+    "reperage": "Marquage du type sur la face avant (symbole ou lettre AC, A, F, B) ; sensibilité 30 mA pour la protection des personnes.",
+    "role": "Choisir le type d'après la notice du matériel protégé ; à défaut, F derrière un variateur monophasé.",
+    "verifie": false,
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
+    "norme": "NF C 15-100 · IEC 62423",
+    "risque": "Un différentiel aveuglé ne déclenche pas sur un défaut réel : la carcasse de l'appareil reste sous tension, sans coupure."
   }
 ]

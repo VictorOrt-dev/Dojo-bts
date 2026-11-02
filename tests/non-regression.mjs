@@ -52,6 +52,14 @@ export default async function ({ t, url: U, navigateur }) {
         case 'courant-corps': return d.U / d.R * 1000;
         case 'rapport-transfo': return d.U1 * 410 / 20;
         case 'prise-transfo': return d.U1 * 410 / (20 * (1 + d.p / 100));
+        case 'magnetique-courbe': return ({ B: 5, C: 10, D: 20 })[d.courbe] * d.In;
+        case 'energie-condensateur': return d.type === 'energie' ? d.C / 2e6 * d.U ** 2 : 5 * d.R * d.C / 1000 / 60;
+        case 'sortie-api': return d.P * 1000 / 24;
+        case 'iz-correction': return d.Iz0 * d.Kt * d.Kg;
+        case 'isolement-attendu': return d.type === 'longueur' ? d.Rkm * 1000 / d.L : d.Rm * 2 ** ((d.T - 20) / 10);
+        case 'glissement': return 100 * (1 - d.n / d.ns);
+        case 'icc-aval': { const z = 400 / (r3 * d.Icc1 * 1000) + rho * d.L / d.S; return 400 / (r3 * z) / 1000; }
+        case 'reglage-ir': { const pas = 0.05 * d.In; const ir = Math.ceil(d.Ib / pas - 1e-9) * pas; return ir <= d.Iz ? ir : NaN; }
         case 'lmax-tn': return 0.8 * 230 * d.S / (rho * 2 * d.k * d.In);
         case 'boucle-4-20': return d.type === 'mesure' ? d.P * (d.I - 4) / 16 : 24 - 0.02 * (d.Re + d.Rc);
         case 'neutre-coupe': { const R1 = 230 ** 2 / d.P1, R2 = 230 ** 2 / d.P2; return 400 * R1 / (R1 + R2); }
