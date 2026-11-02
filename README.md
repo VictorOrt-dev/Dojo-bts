@@ -1,5 +1,8 @@
 # Elec learning — simulateur de terrain de l'électricien (PWA)
 
+> *Simulateur de terrain de l'électricien — Conçu et éprouvé selon la réalité des armoires industrielles et la rigueur
+> des normes en vigueur.*
+
 Pas une app de révision : un **simulateur d'entraînement pour techniciens électriciens de maintenance**. Le cœur, c'est la
 pratique : diagnostic au **banc de mesure** (panne cachée, multimètre, LoZ, pince, consignation), **cas de panne** pas à pas,
 **calculs** des valeurs à lire avant de mesurer, **reconnaissance** des symboles et du matériel d'armoire. Chaque exercice est
@@ -102,7 +105,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, visite guidée en 3 gestes, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
@@ -188,13 +191,20 @@ Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphi
   propres questions** (`resultatPositionnement`) : réussir les symboles ne valide ni les calculs ni les cas. Un ancien
   résultat (reconnaissance seule) ne valide plus que la reconnaissance. Proposé en premier aux confirmés.
 
-## Normes et relecture formateur (`js/normes.js`, `outils/relecture.mjs`)
+## Normes et audit d'intégrité (`js/normes.js`, `outils/audit.mjs`)
 
-- Chaque référence est complétée de l'édition de la norme (« NF C 18-510:2012+A1:2020 ») ; la NF C 15-100 porte une note :
-  paragraphes de l'édition 2002, à recaler sur l'édition 2024. Ajouter une norme = une ligne dans `EDITIONS`.
-- Tout contenu non relu (`"verifie": false`, ou calcul sans `verifie: true`) affiche « Contenu pas encore validé par un formateur ».
-- `node outils/relecture.mjs` régénère `docs/relecture-formateur.md` : la liste à faire valider (mode, niveau, domaines,
-  référence avec édition, case « relu ») et les normes citées sans édition connue. À relancer après chaque ajout de contenu.
+- Chaque référence est complétée de l'édition de la norme (« NF C 18-510:2012+A1:2020 »). Ajouter une norme = une ligne
+  dans `EDITIONS` ; l'audit refuse toute norme citée sans édition.
+- **Règle de citation** : les paragraphes de la NF C 15-100 suivent son édition 2002 (433 surcharges, 434 courts-circuits,
+  523 courants admissibles, 525 chute de tension, 531 différentiels, 535 sélectivité, 542 prises de terre, 771 locaux
+  d'habitation) ; la protection contre les chocs électriques (schémas TT, TN, IT, différentiel 30 mA) se cite dans
+  l'IEC 60364-4-41:2005, § 411.x.
+- `node outils/audit.mjs` : **audit d'intégrité normatif et technique** de tout le contenu (136 éléments, environ
+  1 600 contrôles), écrit `docs/audit-conformite.md` et sort en erreur à la moindre anomalie. Il contrôle les normes et
+  leurs éditions, 200 tirages de chaque calcul (valeur retrouvée dans le calcul posé, erreurs typiques distinctes), les
+  seuils d'isolement (IEC 60364-6), la présence des blocs « Le risque, en vrai » et « Le piège en armoire », et la
+  structure (une seule bonne démarche, embranchements, pannes réparables, démarches cohérentes avec le circuit).
+  La suite `unitaires` l'exécute : la CI bloque tout envoi qui le casse.
 
 ## Domaines techniques (`js/domaines.js`)
 
@@ -260,7 +270,6 @@ Aucune case vide : chaque domaine se travaille à chaque niveau, dans chaque mod
     "Sectionneur porte-fusibles": "…"
   },
   "explication": "Trois pôles de puissance, une bobine A1-A2 et un contact 13-14 : la signature d'un contacteur.",
-  "verifie": false,
   "domaines": ["tri"],
   "norme": "IEC 60947-4-1",
   "risque": "Un contacteur n'est pas un organe de séparation : ses contacts peuvent se souder…"
@@ -305,8 +314,7 @@ Aucune case vide : chaque domaine se travaille à chaque niveau, dans chaque mod
       ]
     }
   ],
-  "conclusion": { "cause": "…", "remede": "…", "lecon": "…", "piege": "…", "risque": "…", "norme": "…" },
-  "verifie": false
+  "conclusion": { "cause": "…", "remede": "…", "lecon": "…", "piege": "…", "risque": "…", "norme": "…" }
 }
 ```
 
@@ -435,8 +443,8 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
 - [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios), second circuit au banc (éclairage par télérupteur)
+- [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
-- [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)

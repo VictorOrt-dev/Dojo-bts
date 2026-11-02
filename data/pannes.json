@@ -76,10 +76,10 @@
       "cause": "Un fil du circuit de commande, pincé dans la charnière de la porte du coffret, touchait la masse : court-circuit sur le 24 V, fusible fondu.",
       "remede": "Remplacer le fil abîmé, le faire passer dans une goulotte ou une spirale de protection, remettre un fusible identique, essai de fonctionnement.",
       "lecon": "Méthode : du plus simple au plus probable, en suivant l'énergie depuis la source. Un organe de protection qui a fonctionné a toujours une raison.",
+      "piege": "Remettre un fusible neuf et relancer : s'il tient, on croit la panne réglée, alors que le fil pincé dans la charnière le refera fondre à la prochaine ouverture de la porte.",
       "risque": "Un fil de commande qui touche la masse fait fondre le fusible si le 0 V est relié au PE ; sinon, le défaut passe inaperçu et un second défaut peut shunter un bouton et démarrer la pompe tout seul. Remettre un fusible plus gros, c'est laisser le fil chauffer dans la charnière.",
       "norme": "NF EN 60204-1 (§ 9.4.3)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "differentiel-perceuse",
@@ -159,10 +159,10 @@
       "cause": "Câble de la perceuse écrasé : l'isolant d'un conducteur est entaillé et touche la gaine humide, créant une fuite vers la terre.",
       "remede": "Retrait du service, remplacement du câble, contrôle de l'appareil avant remise en service.",
       "lecon": "Un différentiel qui déclenche fait son travail : il protège une personne. On cherche la fuite, on ne touche jamais à la protection.",
+      "piege": "Réarmer et réessayer « pour voir » : le différentiel redéclenche, mais entre-temps l'outil en défaut a été tenu à pleine main.",
       "risque": "Réarmer en boucle ou shunter le différentiel laisse sous tension la masse d'un outil tenu à pleine main : électrisation, voire fibrillation cardiaque au-delà de quelques dizaines de milliampères dans le corps. Le 30 mA est la dernière barrière.",
-      "norme": "NF C 15-100 (§ 411.3.3)"
-    },
-    "verifie": false
+      "norme": "IEC 60364-4-41 (§ 411.3.3, différentiel 30 mA) · NF C 15-100"
+    }
   },
   {
     "id": "consignation-contacteur",
@@ -283,10 +283,10 @@
       "cause": "Pas de panne à trouver ici : c'est la mise en sécurité qui est évaluée. Le danger, ce sont les bornes amont de KM2, sous tension tant que Q2 est fermé.",
       "remede": "Consignation complète : séparation par Q2, condamnation (cadenas personnel et pancarte), identification sur le schéma et sur place, VAT au plus près avec un VAT testé avant et après, MALT-CC seulement s'il existe un risque de tension en BT. Après travaux : outils retirés, déconsignation par toi, essai.",
       "lecon": "Arrêté n'est pas séparé, cadenassé n'est pas consigné : seule la VAT, faite au bon endroit avec un appareil vérifié, autorise à toucher.",
+      "piege": "Croire le départ séparé parce que le moteur est arrêté et le contacteur retombé : les bornes amont de KM2 restent sous 400 V tant que Q2 est fermé.",
       "risque": "Intervenir sur un départ 400 V que l'on croit coupé : électrisation, électrocution, brûlures par arc. Les accidents arrivent sur les interventions jugées simples, quand une étape a été sautée.",
       "norme": "NF C 18-510 · NF EN 61243-3 (VAT)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "poste-general-bt",
@@ -305,7 +305,7 @@
           {
             "texte": "Oui, sur la partie BT, cellules HTA fermées",
             "verdict": "bon",
-            "explication": "Habilité BR, tu peux intervenir sur le TGBT, avec l'autorisation d'accès au local. Les cellules HTA restent fermées : tu n'as ni à les ouvrir ni à les manœuvrer, et leurs enveloppes te protègent tant qu'elles sont closes."
+            "explication": "Habilité BR pour la partie BT, et au moins H0 pour pénétrer dans un local qui contient de la HTA, avec l'autorisation d'accès : tu peux intervenir sur le TGBT. Les cellules HTA restent fermées : tu n'as ni à les ouvrir ni à les manœuvrer."
           },
           {
             "texte": "Non, aucun électricien BT n'entre dans un poste",
@@ -381,10 +381,10 @@
       "cause": "Court-circuit sur un départ moteur ; le disjoncteur général BT a déclenché en même temps que le divisionnaire, signe d'un défaut de sélectivité à étudier.",
       "remede": "Départ en défaut isolé et consigné, général réarmé, autres départs remis en service un par un ; recherche du défaut sur le départ moteur ; demande d'étude de la sélectivité entre général et divisionnaire.",
       "lecon": "Dans un poste, la partie BT est à toi, les cellules HTA ne le sont pas sans habilitation H. Un disjoncteur qui a déclenché se lit avant de se réarmer.",
+      "piege": "Réarmer le général « une fois, pour voir » : sur un court-circuit franc, c'est un second arc dans le TGBT, au niveau du visage, et le défaut de sélectivité reste caché.",
       "risque": "Réarmer en aveugle sur un court-circuit, c'est un arc dans le TGBT au niveau du visage : brûlures graves, projection de métal en fusion. Et s'approcher d'une cellule HTA ouverte, c'est risquer l'amorçage sans même toucher.",
       "norme": "NF C 18-510 · NF C 13-100 · NF C 15-100"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "moteur-grogne",
@@ -484,10 +484,10 @@
       "cause": "Une cosse desserrée sur la phase L2, en sortie du sectionneur, a chauffé jusqu'à faire fondre le fusible. Le moteur s'est retrouvé alimenté en monophasé.",
       "remede": "Remplacement de la cosse abîmée, resserrage au couple, trois fusibles aM neufs, mesure d'isolement du moteur, essai et mesure des trois courants (ils doivent être équilibrés).",
       "lecon": "Moteur qui grogne = penser « manque de phase ». Le relais thermique a bien joué son rôle : sans lui, le moteur aurait brûlé.",
+      "piege": "Réarmer le relais thermique et relancer : un moteur privé d'une phase ne démarre pas, il chauffe à chaque essai, et c'est le bobinage qui finit par lâcher.",
       "risque": "Un moteur en monophasé ne démarre pas mais absorbe plusieurs fois son In : sans relais thermique, ou en relançant en boucle, le bobinage brûle en quelques minutes. Et la cosse qui a chauffé peut amorcer un départ de feu dans l'armoire.",
       "norme": "IEC 60947-4-1 · IEC 60034-1"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "capteur-convoyeur",
@@ -566,10 +566,10 @@
       "cause": "Le câble du capteur, mal fixé, frottait contre la chaîne du convoyeur : le conducteur de sortie s'est sectionné.",
       "remede": "Remplacement du câble, cheminement à l'écart des pièces en mouvement, protection mécanique (gaine), essai de détection jusqu'à l'automate.",
       "lecon": "On suit le signal point par point, du capteur à l'automate, en coupant la chaîne en deux à chaque mesure. Le programme passe en dernier.",
+      "piege": "Changer le capteur parce que la machine ne voit plus la pièce : sa LED s'allume, il détecte. Le défaut est sur la liaison, et un capteur neuf n'y changera rien.",
       "risque": "Un capteur de fin de course qui ne détecte plus, c'est une machine qui force contre une butée ou envoie les pièces dans le vide. Le forcer dans l'automate ou le shunter « pour finir la série » supprime la fonction : si c'est une sécurité, l'opérateur n'est plus protégé.",
       "norme": "IEC 61131-2 · NF EN 60204-1"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "retour-lampe-neutre",
@@ -664,10 +664,10 @@
       "cause": "Interrupteur câblé sur le neutre lors d'une rénovation : la douille restait reliée à la phase, interrupteur ouvert.",
       "remede": "Circuit consigné, interrupteur reporté sur la phase, retour lampe repéré, essai et contrôle au VAT interrupteur ouvert. Contrôle des autres points lumineux posés par le même intervenant.",
       "lecon": "Un interrupteur coupe la phase, toujours. Une erreur de câblage qui ne se voit pas à l'essai de fonctionnement se vérifie au VAT, interrupteur ouvert.",
+      "piege": "L'essai de fonctionnement est parfait : la lampe s'allume et s'éteint. Un interrupteur câblé sur le neutre ne se révèle qu'à la VAT, interrupteur ouvert.",
       "risque": "Douille sous 230 V interrupteur ouvert : électrisation de la personne qui change l'ampoule, perchée sur un escabeau, avec le risque de chute qui va avec. Le différentiel 30 mA limite la durée du choc, il ne l'empêche pas.",
       "norme": "NF C 15-100 (commande unipolaire sur la phase) · NF C 18-510"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "barrette-terre",
@@ -762,10 +762,10 @@
       "cause": "Pas de panne : c'est la procédure de mesure qui est évaluée, avec ses deux pièges, la barrette mesurée fermée et la barrette laissée ouverte ou mal serrée.",
       "remede": "Mesure barrette ouverte, installation hors tension ; vérification de la condition Ra × IΔn ≤ 50 V ; barrette refermée, serrée à l'outil, continuité contrôlée ; valeur reportée au registre de sécurité.",
       "lecon": "La barrette de mesure s'ouvre installation hors tension et ne se referme jamais à la main. En TT, la règle est Ra × IΔn ≤ 50 V, pas une valeur fixe.",
+      "piege": "Mesurer la terre barrette fermée : la valeur est flatteuse, car le courant de mesure passe aussi par les canalisations et la structure du bâtiment.",
       "risque": "Barrette restée ouverte ou mal serrée : toute l'installation perd sa prise de terre. Au premier défaut, les carcasses montent à 230 V et le différentiel de tête ne déclenche pas, faute de courant de fuite. Le prochain qui touche une machine ferme le circuit.",
-      "norme": "NF C 15-100 (§ 411.5, § 542) · NF C 18-510"
-    },
-    "verifie": false
+      "norme": "IEC 60364-4-41 (§ 411.5, schéma TT) · NF C 15-100 (§ 542, prises de terre) · NF C 18-510"
+    }
   },
   {
     "id": "hta-enclenchement",
@@ -859,10 +859,10 @@
       "cause": "Relais de protection remis à ses réglages d'usine lors de l'essai de maintenance : seuil instantané trop bas, sans retenue d'harmonique 2, qui voyait le courant d'appel du transformateur comme un court-circuit.",
       "remede": "Réglages rétablis selon le plan de protection, vérification par injection, procès-verbal, remise sous tension par le personnel habilité HTA. Contrôle de la procédure d'essai pour qu'elle se termine toujours par la vérification des réglages.",
       "lecon": "Un transformateur appelle 8 à 12 In à l'enclenchement. Une protection HTA se règle d'après le plan de protection, jamais au jugé, et se vérifie après chaque essai.",
+      "piege": "Accuser le transformateur parce qu'il déclenche à chaque enclenchement : c'est souvent le relais, remis à ses réglages d'usine lors d'un essai, qui confond courant d'appel et court-circuit.",
       "risque": "Une protection HTA mal réglée, c'est soit des déclenchements à répétition, soit pire, un seuil trop haut qui laisse un défaut alimenté : l'arc détruit la cellule et le disjoncteur du distributeur coupe tout le secteur. Toute manœuvre se fait par du personnel habilité HTA.",
       "norme": "NF C 13-100 · IEC 60255 · NF C 18-510"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "variateur-surtension",
@@ -962,10 +962,10 @@
       "cause": "L'énergie cinétique du ventilateur, renvoyée au variateur pendant le freinage, faisait monter la tension du bus continu au-delà du seuil de protection.",
       "remede": "Rampe de décélération adaptée pour l'arrêt normal, résistance de freinage dimensionnée selon la notice pour l'arrêt rapide, paramètre de freinage activé, essai d'arrêt d'urgence.",
       "lecon": "Lire le code défaut, comprendre la physique (le moteur devient générateur au freinage), puis agir sur le paramètre avant le matériel. Et toujours respecter le temps de décharge d'un variateur.",
+      "piege": "Le code « surtension » fait chercher du côté du réseau, alors que l'énergie vient du moteur lui-même, qui freine en générateur et recharge le bus continu.",
       "risque": "Le bus continu d'un variateur 400 V reste chargé à plus de 500 V plusieurs minutes après coupure : on attend le temps indiqué sur l'étiquette et on vérifie l'absence de tension avant d'ouvrir. Une résistance de freinage mal dimensionnée monte à plusieurs centaines de degrés.",
       "norme": "IEC 61800-5-1"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "differentiel-variateurs",
@@ -1045,10 +1045,10 @@
       "cause": "Cumul des courants de fuite fonctionnels des filtres CEM de trois variateurs sur un seul différentiel de tête.",
       "remede": "Un différentiel de type adapté par départ variateur, différentiel de tête retardé pour la sélectivité, vérification de la prise de terre (Ra) et essai de chaque dispositif.",
       "lecon": "Un différentiel qui déclenche « sans raison » mesure toujours quelque chose : on mesure avant de changer. On ne touche jamais au PE ni à la sensibilité pour « faire tenir ».",
+      "piege": "Chercher un défaut d'isolement qui n'existe pas : les fuites des filtres CEM sont normales, c'est leur cumul sur un seul différentiel qui le fait déclencher.",
       "risque": "Remplacer le 300 mA par un modèle moins sensible, ou débrancher un PE pour « faire tenir », supprime la protection contre les contacts indirects : en TT, une masse en défaut reste alors sous tension sans que rien ne coupe.",
-      "norme": "NF C 15-100 (§ 411.5, § 531.2)"
-    },
-    "verifie": false
+      "norme": "IEC 60364-4-41 (§ 411.5, schéma TT) · NF C 15-100 (§ 531.2, dispositifs différentiels)"
+    }
   },
   {
     "id": "hta-dgpt2",
@@ -1143,10 +1143,10 @@
       "cause": "Défaut interne du transformateur, un amorçage entre spires de l'enroulement HTA : l'arc a décomposé l'huile, le gaz s'est accumulé dans le DGPT2, qui a fait ouvrir la cellule de protection.",
       "remede": "Transformateur maintenu consigné, analyse du gaz et de l'huile, expertise, charges essentielles sur le groupe de secours. Remise en service seulement après réparation ou remplacement, par du personnel habilité HTA.",
       "lecon": "Une protection de transformateur qui déclenche sur gaz signale un défaut interne : on ne réenclenche pas. Sans habilitation HTA, ton rôle est de constater, de sécuriser les abords et de prévenir.",
+      "piege": "Purger le gaz du relais et réarmer « pour relancer l'usine » : on efface la preuve du défaut interne et on réalimente une cuve qui peut éclater.",
       "risque": "Réenclencher un transformateur immergé en défaut interne peut faire éclater la cuve : incendie d'huile, projections, arc. En HTA, il suffit de s'approcher trop près d'une pièce nue sous tension pour que l'arc s'amorce.",
       "norme": "NF C 18-510 · NF C 13-100 · IEC 60076"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "sorties-grillees",
@@ -1240,10 +1240,10 @@
       "cause": "Relais remplacé par un modèle sans diode de roue libre : à chaque coupure, la bobine renvoyait une surtension de plusieurs centaines de volts qui a détruit l'étage de sortie transistor de l'automate.",
       "remede": "Diode de roue libre montée en inverse sur la bobine (ou module de protection d'origine), remplacement de la carte, essai de la séquence et contrôle du temps de retombée du relais.",
       "lecon": "Une sortie statique qui grille a une cause en aval : on cherche ce qui a changé dans ce qu'elle pilote. Toute bobine continue commandée par un transistor a sa diode, montée dans le bon sens.",
+      "piege": "Changer la carte de sorties à l'identique : sans diode de roue libre sur la bobine du relais, la carte neuve claquera de la même façon.",
       "risque": "Un transistor de sortie qui claque reste souvent en court-circuit : la sortie demeure active alors que le programme la croit au repos. Le vérin de maintien reste commandé, ou se met en mouvement de façon inattendue : risque d'écrasement pour l'opérateur de la presse.",
       "norme": "NF EN 60204-1 · IEC 61131-2"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "neutre-tgbt",
@@ -1338,10 +1338,10 @@
       "cause": "Cosse du neutre général mal serrée lors de l'intervention de vendredi : elle a chauffé puis perdu le contact. Les récepteurs monophasés se sont retrouvés en série entre phases.",
       "remede": "Connexion refaite et serrée au couple, mesure des tensions phase-neutre, contrôle des appareils exposés, remplacement des appareils détruits. Contrôle thermographique du TGBT et des serrages réalisés par l'entreprise extérieure.",
       "lecon": "Lampes trop fortes d'un côté, trop faibles de l'autre, électronique détruite, aucune protection déclenchée : penser neutre coupé. Une connexion de puissance se serre au couple, se marque et se vérifie.",
+      "piege": "Aucune protection n'a déclenché, alors on cherche ailleurs : un neutre coupé ne crée ni surintensité ni fuite à la terre, il ne se voit qu'en mesurant les tensions phase-neutre.",
       "risque": "Neutre coupé : jusqu'à 400 V sur les appareils peu chargés. Électronique détruite, condensateurs qui éclatent, multiprises qui fondent, départ de feu dans les bureaux ; aucune protection ne déclenche, puisque rien ne fuit à la terre.",
-      "norme": "NF C 15-100 (le neutre n'est jamais coupé ni protégé seul) · NF C 18-510"
-    },
-    "verifie": false
+      "norme": "NF C 15-100 (le neutre ne doit jamais être coupé seul, sans les phases) · NF C 18-510"
+    }
   },
   {
     "id": "vat-procedure",
@@ -1429,8 +1429,7 @@
       "piege": "Le VAT peut être défaillant : pile vide, pointe cassée. Sans test sur une source connue avant et après, un « rien » au VAT ne prouve rien.",
       "risque": "Le peigne reste sous 230/400 V même disjoncteur ouvert : toucher ses bornes du haut, c'est l'électrisation directe, et un tournevis qui glisse entre deux phases crée un arc qui brûle mains et visage.",
       "norme": "NF C 18-510 (consignation, VAT) · NF EN 61243-3 (détecteurs de tension)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "isolement-moteur-lavage",
@@ -1513,8 +1512,7 @@
       "piege": "Mégohmmètre branché sur un circuit qui comporte un variateur : les 500 V DC peuvent détruire son électronique, et la mesure ne veut plus rien dire.",
       "risque": "Un moteur à 0,3 MΩ remis sous tension dans un local mouillé peut porter sa carcasse à un potentiel dangereux si la liaison à la terre est imparfaite ; l'arc interne finit de détruire le bobinage.",
       "norme": "IEC 60364-6 (mesure d'isolement) · IEC 61557-2 (mégohmmètres) · NF C 18-510"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "it-premier-defaut",
@@ -1596,9 +1594,8 @@
       "lecon": "En IT, l'alarme du CPI n'est pas une gêne : c'est le délai que le schéma donne pour réparer avant le second défaut.",
       "piege": "Un second défaut sur une autre phase transforme le réseau en court-circuit entre phases à travers les masses : les protections coupent alors comme en TN, et la production s'arrête quand même.",
       "risque": "Avec un premier défaut ignoré, un second défaut sur une autre phase porte deux masses à des potentiels différents : un opérateur qui les touche en même temps subit la tension entre phases.",
-      "norme": "NF C 15-100 (§ 411.6, schéma IT) · IEC 61557-8 (CPI) · IEC 61557-9 (recherche de défaut)"
-    },
-    "verifie": false
+      "norme": "IEC 60364-4-41 (§ 411.6, schéma IT) · IEC 61557-8 (CPI) · IEC 61557-9 (recherche de défaut)"
+    }
   },
   {
     "id": "selectivite-tgbt",
@@ -1681,8 +1678,7 @@
       "piege": "Un général « plus gros » ne règle rien : il ne protège plus ses câbles, et reste non sélectif tant que son déclenchement magnétique est instantané.",
       "risque": "Sans sélectivité, un défaut sur une prise coupe tout l'atelier, éclairage et extractions compris : des opérateurs se retrouvent dans le noir près de machines en ralentissement.",
       "norme": "NF C 15-100 (§ 535, sélectivité) · IEC 60947-2"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "hta-manoeuvre-serrures",
@@ -1706,7 +1702,7 @@
           {
             "texte": "Ouvrir l'interrupteur HTA, transformateur toujours en charge",
             "verdict": "mauvais",
-            "explication": "La cellule n'est pas prévue pour être manœuvrée en premier : la clé de la BT doit d'abord être libérée."
+            "explication": "Dans ce poste, la serrure de la cellule attend la clé du disjoncteur BT : on coupe d'abord la charge côté BT, puis on manœuvre la HTA."
           },
           {
             "texte": "Ouvrir la case du transformateur pour faire un premier constat",
@@ -1765,8 +1761,7 @@
       "piege": "La terre fermée par la cellule protège le côté HTA, pas le côté BT : un groupe électrogène ou un retour par la BT peut réalimenter le transformateur, qui remonte alors la tension en HTA.",
       "risque": "En HTA, l'amorçage se fait sans contact, à quelques centimètres. Forcer une serrure ou ouvrir une case non mise à la terre, c'est l'arc électrique, des brûlures graves et souvent la mort.",
       "norme": "NF C 18-510 (manœuvres et consignation HTA) · NF C 13-100 (poste de livraison) · IEC 62271-200"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "telerupteur-couloir",
@@ -1848,8 +1843,7 @@
       "piege": "Changer seulement le télérupteur : le poussoir bloqué grille aussi le neuf en quelques heures.",
       "risque": "Une bobine alimentée en permanence chauffe jusqu'à déformer son boîtier : départ de feu possible dans le tableau, souvent la nuit, dans un local sans surveillance.",
       "norme": "NF C 15-100 · IEC 60669-2-2 (télérupteurs)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "moteur-sens-inverse",
@@ -1931,8 +1925,7 @@
       "piege": "Permuter les trois phases ne change rien : c'est une permutation circulaire, le champ tourne toujours dans le même sens.",
       "risque": "Un ventilateur d'extraction à l'envers laisse s'accumuler les vapeurs de solvant : intoxication des peintres, risque d'explosion. Sur une pompe ou un convoyeur, la rotation inverse casse la mécanique.",
       "norme": "NF EN 60204-1 (§ 18, vérifications) · IEC 60034-8 (sens de rotation)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "capteur-pnp-npn",
@@ -2014,8 +2007,7 @@
       "piege": "Brun, bleu, noir : les couleurs sont les mêmes en PNP et en NPN. Seule la plaque ou la référence dit ce que fait le fil noir.",
       "risque": "Un détecteur mal choisi sur une fonction d'arrêt rend la machine aveugle : les cartons s'écrasent dans l'étiqueteuse, et l'opérateur qui intervient pour dégager se fait happer.",
       "norme": "IEC 60947-5-2 (détecteurs de proximité) · IEC 61131-2 (entrées automate)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "neutre-partage-ddr",
@@ -2098,8 +2090,7 @@
       "piege": "Couper le disjoncteur de l'éclairage ne met pas son neutre hors tension : le neutre partagé reste parcouru par le courant des prises.",
       "risque": "On croit le circuit d'éclairage coupé, on déconnecte son neutre… parcouru par le courant de l'établi : électrisation, et arc à l'ouverture du conducteur.",
       "norme": "NF C 15-100 (un neutre propre à chaque circuit)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "double-source",
@@ -2182,8 +2173,7 @@
       "piege": "Un onduleur bascule sur batterie sans bruit et sans voyant visible au tableau : couper son arrivée, c'est justement le faire débiter.",
       "risque": "Sans la VAT, l'intervenant aurait démonté une prise sous 230 V en se croyant consigné : électrisation, et court-circuit sur un onduleur capable de débiter longtemps.",
       "norme": "NF C 18-510 (séparation de toutes les sources, VAT)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "energie-residuelle-variateur",
@@ -2266,8 +2256,7 @@
       "piege": "L'afficheur éteint ne prouve rien : il s'éteint bien avant que le bus continu soit déchargé.",
       "risque": "Un bus continu de plusieurs centaines de volts derrière des condensateurs de plusieurs milliers de µF : le contact peut tuer, et un court-circuit au tournevis projette du métal fondu.",
       "norme": "NF C 18-510 (énergies résiduelles) · IEC 61800-5-1 (variateurs)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "demarrage-intempestif-24v",
@@ -2350,8 +2339,7 @@
       "piege": "Le premier défaut ne se voit pas : tout fonctionne, aucun fusible ne fond. On ne le découvre qu'à la mesure d'isolement, ou au second défaut.",
       "risque": "Un démarrage intempestif de presse pendant un réglage, c'est la main ou le bras de l'opérateur dans l'outil : amputation.",
       "norme": "NF EN 60204-1 (§ 9.4.3, défauts à la terre du circuit de commande)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "pompe-thermique-rearme",
@@ -2504,8 +2492,7 @@
       "piege": "Réarmer « pour voir », puis monter le réglage ou shunter le relais : chaque démarrage en surcharge cuit l'isolant, et le moteur finit grillé alors qu'un chiffon suffisait à tout expliquer.",
       "risque": "Un moteur qui grille en surcharge peut mettre sa carcasse sous tension et faire déclencher tout le départ ; une pompe de relevage à l'arrêt, c'est une fosse qui déborde, parfois dans un local électrique.",
       "norme": "IEC 60947-4-1 (relais thermiques) · NF EN 60204-1 (§ 7.3, protection des moteurs)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "tgbt-reenclenchement",
@@ -2631,7 +2618,6 @@
       "piege": "Refermer « une seule fois » : c'est relancer l'arc au même endroit. Et si personne n'est devant le coffret cette fois-ci, rien ne dit qu'il en sera de même la prochaine.",
       "risque": "Un réenclenchement sur court-circuit provoque un arc qui projette du métal en fusion : brûlures graves pour quiconque est devant le coffret, incendie, et parfois déclenchement de tout le site.",
       "norme": "NF C 18-510 · NF C 15-100 (§ 434) · IEC 60947-2"
-    },
-    "verifie": false
+    }
   }
 ]

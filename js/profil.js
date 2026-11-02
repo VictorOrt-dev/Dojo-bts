@@ -144,6 +144,12 @@ export async function renderProfil({ vue, definirTitre }) {
       <div class="corps">
         <button id="btn-effacer" class="btn danger" type="button">Tout effacer</button>
       </div>
+    </section>
+
+    <section class="a-propos">
+      <p class="a-propos-titre">Elec learning — Simulateur de terrain de l'électricien</p>
+      <p>Conçu et éprouvé selon la réalité des armoires industrielles et la rigueur des normes en vigueur.</p>
+      <p class="discret petit">Chaque mise à jour passe un audit d'intégrité automatique : normes citées avec leur édition, calculs recalculés, seuils de mesure, blocs « Le risque, en vrai » et « Le piège en armoire ».</p>
     </section>`;
 
   const afficher = (texte, etatMessage) => {

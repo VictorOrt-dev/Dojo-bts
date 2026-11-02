@@ -32,6 +32,7 @@ export const GENERATEURS = [
     id: 'ohm',
     niveau: 1,
     titre: "Loi d'Ohm",
+    norme: 'IEC 80000-6 (grandeurs et unités électriques)',
     domaines: ["tbt-cc", "mono-bt"],
     risque: "Sous-estimer un courant, c'est choisir un fil, un fusible ou un contact trop faibles : échauffement, isolant qui fond, départ de feu dans la goulotte. Se tromper d'un facteur 1 000 (Ω au lieu de kΩ) sur une résistance de limitation, c'est la faire brûler au premier essai.",
     creer() {
@@ -80,7 +81,7 @@ export const GENERATEURS = [
     niveau: 1,
     titre: 'Puissance et énergie',
     domaines: ["mono-bt"],
-    norme: "NF C 15-100",
+    norme: "IEC 80000-6 (puissance et énergie)",
     risque: "Une puissance mal évaluée fait sous-dimensionner câble et protection : le circuit chauffe en permanence sans déclencher, comme une rallonge enroulée sur son touret. L'isolant vieillit, puis c'est l'incendie.",
     creer() {
       const piegeCos = "P = U × I ne vaut qu'en continu ou pour un récepteur résistif ; pour un moteur en alternatif, il faut multiplier par cos φ.";
@@ -265,7 +266,7 @@ export const GENERATEURS = [
     niveau: 1,
     titre: 'Courant à travers le corps',
     domaines: ['securite'],
-    norme: 'IEC 60479-1 · NF C 15-100 (§ 411)',
+    norme: 'IEC 60479-1 · IEC 60364-4-41 (§ 411)',
     risque: "À 230 V, quelques centaines de milliampères peuvent traverser le corps : fibrillation cardiaque, brûlures internes, chute de hauteur. La TBT n'est pas « sans risque » : en local mouillé, la tension limite tombe à 25 V, et à 12 V là où le corps est immergé.",
     creer() {
       const U = parmi([50, 230, 400]);
@@ -315,6 +316,7 @@ export const GENERATEURS = [
     id: 'triphase',
     niveau: 2,
     titre: 'Puissances en triphasé',
+    norme: 'IEC 80000-6 (puissances active, réactive, apparente)',
     domaines: ["tri"],
     risque: "Confondre kW, kVA et kvar, c'est mal choisir un transformateur ou un groupe électrogène, qui se dimensionnent en kVA : choisi sur des kW avec un mauvais cos φ, le groupe s'écroule à la première grosse charge inductive.",
     creer() {
@@ -479,7 +481,7 @@ export const GENERATEURS = [
       const cable = `câble cuivre ${nb(S)} mm², L = ${L} m, I = ${I} A`;
       const commun = {
         aide: 'ρ cuivre = 0,0225 Ω·mm²/m · cos φ = 1 (réactance négligée)',
-        explication: 'En monophasé, le courant fait l\'aller ET le retour : ΔU = 2 × ρ × L × I / S. En % : ΔU% = ΔU / 230 × 100. Pour une installation alimentée par le réseau public BT, la NF C 15-100 limite la chute de tension à 3 % pour l\'éclairage et 5 % pour les autres usages.',
+        explication: 'En monophasé, le courant fait l\'aller ET le retour : ΔU = 2 × ρ × L × I / S (charge résistive, cos φ ≈ 1, réactance du câble négligée). En % : ΔU% = ΔU / 230 × 100. Pour une installation alimentée par le réseau public BT, la NF C 15-100 limite la chute de tension à 3 % pour l\'éclairage et 5 % pour les autres usages.',
         piege: 'Oublier le facteur 2 de l\'aller-retour, ou prendre ρ = 0,017 (cuivre à 20 °C) au lieu de 0,0225 (cuivre en service, plus chaud).'
       };
       return parmi([
@@ -571,7 +573,7 @@ export const GENERATEURS = [
     niveau: 2,
     titre: 'Défaut d\'isolement en schéma TT',
     domaines: ['securite', 'mono-bt'],
-    norme: 'NF C 15-100 (§ 411.5) · UL = 50 V en local sec',
+    norme: 'IEC 60364-4-41 (§ 411.5, schéma TT) · UL = 50 V en local sec',
     risque: "Une prise de terre trop résistante laisse une masse en défaut sous une tension dangereuse : si le courant de défaut reste sous le seuil du différentiel, rien ne coupe, et la personne qui touche la carcasse est traversée par le courant.",
     creer() {
       return parmi([
@@ -655,7 +657,7 @@ export const GENERATEURS = [
         aide: 'ρ cuivre = 0,0225 Ω·mm²/m · cos φ = 1 (réactance négligée)',
         unite: '%', reponse: du / 400 * 100, donnees: { S, I, L },
         solution: `ΔU = √3 × ρ × L × I / S = 1,732 × 0,0225 × ${L} × ${I} / ${nb(S)} = ${nb(du)} V ; ΔU % = ${nb(du)} / 400 × 100 = ${nb(du / 400 * 100)} %`,
-        explication: 'En triphasé équilibré, aucun courant ne revient par le neutre : la chute de tension entre phases vaut ΔU = √3 × ρ × L × I / S, à rapporter à U = 400 V. (Formule générale NF C 15-100 : u = b × (ρ × L / S × cos φ + λ × L × sin φ) × I, avec b = 1 en triphasé et b = 2 en monophasé, u étant rapportée à la tension simple.)',
+        explication: 'En triphasé équilibré, aucun courant ne revient par le neutre : la chute de tension entre phases vaut ΔU = √3 × ρ × L × I / S (cos φ ≈ 1, réactance négligée), à rapporter à U = 400 V. (Formule générale du guide UTE C 15-105 : u = b × (ρ × L / S × cos φ + λ × L × sin φ) × I, avec b = 1 en triphasé et b = 2 en monophasé, u étant rapportée à la tension simple.)',
         piege: 'Mettre le facteur 2 du monophasé, ou rapporter une chute mesurée entre phases à 230 V.',
         erreurs: [
           { valeur: 2 * RHO_CUIVRE * L * I / S / 400 * 100, message: '2 au lieu de √3 : en triphasé équilibré, il n\'y a pas de retour par le neutre, le facteur est √3.' },
@@ -698,6 +700,7 @@ export const GENERATEURS = [
     id: 'boucherot',
     niveau: 3,
     titre: 'Méthode de Boucherot',
+    norme: 'IEC 80000-6 · NF C 15-100 (bilan de puissance)',
     domaines: ["tri"],
     risque: "Additionner directement des kVA de cos φ différents fausse le bilan : transformateur ou groupe mal choisi, protection de tête mal réglée, déclenchements à la mise en route de l'atelier.",
     creer() {
@@ -868,7 +871,7 @@ export const GENERATEURS = [
     niveau: 3,
     titre: 'Longueur maximale protégée en TN',
     domaines: ['securite', 'mono-bt'],
-    norme: 'NF C 15-100 (§ 411.4) · guide UTE C 15-105',
+    norme: 'IEC 60364-4-41 (§ 411.4, schéma TN) · guide UTE C 15-105',
     risque: "Au-delà de Lmax, un défaut franc phase-masse ne fait pas déclencher le magnétique à temps : la masse reste à près de 100 V pendant que le thermique « réfléchit », des secondes ou des minutes. Celui qui la touche est électrisé.",
     creer() {
       const { S, In } = parmi([{ S: 1.5, In: 16 }, { S: 2.5, In: 20 }, { S: 4, In: 25 }, { S: 6, In: 32 }]);
@@ -945,7 +948,7 @@ export const GENERATEURS = [
     niveau: 3,
     titre: 'Neutre coupé',
     domaines: ['mono-bt', 'tri'],
-    norme: 'NF C 15-100 (le neutre n\'est jamais coupé ni protégé seul)',
+    norme: 'NF C 15-100 (le neutre ne doit jamais être coupé seul, sans les phases)',
     risque: "Neutre coupé : les appareils peu chargés reçoivent jusqu'à 400 V. Alimentations électroniques détruites, condensateurs qui éclatent, multiprises qui fondent ; et aucune protection ne déclenche, puisque rien ne fuit à la terre. D'où le serrage au couple et la surveillance des connexions de neutre.",
     creer() {
       const { P1, P2 } = parmi([{ P1: 500, P2: 2000 }, { P1: 300, P2: 1500 }, { P1: 1000, P2: 3000 }, { P1: 200, P2: 2200 }]);
@@ -1390,7 +1393,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const calculPose = `<p class="surtitre">Le calcul posé</p><p class="solution">${esc(typo(ex.solution))}</p>`;
     const rappel = `<div class="lecon"><p class="lecon-titre">Rappel</p><p>${esc(typo(ex.explication))}</p></div>`;
     const piege = `<div class="piege-terrain"><p class="lecon-titre">Piège en armoire</p><p>${esc(typo(ex.piege))}</p></div>`;
-    const norme = ligneNorme(ex.generateur.norme, { aRelire: !ex.generateur.verifie });
+    const norme = ligneNorme(ex.generateur.norme);
 
     // Correction en deux temps : l'essentiel (valeur attendue, une phrase de pourquoi, le risque), puis « En savoir plus ».
     const pourquoi = resume(diagnostic ?? ex.explication, MOTS_POURQUOI);

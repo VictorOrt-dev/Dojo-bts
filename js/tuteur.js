@@ -49,13 +49,11 @@ export function risqueComplet(risque) {
     : '';
 }
 
-// Référence normative, avec l'édition de chaque norme citée (js/normes.js). aRelire : contenu pas encore relu par un
-// formateur (les cas et les questions affichent déjà leur propre mention).
-export function ligneNorme(norme, { aRelire = false } = {}) {
+// Référence normative, avec l'édition de chaque norme citée (js/normes.js).
+export function ligneNorme(norme) {
   if (!norme) return '';
-  const notes = [...notesNorme(norme), ...(aRelire ? ['Contenu pas encore validé par un formateur.'] : [])];
   return `<p class="norme"><span>Réf.</span> ${esc(typo(annoterNorme(norme)))}</p>`
-    + notes.map(n => `<p class="note-marge">${esc(typo(n))}</p>`).join('');
+    + notesNorme(norme).map(n => `<p class="note-marge">${esc(typo(n))}</p>`).join('');
 }
 
 // Accordéon « En savoir plus » : tout ce qui n'est pas indispensable sur le moment.

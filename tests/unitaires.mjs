@@ -9,8 +9,10 @@ import { controler, etatParDefaut, XP_MAX } from '../js/sauvegarde.js';
 import * as P from '../js/parcours.js';
 import { resume, MOTS_POURQUOI, MOTS_RISQUE } from '../js/tuteur.js';
 import * as L from '../js/leitner.js';
+import { auditer } from '../outils/audit.mjs';
 
 export default async function ({ t }) {
+  await auditIntegrite(t);
   physiqueDuBanc(t);
   controleDesSauvegardes(t);
   parcoursGuide(t);
@@ -280,4 +282,17 @@ function revisionEspacee(t) {
   const abimee = controler({ version: 1, stats: { reco: { elements: { a: { essais: 2, reussites: 1, boite: 9, revoir: 'demain' } } } } });
   t.ok(abimee.anomalies.some(a => a.includes('révision')) && abimee.etat.stats.reco.elements.a.boite === undefined && abimee.etat.stats.reco.elements.a.essais === 2,
     'sauvegarde : révision abîmée refusée, compteurs gardés');
+}
+
+// ---------- Audit d'intégrité normatif et technique (outils/audit.mjs) ----------
+
+async function auditIntegrite(t) {
+  t.section('U0. Audit d\'intégrité normatif et technique de tout le contenu (outils/audit.mjs)');
+  const r = await auditer();
+  const familles = [...new Set(r.lignes.map(l => l.famille))];
+  t.ok(r.lignes.length >= 130 && familles.length >= 6, `${r.lignes.length} éléments audités (${familles.join(', ')})`);
+  t.ok(r.anomalies.length === 0, `${r.controles} contrôles : normes datées, calculs, seuils d'isolement, blocs de sécurité, structure` + (r.anomalies.length ? ' — ' + r.anomalies.slice(0, 5).join(' | ') : ''));
+  const sources = fs.readdirSync(path.join(RACINE, 'js')).map(f => fs.readFileSync(path.join(RACINE, 'js', f), 'utf8')).join('\n')
+    + ['data/reconnaissance.json', 'data/pannes.json', 'data/isolement.json'].map(f => fs.readFileSync(path.join(RACINE, f), 'utf8')).join('\n');
+  t.ok(!/pas encore validé|validé par un formateur|"verifie"/.test(sources), 'plus aucune mention « contenu non validé » ni champ « verifie » dans l\'application');
 }

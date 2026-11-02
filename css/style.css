@@ -1010,3 +1010,9 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 /* ---------- Banc : choix du circuit ---------- */
 .choix-circuit { grid-template-columns: 1fr 1fr; margin: 12px 0 4px; }
 .choix-circuit a { min-height: 44px; }
+
+/* ---------- Identité : devise et « à propos » ---------- */
+.devise-sous { margin: 6px 0 0; max-width: 34ch; font: 500 13px/1.45 var(--texte); color: var(--texte-3); }
+.a-propos { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--filet); }
+.a-propos p { margin: 0 0 8px; color: var(--texte-2); line-height: 1.5; }
+.a-propos-titre { font-weight: 700; color: var(--texte-1) !important; }

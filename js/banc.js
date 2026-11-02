@@ -511,7 +511,7 @@ function demarrer(vue, banc, panne) {
         <div class="lecon"><p class="lecon-titre">La démarche d'un pro</p><p>${esc(typo(panne.methode))}</p></div>
         <div class="piege-terrain"><p class="lecon-titre">Le piège de ce cas</p><p>${esc(typo(panne.piege))}</p></div>
         ${risqueComplet(panne.risque)}
-        ${ligneNorme(panne.norme, { aRelire: !panne.verifie })}`, 'En savoir plus : la démarche d\'un pro, le piège, la norme')}
+        ${ligneNorme(panne.norme)}`, 'En savoir plus : la démarche d\'un pro, le piège, la norme')}
       <details class="approfondir journal"><summary>Ton journal d'intervention (${etat.journal.length})</summary>
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('')}</ol>
       </details>

@@ -2,21 +2,43 @@
   {
     "id": "iso-prises-neuves",
     "niveau": 1,
-    "domaines": ["mono-bt", "securite"],
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
     "titre": "Circuit de prises neuf : contrôle avant mise en service",
     "contexte": "Atelier rénové : un circuit de prises 230 V (phase, neutre, PE) vient d'être tiré. Rien n'est encore branché dessus. Tu fais la mesure d'isolement avant la première mise sous tension.",
-    "points": ["L", "N", "PE"],
+    "points": [
+      "L",
+      "N",
+      "PE"
+    ],
     "tensionReseau": 230,
     "essaiConseille": 500,
     "seuil": 1,
     "electronique": null,
     "sain": 450,
     "mesures": {},
-    "cles": ["L|PE", "N|PE"],
+    "cles": [
+      "L|PE",
+      "N|PE"
+    ],
     "verdicts": [
-      { "texte": "Conforme : isolement très au-dessus du seuil", "bon": true, "explication": "Plusieurs centaines de MΩ entre chaque conducteur actif et le PE : l'isolant est sain, le circuit peut être mis sous tension." },
-      { "texte": "Non conforme : il faut au moins 1 000 MΩ", "bon": false, "explication": "Le seuil est de l'ordre du MΩ pour un circuit 230/400 V. Des centaines de MΩ, c'est très largement conforme." },
-      { "texte": "Impossible à dire sans mesurer sous tension", "bon": false, "explication": "L'isolement se mesure justement hors tension, au mégohmmètre : sous tension, l'appareil serait détruit." }
+      {
+        "texte": "Conforme : isolement très au-dessus du seuil",
+        "bon": true,
+        "explication": "Plusieurs centaines de MΩ entre chaque conducteur actif et le PE : l'isolant est sain, le circuit peut être mis sous tension."
+      },
+      {
+        "texte": "Non conforme : il faut au moins 1 000 MΩ",
+        "bon": false,
+        "explication": "Le seuil est de l'ordre du MΩ pour un circuit 230/400 V. Des centaines de MΩ, c'est très largement conforme."
+      },
+      {
+        "texte": "Impossible à dire sans mesurer sous tension",
+        "bon": false,
+        "explication": "L'isolement se mesure justement hors tension, au mégohmmètre : sous tension, l'appareil serait détruit."
+      }
     ],
     "conclusion": {
       "cause": "Installation neuve et saine : chaque conducteur actif est isolé du PE par plusieurs centaines de MΩ.",
@@ -24,27 +46,48 @@
       "piege": "Mesurer seulement la phase : le neutre aussi doit être isolé du PE, sinon le différentiel déclenchera dès la mise en service.",
       "risque": "Un défaut d'isolement non détecté à la mise en service met une masse sous tension au premier appareil branché : électrisation, ou déclenchement à répétition.",
       "norme": "IEC 60364-6 (vérification initiale) · NF C 15-100 · IEC 61557-2"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "iso-eclairage-clou",
     "niveau": 1,
-    "domaines": ["mono-bt"],
+    "domaines": [
+      "mono-bt"
+    ],
     "titre": "Le différentiel saute depuis la pose des étagères",
     "contexte": "Bureau : depuis qu'on a fixé des étagères au mur, le différentiel de l'éclairage déclenche dès qu'on allume. Circuit 230 V : phase, neutre, PE. Les lampes LED sont démontées.",
-    "points": ["L", "N", "PE"],
+    "points": [
+      "L",
+      "N",
+      "PE"
+    ],
     "tensionReseau": 230,
     "essaiConseille": 500,
     "seuil": 1,
     "electronique": null,
     "sain": 380,
-    "mesures": { "L|PE": 0.001 },
-    "cles": ["L|PE"],
+    "mesures": {
+      "L|PE": 0.001
+    },
+    "cles": [
+      "L|PE"
+    ],
     "verdicts": [
-      { "texte": "Défaut franc phase-terre : chercher au droit des étagères", "bon": true, "explication": "Quasiment 0 MΩ entre phase et PE : la phase touche la terre. Un foret ou une vis a sans doute percé le câble dans le mur." },
-      { "texte": "Le différentiel est trop sensible : le remplacer", "bon": false, "explication": "La mesure montre un vrai défaut : le différentiel fait son travail. Le remplacer ne change rien." },
-      { "texte": "Humidité du mur : laisser sécher puis remesurer", "bon": false, "explication": "L'humidité donne des valeurs basses mais rarement nulles, et sur plusieurs conducteurs. Ici, le défaut est franc et sur la seule phase." }
+      {
+        "texte": "Défaut franc phase-terre : chercher au droit des étagères",
+        "bon": true,
+        "explication": "Quasiment 0 MΩ entre phase et PE : la phase touche la terre. Un foret ou une vis a sans doute percé le câble dans le mur."
+      },
+      {
+        "texte": "Le différentiel est trop sensible : le remplacer",
+        "bon": false,
+        "explication": "La mesure montre un vrai défaut : le différentiel fait son travail. Le remplacer ne change rien."
+      },
+      {
+        "texte": "Humidité du mur : laisser sécher puis remesurer",
+        "bon": false,
+        "explication": "L'humidité donne des valeurs basses mais rarement nulles, et sur plusieurs conducteurs. Ici, le défaut est franc et sur la seule phase."
+      }
     ],
     "conclusion": {
       "cause": "Une vis de fixation d'étagère a percé le câble encastré : la phase touche le conducteur de protection.",
@@ -52,27 +95,54 @@
       "piege": "Ne mesurer qu'entre phase et neutre : on trouve un isolement normal, alors que le défaut est entre phase et terre.",
       "risque": "Une vis métallique en contact avec la phase met l'étagère sous tension si le PE est mal raccordé : électrisation au premier contact.",
       "norme": "IEC 60364-6 · NF C 15-100 · IEC 61557-2"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "iso-moteur-variateur",
     "niveau": 2,
-    "domaines": ["tri", "securite"],
+    "domaines": [
+      "tri",
+      "securite"
+    ],
     "titre": "Moteur de pompe après le lavage : défaut terre au variateur",
     "contexte": "Pompe de 5,5 kW alimentée par variateur, en défaut « terre » depuis le lavage haute pression de la nuit. Points accessibles : les trois phases du câble moteur et le PE. Le variateur est raccordé au câble.",
-    "points": ["L1", "L2", "L3", "PE"],
+    "points": [
+      "L1",
+      "L2",
+      "L3",
+      "PE"
+    ],
     "tensionReseau": 400,
     "essaiConseille": 500,
     "seuil": 1,
     "electronique": "variateur",
     "sain": 210,
-    "mesures": { "L1|PE": 0.3, "L2|PE": 0.35, "L3|PE": 0.3 },
-    "cles": ["L1|PE", "L2|PE", "L3|PE"],
+    "mesures": {
+      "L1|PE": 0.3,
+      "L2|PE": 0.35,
+      "L3|PE": 0.3
+    },
+    "cles": [
+      "L1|PE",
+      "L2|PE",
+      "L3|PE"
+    ],
     "verdicts": [
-      { "texte": "Isolement faible sur les trois phases : sécher et remesurer", "bon": true, "explication": "Trois valeurs basses et voisines, après un lavage : c'est l'humidité, pas un défaut franc. Un séchage remonte souvent l'isolement." },
-      { "texte": "Défaut franc sur L1 : remplacer le moteur", "bon": false, "explication": "Un défaut franc donnerait quasiment 0 sur une seule phase. Ici, les trois phases sont basses de la même façon." },
-      { "texte": "Conforme : 0,3 MΩ, c'est 300 000 Ω", "bon": false, "explication": "On raisonne en MΩ : 0,3 MΩ est sous le seuil d'un circuit 400 V. Le moteur ne doit pas être remis en service." }
+      {
+        "texte": "Isolement faible sur les trois phases : sécher et remesurer",
+        "bon": true,
+        "explication": "Trois valeurs basses et voisines, après un lavage : c'est l'humidité, pas un défaut franc. Un séchage remonte souvent l'isolement."
+      },
+      {
+        "texte": "Défaut franc sur L1 : remplacer le moteur",
+        "bon": false,
+        "explication": "Un défaut franc donnerait quasiment 0 sur une seule phase. Ici, les trois phases sont basses de la même façon."
+      },
+      {
+        "texte": "Conforme : 0,3 MΩ, c'est 300 000 Ω",
+        "bon": false,
+        "explication": "On raisonne en MΩ : 0,3 MΩ est sous le seuil d'un circuit 400 V. Le moteur ne doit pas être remis en service."
+      }
     ],
     "conclusion": {
       "cause": "L'eau du lavage haute pression a pénétré la boîte à bornes et le bobinage : l'isolement est tombé vers 0,3 MΩ sur les trois phases.",
@@ -80,27 +150,50 @@
       "piege": "Mesurer avec le variateur raccordé : les 500 V DC peuvent détruire son étage de sortie, et la mesure inclut son électronique.",
       "risque": "Remis sous tension à 0,3 MΩ dans un local mouillé, le moteur peut porter sa carcasse à un potentiel dangereux, et l'arc interne finit de détruire le bobinage.",
       "norme": "IEC 60364-6 · IEC 61557-2 · NF C 18-510"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "iso-commande-24v",
     "niveau": 2,
-    "domaines": ["tbt-cc", "securite"],
+    "domaines": [
+      "tbt-cc",
+      "securite"
+    ],
     "titre": "Circuit de commande 24 V : défauts à la masse intermittents",
     "contexte": "Machine d'emballage : le circuit de commande 24 V DC (très basse tension de sécurité) provoque des défauts aléatoires. Points accessibles : +24 V, 0 V, PE. Les cartes d'entrées de l'automate sont raccordées.",
-    "points": ["+24 V", "0 V", "PE"],
+    "points": [
+      "+24 V",
+      "0 V",
+      "PE"
+    ],
     "tensionReseau": 24,
     "essaiConseille": 250,
     "seuil": 0.5,
     "electronique": "automate",
     "sain": 120,
-    "mesures": { "+24 V|PE": 0.08 },
-    "cles": ["+24 V|PE", "0 V|PE"],
+    "mesures": {
+      "+24 V|PE": 0.08
+    },
+    "cles": [
+      "+24 V|PE",
+      "0 V|PE"
+    ],
     "verdicts": [
-      { "texte": "Défaut d'isolement du +24 V vers la masse", "bon": true, "explication": "0,08 MΩ entre +24 V et PE, sous le seuil de 0,5 MΩ d'un circuit TBTS : un conducteur du +24 V frotte sur la masse quelque part." },
-      { "texte": "Rien d'anormal : en 24 V, l'isolement ne compte pas", "bon": false, "explication": "Un défaut d'isolement en commande peut shunter un bouton ou une sécurité : c'est justement ce qui provoque des démarrages intempestifs." },
-      { "texte": "L'automate est en défaut : le remplacer", "bon": false, "explication": "La mesure, électronique débranchée, montre un défaut dans le câblage, pas dans l'automate." }
+      {
+        "texte": "Défaut d'isolement du +24 V vers la masse",
+        "bon": true,
+        "explication": "0,08 MΩ entre +24 V et PE, sous le seuil de 0,5 MΩ d'un circuit TBTS : un conducteur du +24 V frotte sur la masse quelque part."
+      },
+      {
+        "texte": "Rien d'anormal : en 24 V, l'isolement ne compte pas",
+        "bon": false,
+        "explication": "Un défaut d'isolement en commande peut shunter un bouton ou une sécurité : c'est justement ce qui provoque des démarrages intempestifs."
+      },
+      {
+        "texte": "L'automate est en défaut : le remplacer",
+        "bon": false,
+        "explication": "La mesure, électronique débranchée, montre un défaut dans le câblage, pas dans l'automate."
+      }
     ],
     "conclusion": {
       "cause": "Un conducteur du +24 V, blessé contre une tôle, frotte sur la masse : 0,08 MΩ.",
@@ -108,55 +201,101 @@
       "piege": "Mesurer un circuit 24 V sous 500 ou 1 000 V DC, cartes raccordées : on détruit les entrées de l'automate. En TBTS, l'essai se fait sous 250 V, électronique débranchée.",
       "risque": "Deux défauts d'isolement sur un circuit de commande peuvent shunter un bouton Marche ou une sécurité : démarrage intempestif, happement.",
       "norme": "IEC 60364-6 (TBTS : 250 V, 0,5 MΩ) · NF EN 60204-1 (§ 9.4.3)"
-    },
-    "verifie": false
+    }
   },
   {
     "id": "iso-neutre-terre",
     "niveau": 3,
-    "domaines": ["mono-bt", "securite"],
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
     "titre": "Le différentiel déclenche, la phase est pourtant bien isolée",
     "contexte": "Logement de fonction, schéma TT : le différentiel 30 mA du circuit cuisine déclenche dès qu'on allume la hotte. Électricien précédent : « phase-terre, 400 MΩ, le câble est bon ». Points : L, N, PE.",
-    "points": ["L", "N", "PE"],
+    "points": [
+      "L",
+      "N",
+      "PE"
+    ],
     "tensionReseau": 230,
     "essaiConseille": 500,
     "seuil": 1,
     "electronique": null,
     "sain": 400,
-    "mesures": { "N|PE": 0.02 },
-    "cles": ["N|PE"],
+    "mesures": {
+      "N|PE": 0.02
+    },
+    "cles": [
+      "N|PE"
+    ],
     "verdicts": [
-      { "texte": "Neutre en contact avec la terre : chercher le point de contact", "bon": true, "explication": "0,02 MΩ entre neutre et PE : une partie du courant de retour passe par le PE, le différentiel voit ce déséquilibre et déclenche." },
-      { "texte": "Câble sain : la hotte est en défaut, la remplacer", "bon": false, "explication": "La mesure du câble, hotte débranchée, montre un défaut entre neutre et PE : la hotte n'y est pour rien." },
-      { "texte": "Différentiel défectueux : il déclenche sans défaut", "bon": false, "explication": "Il y a un défaut : le neutre touche la terre. Le différentiel fait son travail." }
+      {
+        "texte": "Neutre en contact avec la terre : chercher le point de contact",
+        "bon": true,
+        "explication": "0,02 MΩ entre neutre et PE : une partie du courant de retour passe par le PE, le différentiel voit ce déséquilibre et déclenche."
+      },
+      {
+        "texte": "Câble sain : la hotte est en défaut, la remplacer",
+        "bon": false,
+        "explication": "La mesure du câble, hotte débranchée, montre un défaut entre neutre et PE : la hotte n'y est pour rien."
+      },
+      {
+        "texte": "Différentiel défectueux : il déclenche sans défaut",
+        "bon": false,
+        "explication": "Il y a un défaut : le neutre touche la terre. Le différentiel fait son travail."
+      }
     ],
     "conclusion": {
       "cause": "Dans une boîte de connexion, le neutre touche le conducteur de protection : le courant de retour se partage entre N et PE, le différentiel déclenche.",
       "remede": "Localiser la boîte en cause (mesures par tronçons), refaire les connexions, remesurer N-PE, essayer le différentiel.",
       "piege": "Ne mesurer que phase-terre : un neutre à la terre passe inaperçu, alors que c'est lui qui fait déclencher le différentiel.",
       "risque": "Un neutre relié au PE fait circuler du courant dans les masses et les canalisations : différences de potentiel, corrosion, et différentiel qu'on finit par shunter.",
-      "norme": "IEC 60364-6 · NF C 15-100 (§ 411.5, schéma TT)"
-    },
-    "verifie": false
+      "norme": "IEC 60364-6 · IEC 60364-4-41 (§ 411.5, schéma TT)"
+    }
   },
   {
     "id": "iso-cable-vieillissant",
     "niveau": 3,
-    "domaines": ["tri"],
+    "domaines": [
+      "tri"
+    ],
     "titre": "Câble de 600 m entre deux bâtiments : conforme, mais…",
     "contexte": "Maintenance préventive annuelle d'un câble souterrain 400 V de 600 m entre deux bâtiments. Il y a deux ans, à température comparable : 40 MΩ sur chaque phase. Points : L1, L2, L3, N, PE.",
-    "points": ["L1", "L2", "L3", "N", "PE"],
+    "points": [
+      "L1",
+      "L2",
+      "L3",
+      "N",
+      "PE"
+    ],
     "tensionReseau": 400,
     "essaiConseille": 500,
     "seuil": 1,
     "electronique": null,
     "sain": 2.5,
     "mesures": {},
-    "cles": ["L1|PE", "L2|PE", "L3|PE", "N|PE"],
+    "cles": [
+      "L1|PE",
+      "L2|PE",
+      "L3|PE",
+      "N|PE"
+    ],
     "verdicts": [
-      { "texte": "Conforme, mais l'isolement chute : programmer un suivi rapproché", "bon": true, "explication": "2,5 MΩ reste au-dessus du seuil, mais 40 MΩ il y a deux ans : l'isolant se dégrade (humidité, vieillissement). On rapproche les mesures et on prépare le remplacement." },
-      { "texte": "Conforme : au-dessus de 1 MΩ, rien à signaler", "bon": false, "explication": "Le seuil est atteint, mais la tendance compte autant : une division par 16 en deux ans annonce un défaut." },
-      { "texte": "Non conforme : remplacer le câble en urgence", "bon": false, "explication": "2,5 MΩ reste conforme. L'urgence n'est pas justifiée, la surveillance rapprochée l'est." }
+      {
+        "texte": "Conforme, mais l'isolement chute : programmer un suivi rapproché",
+        "bon": true,
+        "explication": "2,5 MΩ reste au-dessus du seuil, mais 40 MΩ il y a deux ans : l'isolant se dégrade (humidité, vieillissement). On rapproche les mesures et on prépare le remplacement."
+      },
+      {
+        "texte": "Conforme : au-dessus de 1 MΩ, rien à signaler",
+        "bon": false,
+        "explication": "Le seuil est atteint, mais la tendance compte autant : une division par 16 en deux ans annonce un défaut."
+      },
+      {
+        "texte": "Non conforme : remplacer le câble en urgence",
+        "bon": false,
+        "explication": "2,5 MΩ reste conforme. L'urgence n'est pas justifiée, la surveillance rapprochée l'est."
+      }
     ],
     "conclusion": {
       "cause": "Vieillissement de l'isolant d'un câble souterrain (humidité, cycles thermiques) : l'isolement est passé de 40 à 2,5 MΩ en deux ans.",
@@ -164,7 +303,6 @@
       "piege": "Juger une mesure d'isolement seule, sans la comparer à l'historique : la tendance annonce le défaut bien avant le seuil.",
       "risque": "Un câble enterré qui claque provoque un court-circuit et une coupure longue des deux bâtiments, souvent à la pire saison, quand l'humidité monte.",
       "norme": "IEC 60364-6 · IEC 61557-2"
-    },
-    "verifie": false
+    }
   }
 ]

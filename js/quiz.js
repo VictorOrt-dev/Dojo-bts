@@ -118,7 +118,6 @@ export async function renderReco({ vue, definirTitre, params }) {
       </dl>
       ${ligneNorme(q.norme)}`;
     const pourquoiPas = q.pourquoiPas?.[choisi];
-    const validation = q.verifie ? '' : '<p class="note-marge">Contenu pas encore validé par un formateur.</p>';
 
     // Correction en deux temps : l'essentiel d'abord, le reste sous « En savoir plus ».
     const pourquoi = resume(pourquoiPas ?? q.explication, MOTS_POURQUOI);
@@ -130,14 +129,14 @@ export async function renderReco({ vue, definirTitre, params }) {
       <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
         ${juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
-             ${enSavoirPlus(`${lecon}${blocRisque(q.risque)}${ficheTechnique}${validation}`, 'Pourquoi c\'est ça, et le risque')}`
+             ${enSavoirPlus(`${lecon}${blocRisque(q.risque)}${ficheTechnique}`, 'Pourquoi c\'est ça, et le risque')}`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>
              <div class="essentiel">
                <p class="attendu">Il fallait reconnaître : <strong>${esc(typo(q.nom))}</strong>.</p>
                ${blocPourquoi(pourquoi.court)}
                ${blocRisque(q.risque, { court: true })}
              </div>
-             ${enSavoirPlus(`${pourquoi.complet || !pourquoiPas ? '' : blocPourquoi(pourquoiPas)}${lecon}${risqueComplet(q.risque)}${ficheTechnique}${validation}`)}`}
+             ${enSavoirPlus(`${pourquoi.complet || !pourquoiPas ? '' : blocPourquoi(pourquoiPas)}${lecon}${risqueComplet(q.risque)}${ficheTechnique}`)}`}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
     zone.querySelector('#suivant').addEventListener('click', suivant);

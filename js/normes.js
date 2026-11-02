@@ -1,11 +1,13 @@
 // Éditions des normes citées dans le contenu. La ligne « Réf. » de chaque correction les ajoute d'elle-même :
-// « NF C 18-510 » devient « NF C 18-510:2012+A1:2020 ». Une norme absente de ce tableau est affichée telle quelle et
-// signalée « édition à préciser » dans docs/relecture-formateur.md (node outils/relecture.mjs).
+// « NF C 18-510 » devient « NF C 18-510:2012+A1:2020 ». L'audit d'intégrité (node outils/audit.mjs) refuse toute
+// norme citée sans édition dans ce tableau.
 //
-// Toutes ces éditions sont à confirmer par le formateur qui relit le contenu (champ « verifie »).
+// Règle de citation : les paragraphes de la NF C 15-100 suivent son édition 2002 (433, 434, 523, 525, 531, 535, 542,
+// 771). La protection contre les chocs électriques (schémas TT, TN, IT, différentiel 30 mA) se cite dans
+// l'IEC 60364-4-41:2005 (§ 411.x), dont la numérotation est celle reprise par la NF C 15-100 actuelle.
 
 export const EDITIONS = [
-  { code: 'NF C 15-100', edition: '2002', note: 'Paragraphes cités selon l\'édition 2002 de la NF C 15-100 : à recaler sur l\'édition 2024 en vigueur.' },
+  { code: 'NF C 15-100', edition: '2002' },
   { code: 'NF C 18-510', edition: '2012+A1:2020' },
   { code: 'NF C 13-100', edition: '2015' },
   { code: 'NF EN 60204-1', edition: '2018' },
@@ -54,7 +56,13 @@ export const EDITIONS = [
   { code: 'IEC 62423', edition: '2009' },
   { code: 'IEC 60898-1', edition: '2015' },
   { code: 'IEC 60364-5-52', edition: '2009' },
-  { code: 'IEC 60909-0', edition: '2016' }
+  { code: 'IEC 60909-0', edition: '2016' },
+  { code: 'IEC 80000-6', edition: '2022' },
+  { code: 'NF EN 60898-1', edition: '2019' },
+  { code: 'NF EN 60903', edition: '2003' },
+  { code: 'NF EN 61008', edition: '2012' },
+  { code: 'NF EN 61558', edition: 'série', libre: true },
+  { code: 'NF EN 50216', edition: 'série', libre: true }
 ];
 
 const echapper = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

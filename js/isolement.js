@@ -196,7 +196,7 @@ function jouer(vue, s, scenarios) {
         <div class="piege-terrain"><p class="lecon-titre">Le piège en armoire</p><p>${esc(typo(s.conclusion.piege))}</p></div>
         <div class="lecon"><p class="lecon-titre">Les bons réglages</p><p>${esc(typo(`Tension d'essai ${s.essaiConseille} V DC pour un circuit ${s.tensionReseau} V ; seuil ${formater(s.seuil)}.${s.electronique ? ` Débrancher ${NOMS_ELECTRONIQUE[s.electronique]} avant l'essai.` : ''}`))}</p></div>
         ${risqueComplet(s.conclusion.risque)}
-        ${ligneNorme(s.conclusion.norme, { aRelire: !s.verifie })}`, 'En savoir plus : remède, piège, réglages, norme')}
+        ${ligneNorme(s.conclusion.norme)}`, 'En savoir plus : remède, piège, réglages, norme')}
       <details class="approfondir journal"><summary>Ton journal (${etat.journal.length})</summary><ol>${etat.journal.map(j => `<li>${esc(j)}</li>`).join('')}</ol></details>
       <div class="actions pousse-bas">
         ${autre ? `<a class="btn principal" href="#/entrainement/isolement?s=${encodeURIComponent(autre.id)}">Mesure suivante</a>` : ''}

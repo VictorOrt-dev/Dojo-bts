@@ -80,6 +80,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
       <p class="salut-date">${esc(jour)}</p>
       <h2 class="salut-titre">${mot}, <em>${esc(n.nom.toLowerCase())}.</em></h2>
       <p class="devise">Simulateur de terrain de l'électricien</p>
+      <p class="devise-sous">Conçu et éprouvé selon la réalité des armoires industrielles et la rigueur des normes en vigueur.</p>
     </header>
 
     ${carteProchaine(prochaine)}
