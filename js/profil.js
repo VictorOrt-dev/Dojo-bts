@@ -77,6 +77,7 @@ export async function renderProfil({ vue, definirTitre }) {
           ${ligneStats('Calculs flash', 'calcul')}
           ${ligneInterventions('Cas de panne', 'panne')}
           ${ligneInterventions('Banc de mesure', 'banc')}
+          ${ligneInterventions('Mesure d\'isolement', 'isolement')}
         </ul>
         ${blocRevision(etat)}
       </div>

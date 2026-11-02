@@ -9,6 +9,7 @@ import * as stockage from './storage.js';
 import { chargerQuestions } from './quiz.js';
 import { chargerPannes } from './panne.js';
 import { GENERATEURS } from './calcul.js';
+import { chargerScenarios } from './isolement.js';
 import { frontispice, titreSection } from './mise-en-page.js';
 import { etiquetteNiveau } from './difficulte.js';
 import { typo } from './mise-en-page.js';
@@ -20,7 +21,7 @@ const JOUR = 24 * 60 * 60 * 1000;
 
 // ---------- Écran « À réviser » ----------
 
-const NOMS = { reco: 'Reconnaissance', calcul: 'Calculs', panne: 'Cas de panne', banc: 'Banc de mesure' };
+const NOMS = { reco: 'Reconnaissance', calcul: 'Calculs', panne: 'Cas de panne', banc: 'Banc de mesure', isolement: 'Mesure d\'isolement' };
 
 function quand(revoir, maintenant) {
   const jours = Math.ceil((revoir - maintenant) / JOUR);
@@ -29,20 +30,22 @@ function quand(revoir, maintenant) {
 
 export async function renderRevision({ vue, definirTitre }) {
   definirTitre('À réviser');
-  const [questions, cas, banc] = await Promise.all([
-    chargerQuestions(), chargerPannes(), fetch('data/banc-depart-moteur.json').then(r => r.json())
+  const [questions, cas, banc, iso] = await Promise.all([
+    chargerQuestions(), chargerPannes(), fetch('data/banc-depart-moteur.json').then(r => r.json()), chargerScenarios()
   ]);
   const maintenant = Date.now();
   const tout = enRevision(stockage.lire(), maintenant);
   const titre = r => r.mode === 'reco' ? questions.find(q => q.id === r.id)?.question
     : r.mode === 'calcul' ? GENERATEURS.find(g => g.id === r.id)?.titre
       : r.mode === 'panne' ? cas.find(c => c.id === r.id)?.titre
-        : banc.pannes.find(p => p.id === r.id)?.symptome;
+        : r.mode === 'isolement' ? iso.find(x => x.id === r.id)?.titre : banc.pannes.find(p => p.id === r.id)?.symptome;
   const niveau = r => r.mode === 'reco' ? questions.find(q => q.id === r.id)?.niveau
     : r.mode === 'calcul' ? GENERATEURS.find(g => g.id === r.id)?.niveau
-      : r.mode === 'panne' ? cas.find(c => c.id === r.id)?.niveau : banc.pannes.find(p => p.id === r.id)?.niveau;
+      : r.mode === 'panne' ? cas.find(c => c.id === r.id)?.niveau
+        : r.mode === 'isolement' ? iso.find(x => x.id === r.id)?.niveau : banc.pannes.find(p => p.id === r.id)?.niveau;
   const lien = r => r.mode === 'panne' ? `#/entrainement/panne?c=${encodeURIComponent(r.id)}`
-    : r.mode === 'banc' ? `#/entrainement/banc?panne=${encodeURIComponent(r.id)}` : null;
+    : r.mode === 'banc' ? `#/entrainement/banc?panne=${encodeURIComponent(r.id)}`
+      : r.mode === 'isolement' ? `#/entrainement/isolement?s=${encodeURIComponent(r.id)}` : null;
   const existants = tout.filter(r => titre(r));
   const dus = existants.filter(r => r.du);
   const lancer = mode => {

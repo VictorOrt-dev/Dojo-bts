@@ -21,7 +21,7 @@ const ORDRES = {
 
 // Ordre des cartes de l'accueil : la progression d'abord pour qui démarre, la simulation d'abord pour un confirmé.
 export function ordreModes(profil) {
-  return profil === 'confirme' ? ['banc', 'panne', 'calcul', 'reco'] : ['reco', 'calcul', 'panne', 'banc'];
+  return profil === 'confirme' ? ['banc', 'isolement', 'panne', 'calcul', 'reco'] : ['reco', 'calcul', 'panne', 'banc', 'isolement'];
 }
 
 // Premier lancement : ni profil, ni progression (un utilisateur qui a déjà joué n'est pas renvoyé à l'accueil).

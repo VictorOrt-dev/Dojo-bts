@@ -19,7 +19,7 @@ export { deuxChiffres };
 // Plaque signalétique de l'opérateur (rang, XP, galvanomètre).
 export function carteNiveau() {
   const xp = lireXP();
-  const sessions = ['reco', 'calcul', 'panne', 'banc'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
+  const sessions = ['reco', 'calcul', 'panne', 'banc', 'isolement'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
   return plaqueOperateur({ xp, n: niveauPour(xp), total: NIVEAUX.length, sessions });
 }
 
@@ -35,17 +35,23 @@ function bancsReussis() {
   return n ? `${n} sans faute` : '';
 }
 
+function mesuresReussies() {
+  const n = Object.values(statsMode('isolement').elements).filter(e => e.reussites > 0).length;
+  return n ? `${n} réussie${n > 1 ? 's' : ''}` : '';
+}
+
 function record(mode) {
   const s = statsMode(mode);
   return s.sessions ? `${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '';
 }
 
-// Les 4 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
+// Les 5 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
 const MODES = {
   banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur un départ moteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
   panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la VAT au poste HTA · par domaine', record: () => casSansFaute() },
   calcul: { titre: 'Calculs flash', desc: 'La valeur à lire avant de mesurer · par domaine et par niveau', record: () => record('calcul') },
-  reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') }
+  reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') },
+  isolement: { titre: 'Mesure d\'isolement', desc: 'Mégohmmètre 250 / 500 / 1 000 V DC · préparer, mesurer, conclure', record: () => mesuresReussies() }
 };
 
 // Carte « Ta prochaine séance » : l'action prioritaire de l'accueil.
@@ -84,7 +90,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
     <nav class="modes pousse-bas" aria-label="Modes d'entraînement">
       ${ordreModes(etat.profil).map((id, i) => `
       <a class="mode mode-${id}" href="#/entrainement/${id}">
-        <span class="mode-bouton">${'ABCD'[i]}</span>
+        <span class="mode-bouton">${'ABCDE'[i]}</span>
         <span><span class="mode-titre">${MODES[id].titre}</span><span class="mode-desc">${MODES[id].desc}</span>${id === 'banc' && conseilDuBanc ? `<span class="conseil">${esc(conseilDuBanc)}</span>` : ''}</span>
         <span class="mode-record">${MODES[id].record()}</span>
       </a>`).join('')}

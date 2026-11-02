@@ -8,7 +8,7 @@
 // de NETTOYER le contenu de localStorage au démarrage (l'app ne doit jamais planter sur des données abîmées).
 
 export const VERSION = 1;
-export const MODES = ['reco', 'calcul', 'panne', 'banc'];
+export const MODES = ['reco', 'calcul', 'panne', 'banc', 'isolement'];
 export const MATIERES = ['auto', 'bakelite', 'porcelaine'];   // auto = suit le réglage clair / sombre du téléphone
 export const PROFILS = ['debutant', 'formation', 'confirme'];
 export const XP_MAX = 10_000_000;      // très au-delà du dernier rang (3 000 XP) : au-delà, c'est une donnée trafiquée

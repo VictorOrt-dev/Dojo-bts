@@ -3,7 +3,7 @@
 const JOUR = 24 * 60 * 60 * 1000;
 export const BOITES = 5;
 export const INTERVALLES_JOURS = [0, 1, 3, 7, 15];   // délai avant la révision suivante, boîte 1 à 5
-export const MODES_REVISION = ['reco', 'calcul', 'panne', 'banc'];
+export const MODES_REVISION = ['reco', 'calcul', 'panne', 'banc', 'isolement'];
 
 // Nouvel état d'un élément { essais, reussites, boite?, revoir? } après une réponse.
 export function appliquerResultat(element, reussi, maintenant = Date.now()) {

@@ -21,7 +21,7 @@ export default async function ({ t, url: U, navigateur }) {
   const prochaine = await p.evaluate(() => { const a = document.querySelector('.prochaine'); const m = document.querySelector('.modes'); return { href: a.getAttribute('href'), avant: !!(a.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING), texte: a.textContent }; });
   t.ok(prochaine.href === '#/entrainement/reco?n=1' && prochaine.avant && prochaine.texte.includes('Étape 1 sur 10'), '« Ta prochaine séance » en tête : Reconnaissance niveau I, étape 1 sur 10');
   const ordre = await p.$$eval('.modes .mode', l => l.map(a => a.getAttribute('href').split('/').pop()));
-  t.ok(ordre.join() === 'reco,calcul,panne,banc', `accueil débutant : ${ordre.join(' → ')}`);
+  t.ok(ordre.join() === 'reco,calcul,panne,banc,isolement', `accueil débutant : ${ordre.join(' → ')}`);
   t.ok((await p.textContent('.mode-banc')).includes('Conseillé après'), 'carte Banc : « Conseillé après un premier cas de panne réussi »');
   const boite = await p.locator('.prochaine').boundingBox();
   t.ok(boite.height >= 64 && (await p.locator('.prochaine-go').boundingBox()).height >= 44, 'carte « Ta prochaine séance » et son bouton : cibles larges (≥ 44 px)');

@@ -167,7 +167,7 @@ function parcoursGuide(t) {
   };
   for (let i = 0; i < 11; i++) { const p = P.prochaineSeance(e, cas); suite.push(p.code); if (p.code === 'libre') break; e = acquerir(e, p.code); }
   t.ok(suite.join(' ') === 'R1 C1 P1 B R2 C2 P2 R3 C3 P3 libre', `parcours Débutant : ${suite.join(' → ')}`);
-  t.ok(P.prochaineSeance(d, cas).href === '#/entrainement/reco?n=1' && P.ordreModes('debutant').join() === 'reco,calcul,panne,banc',
+  t.ok(P.prochaineSeance(d, cas).href === '#/entrainement/reco?n=1' && P.ordreModes('debutant').join() === 'reco,calcul,panne,banc,isolement',
     'débutant : première séance Reconnaissance niveau I ; accueil ordonné Reconnaissance → Calculs → Cas → Banc');
   t.ok(P.ordreModes('confirme')[0] === 'banc' && P.prochaineSeance(etat({ profil: 'confirme' }), cas).code === 'T', 'confirmé : le banc en premier, et la première recommandation est le test de positionnement');
   t.ok(P.prochaineSeance(etat({ stats: reco(1) }), cas).code === 'C1', 'reconnaissance niveau I à 80 % : la séance suivante passe aux calculs');

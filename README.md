@@ -96,7 +96,7 @@ node tests/lancer.mjs
 ```
 
 On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
-`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
 
 | Fichier | Contenu |
 |---|---|
@@ -375,6 +375,18 @@ la cause, la démarche d'un pro et le piège du cas.
 - **Visite guidée** au premier passage (3 gestes : mesurer en V~, refaire en LoZ pour démasquer la tension fantôme,
   consigner), passable, mémorisée dans `preferences.visiteBanc`.
 
+## Mesure d'isolement (`js/isolement.js`, `data/isolement.json`)
+
+- Un scénario = un circuit (`points`, `tensionReseau`), la tension d'essai conseillée (`essaiConseille` : 250 V DC en TBT,
+  500 V DC jusqu'à 500 V), le `seuil` en MΩ, l'électronique à débrancher (`electronique` : variateur, automate ou null),
+  la valeur des paires saines (`sain`) et des paires en défaut (`mesures`, clé « A|B » triée), les mesures indispensables
+  (`cles`), trois conclusions dont une seule bonne, et une conclusion (cause, remède, piège, risque, norme).
+- Trois temps : préparer (consigner + VAT, débrancher l'électronique), mesurer (tension d'essai, deux pointes,
+  « Tester »), conclure. Essai sous tension = alerte sécurité ; électronique raccordée = matériel endommagé et mesure
+  sans valeur ; mauvaise tension d'essai = erreur de méthode. Une conclusion n'est validée que si les mesures clés ont
+  été faites correctement. `lecture()` est pure.
+- XP : 30 si juste, − 15 par alerte, − 10 par dégât, − 5 par erreur de méthode (minimum 10), + 20 sans faute.
+
 ## À réviser : répétition espacée (`js/leitner.js`, `js/revision.js`)
 
 - Toute erreur (question ratée, calcul faux, cas pas sans faute, panne du banc avec alerte de sécurité) place l'élément
@@ -415,7 +427,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
-- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements
+- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios)
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)
