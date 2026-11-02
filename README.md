@@ -310,6 +310,12 @@ Aucune case vide : chaque domaine se travaille à chaque niveau, dans chaque mod
 }
 ```
 
+**Embranchements (niveau III).** Une étape peut porter `"id"` et `"branche": true` (hors du chemin normal) ; un choix
+peut porter `"vers": "<id d'étape>"` et `"consequence": { "texte": "…", "minutes": 240 }`. Le choix s'applique quel que
+soit son verdict : la machine change d'état (carter brûlant, moteur grillé…), on ne le rattrape pas, et le rapport
+liste « Ce que tes choix ont coûté » avec les heures d'arrêt. Dans une étape « branche », la bonne démarche rejoint
+le chemin normal par `vers`. Exemples : `pompe-thermique-rearme`, `tgbt-reenclenchement`.
+
 - `verdict` : `bon` (on passe à l'étape suivante), `acceptable` (on passe, avec une remarque), `mauvais` ou `danger`
   (on lit l'explication, puis on choisit autre chose ; `danger` compte une alerte sécurité). Une seule réponse `bon` par étape.
 - L'ordre des choix est mélangé à l'affichage. XP : niveau × étapes réussies du premier coup, + 20 si intervention sans faute.
@@ -409,7 +415,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
-- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes)
+- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)

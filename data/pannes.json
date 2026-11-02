@@ -2352,5 +2352,286 @@
       "norme": "NF EN 60204-1 (§ 9.4.3, défauts à la terre du circuit de commande)"
     },
     "verifie": false
+  },
+  {
+    "id": "pompe-thermique-rearme",
+    "niveau": 3,
+    "domaines": [
+      "tri"
+    ],
+    "titre": "Le relais thermique de la pompe a déclenché : réarmer ou chercher ?",
+    "contexte": "Station de relevage d'un site industriel : pompe de 7,5 kW, départ moteur direct (sectionneur à fusibles aM, contacteur, relais thermique réglé à 15 A). Le relais vient de déclencher. Le chef d'équipe veut que ça reparte, la fosse se remplit.",
+    "etapes": [
+      {
+        "id": "depart",
+        "situation": "Le relais thermique F2 est déclenché. Le moteur est chaud au toucher, sans odeur particulière.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Consigner, puis chercher la cause de la surcharge",
+            "verdict": "bon",
+            "explication": "Un relais thermique qui déclenche a mesuré une surcharge. On cherche la cause avant de relancer : sinon, il redéclenchera, ou pire."
+          },
+          {
+            "texte": "Réarmer et relancer : la fosse se remplit, on verra après",
+            "verdict": "mauvais",
+            "explication": "Réarmer sans chercher remet le moteur dans la même surcharge, sur un bobinage déjà chaud.",
+            "vers": "rearme",
+            "consequence": {
+              "texte": "La pompe redémarre, grogne, et le relais redéclenche au bout de 40 secondes. Le carter est brûlant, odeur de vernis chaud.",
+              "minutes": 15
+            }
+          },
+          {
+            "texte": "Shunter le contact 95-96 pour finir la journée sans arrêt",
+            "verdict": "danger",
+            "explication": "Sans relais thermique, plus rien ne protège le moteur contre la surcharge : il chauffe jusqu'à la destruction.",
+            "vers": "grille",
+            "consequence": {
+              "texte": "Sans protection, le moteur tourne en surcharge vingt minutes : fumée à la boîte à bornes, le bobinage est grillé. Moteur à remplacer.",
+              "minutes": 240
+            }
+          }
+        ]
+      },
+      {
+        "id": "mecanique",
+        "situation": "Départ consigné. Tu tournes l'arbre de la pompe à la main : il est très dur, avec un bruit de frottement.",
+        "question": "Où est la cause ?",
+        "choix": [
+          {
+            "texte": "Côté pompe : quelque chose freine la roue ou un roulement",
+            "verdict": "bon",
+            "explication": "Un arbre dur à la main, c'est un couple résistant anormal : le moteur force, son courant monte, le relais fait son travail."
+          },
+          {
+            "texte": "Le relais thermique est mal réglé, beaucoup trop sensible",
+            "verdict": "mauvais",
+            "explication": "Le relais a déclenché sur une vraie surcharge : l'arbre dur le prouve. Monter le réglage cacherait le problème."
+          },
+          {
+            "texte": "Le moteur est sous-dimensionné pour cette pompe depuis le début",
+            "verdict": "mauvais",
+            "explication": "La pompe a tourné des années avec ce moteur. Ce qui a changé, c'est la mécanique, pas le moteur."
+          }
+        ]
+      },
+      {
+        "id": "remise",
+        "situation": "Un chiffon aspiré bloquait en partie la roue de la pompe. Roue dégagée, l'arbre tourne librement.",
+        "question": "Avant de rendre la pompe ?",
+        "choix": [
+          {
+            "texte": "Relancer et mesurer les trois courants à la pince",
+            "verdict": "bon",
+            "explication": "On vérifie que le courant est revenu sous l'In de la plaque, et équilibré : c'est la preuve que la cause est levée."
+          },
+          {
+            "texte": "Relancer et partir : la cause est trouvée, c'est réglé",
+            "verdict": "mauvais",
+            "explication": "Un contrôle de courant prend deux minutes, et dit si le moteur a souffert ou s'il reste un frottement."
+          },
+          {
+            "texte": "Changer le relais thermique par précaution, puis relancer",
+            "verdict": "acceptable",
+            "explication": "Il a fonctionné correctement : le changer ne sert à rien. Le contrôle de courant, lui, est indispensable."
+          }
+        ]
+      },
+      {
+        "id": "rearme",
+        "situation": "Le relais a redéclenché. Le carter du moteur est brûlant et sent le vernis chaud. La fosse monte toujours.",
+        "question": "Et maintenant ?",
+        "choix": [
+          {
+            "texte": "Consigner, laisser refroidir et chercher la cause",
+            "verdict": "bon",
+            "explication": "Le moteur a souffert, mais il n'est pas perdu. On arrête d'insister et on reprend la démarche : consigner, chercher.",
+            "vers": "mecanique"
+          },
+          {
+            "texte": "Réarmer une troisième fois : ça finira bien par passer",
+            "verdict": "danger",
+            "explication": "Chaque redémarrage en surcharge cuit un peu plus l'isolant. Le troisième essai est celui qui grille le bobinage.",
+            "vers": "grille",
+            "consequence": {
+              "texte": "Troisième démarrage en surcharge : le bobinage claque, le différentiel déclenche. Moteur à remplacer.",
+              "minutes": 240
+            }
+          },
+          {
+            "texte": "Monter le réglage du relais de 20 % pour qu'il tienne",
+            "verdict": "mauvais",
+            "explication": "Le relais ne protège plus le moteur : la surcharge continue jusqu'à la destruction du bobinage.",
+            "vers": "grille",
+            "consequence": {
+              "texte": "Le relais, réglé trop haut, laisse le moteur en surcharge : le bobinage grille en quelques minutes. Moteur à remplacer.",
+              "minutes": 240
+            }
+          }
+        ],
+        "branche": true
+      },
+      {
+        "id": "grille",
+        "situation": "Le moteur est grillé : odeur de brûlé, isolement à 0 MΩ. La fosse continue de monter.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Consigner, faire remplacer le moteur, chercher la cause",
+            "verdict": "bon",
+            "explication": "Le moteur neuf grillera de la même façon si la cause mécanique reste là : on la cherche avant de le monter.",
+            "vers": "mecanique"
+          },
+          {
+            "texte": "Monter le moteur de rechange tout de suite, sans chercher",
+            "verdict": "mauvais",
+            "explication": "Le moteur neuf retrouvera la même surcharge : même déclenchement, ou même destruction si la protection est neutralisée."
+          },
+          {
+            "texte": "Déclarer la pompe hors service et partir sans rien chercher",
+            "verdict": "mauvais",
+            "explication": "La fosse déborde, et la cause n'est pas trouvée : le dépannage est à refaire entièrement."
+          }
+        ],
+        "branche": true
+      }
+    ],
+    "conclusion": {
+      "cause": "Un chiffon aspiré freinait la roue de la pompe : couple résistant anormal, surcharge du moteur, déclenchement du relais thermique, qui a fait exactement son travail.",
+      "remede": "Consigner, chercher la cause mécanique (arbre dur à la main), dégager la roue, relancer et mesurer les courants des trois phases. Installer une grille ou un panier en amont de l'aspiration.",
+      "lecon": "Un relais thermique qui déclenche a mesuré quelque chose : on cherche la cause avant de réarmer.",
+      "piege": "Réarmer « pour voir », puis monter le réglage ou shunter le relais : chaque démarrage en surcharge cuit l'isolant, et le moteur finit grillé alors qu'un chiffon suffisait à tout expliquer.",
+      "risque": "Un moteur qui grille en surcharge peut mettre sa carcasse sous tension et faire déclencher tout le départ ; une pompe de relevage à l'arrêt, c'est une fosse qui déborde, parfois dans un local électrique.",
+      "norme": "IEC 60947-4-1 (relais thermiques) · NF EN 60204-1 (§ 7.3, protection des moteurs)"
+    },
+    "verifie": false
+  },
+  {
+    "id": "tgbt-reenclenchement",
+    "niveau": 3,
+    "domaines": [
+      "tri",
+      "securite"
+    ],
+    "titre": "Court-circuit au TGBT : refermer pour voir ?",
+    "contexte": "TGBT d'une usine : le disjoncteur du départ « atelier soudure » (160 A) a déclenché. Son indicateur montre un déclenchement magnétique : un court-circuit. L'atelier est à l'arrêt, le responsable te presse.",
+    "etapes": [
+      {
+        "id": "depart",
+        "situation": "Le disjoncteur est ouvert, indicateur de déclenchement sur court-circuit apparent.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Consigner le départ, puis chercher le court-circuit",
+            "verdict": "bon",
+            "explication": "Un déclenchement magnétique signe un court-circuit. Refermer dessus, c'est relancer un arc là où il s'est produit."
+          },
+          {
+            "texte": "Refermer une fois, pour voir si le défaut est toujours là",
+            "verdict": "danger",
+            "explication": "Refermer sur un court-circuit franc, c'est un second arc, avec un disjoncteur déjà sollicité.",
+            "vers": "referme",
+            "consequence": {
+              "texte": "Claquement dans l'atelier, flash dans le coffret de soudure, le disjoncteur redéclenche. Un câble a fondu au presse-étoupe.",
+              "minutes": 60
+            }
+          },
+          {
+            "texte": "Réarmer et demander à l'atelier de ne rien rebrancher",
+            "verdict": "danger",
+            "explication": "Le court-circuit n'est pas forcément dans un appareil branché : il peut être dans le câble ou le coffret.",
+            "vers": "referme",
+            "consequence": {
+              "texte": "Rien n'est branché, et pourtant : flash dans le coffret, redéclenchement. Le défaut était dans le câble.",
+              "minutes": 60
+            }
+          }
+        ]
+      },
+      {
+        "id": "isolement",
+        "situation": "Départ consigné, VAT faite. Isolement du câble vers le coffret (500 V DC) : 0 MΩ entre L2 et PE, les autres conducteurs au-delà de 100 MΩ.",
+        "question": "Où cherches-tu ?",
+        "choix": [
+          {
+            "texte": "Le long du câble : chemin, traversées, presse-étoupes",
+            "verdict": "bon",
+            "explication": "Le défaut est franc sur un seul conducteur : on cherche une agression mécanique sur le trajet du câble."
+          },
+          {
+            "texte": "Dans le disjoncteur, qui a déclenché et doit être changé",
+            "verdict": "mauvais",
+            "explication": "Le disjoncteur a fait son travail. La mesure montre le défaut dans le câble, pas dans l'appareil."
+          },
+          {
+            "texte": "Nulle part : on remplace tout le câble sans chercher",
+            "verdict": "mauvais",
+            "explication": "Sans trouver la cause, le câble neuf subira la même agression. Et on y perd une journée."
+          }
+        ]
+      },
+      {
+        "id": "remise",
+        "situation": "Câble écrasé sous une tôle d'acier posée sur le chemin de câble, au-dessus d'une machine.",
+        "question": "Remise en service ?",
+        "choix": [
+          {
+            "texte": "Remplacer le tronçon, mesurer l'isolement, puis refermer",
+            "verdict": "bon",
+            "explication": "Réparation durable, contrôle par la mesure, puis seulement la remise sous tension, après avis de fin de travail."
+          },
+          {
+            "texte": "Isoler l'endroit écrasé au ruban adhésif et refermer",
+            "verdict": "danger",
+            "explication": "Un ruban ne reconstitue pas l'isolant d'un câble de puissance écrasé : le défaut reviendra, peut-être sur une personne."
+          },
+          {
+            "texte": "Refermer d'abord pour vérifier que c'était bien ce point-là",
+            "verdict": "mauvais",
+            "explication": "La mesure d'isolement après réparation le prouve sans risque. Refermer sur un câble pas encore réparé, c'est un nouvel arc."
+          }
+        ]
+      },
+      {
+        "id": "referme",
+        "situation": "Le coffret de l'atelier est noirci, un câble a fondu au presse-étoupe. Personne n'était devant.",
+        "question": "Ensuite ?",
+        "choix": [
+          {
+            "texte": "Consigner, prévenir, puis mesurer l'isolement du câble",
+            "verdict": "bon",
+            "explication": "On reprend la bonne démarche, avec en plus des dégâts à constater et à réparer.",
+            "vers": "isolement"
+          },
+          {
+            "texte": "Refermer encore : le défaut a peut-être « brûlé » et disparu",
+            "verdict": "danger",
+            "explication": "Un défaut ne se répare pas en brûlant : il s'aggrave. Le troisième essai peut remonter jusqu'au disjoncteur de tête.",
+            "vers": "isolement",
+            "consequence": {
+              "texte": "Nouveau court-circuit : cette fois le disjoncteur général du TGBT déclenche aussi. Toute l'usine est à l'arrêt.",
+              "minutes": 120
+            }
+          },
+          {
+            "texte": "Changer le disjoncteur du départ, qui doit être fatigué",
+            "verdict": "mauvais",
+            "explication": "Le disjoncteur a coupé deux courts-circuits : il a fait son travail. Le défaut est en aval.",
+            "vers": "isolement"
+          }
+        ],
+        "branche": true
+      }
+    ],
+    "conclusion": {
+      "cause": "Un câble d'alimentation écrasé sous une tôle posée sur le chemin de câble : court-circuit franc entre L2 et la terre, éliminé par le déclenchement magnétique du disjoncteur.",
+      "remede": "Consigner, mesurer l'isolement pour localiser le conducteur en défaut, suivre le câble jusqu'au point d'agression, remplacer le tronçon, remesurer, puis remettre sous tension. Faire constater les éventuels dégâts du coffret.",
+      "lecon": "Un déclenchement magnétique, c'est un court-circuit : on ne referme pas pour voir, on mesure.",
+      "piege": "Refermer « une seule fois » : c'est relancer l'arc au même endroit. Et si personne n'est devant le coffret cette fois-ci, rien ne dit qu'il en sera de même la prochaine.",
+      "risque": "Un réenclenchement sur court-circuit provoque un arc qui projette du métal en fusion : brûlures graves pour quiconque est devant le coffret, incendie, et parfois déclenchement de tout le site.",
+      "norme": "NF C 18-510 · NF C 15-100 (§ 434) · IEC 60947-2"
+    },
+    "verifie": false
   }
 ]

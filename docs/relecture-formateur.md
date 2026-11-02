@@ -2,7 +2,7 @@
 
 *Fichier généré par `node outils/relecture.mjs` : ne pas modifier à la main.*
 
-**123 éléments sur 123 à valider.** Pour chaque ligne, le formateur vérifie l'exactitude
+**125 éléments sur 125 à valider.** Pour chaque ligne, le formateur vérifie l'exactitude
 technique, le niveau, le risque et la référence normative (édition comprise), puis passe `"verifie": true` dans le fichier source
 (`data/*.json` ; pour un calcul, ajouter `verifie: true` au générateur dans `js/calcul.js`).
 
@@ -139,6 +139,8 @@ Les éditions sont ajoutées automatiquement depuis `js/normes.js` : les confirm
 | Cas de panne | `double-source` | II | securite, mono-bt | Circuit consigné, mais le VAT indique encore 230 V | NF C 18-510:2012+A1:2020 (séparation de toutes les sources, VAT) | ☐ |
 | Cas de panne | `energie-residuelle-variateur` | II | securite, tri | Variateur consigné : peut-on ouvrir le capot ? | NF C 18-510:2012+A1:2020 (énergies résiduelles) · IEC 61800-5-1:2022 (variateurs) | ☐ |
 | Cas de panne | `demarrage-intempestif-24v` | III | tbt-cc, securite | La presse a démarré seule pendant un réglage | NF EN 60204-1:2018 (§ 9.4.3, défauts à la terre du circuit de commande) | ☐ |
+| Cas de panne | `pompe-thermique-rearme` | III | tri | Le relais thermique de la pompe a déclenché : réarmer ou chercher ? | IEC 60947-4-1:2018 (relais thermiques) · NF EN 60204-1:2018 (§ 7.3, protection des moteurs) | ☐ |
+| Cas de panne | `tgbt-reenclenchement` | III | tri, securite | Court-circuit au TGBT : refermer pour voir ? | NF C 18-510:2012+A1:2020 · NF C 15-100:2002 (§ 434) · IEC 60947-2:2016 | ☐ |
 | Banc | `fu1-fondu` | I | mono-bt, tri | Rien ne se passe à l'appui sur Marche. Le voyant « sous tension » H1 est éteint. | NF EN 60204-1:2018 (§ 7.2.4) | ☐ |
 | Banc | `contact-95-96` | II | mono-bt, tri | Rien ne se passe à l'appui sur Marche. Le voyant H1 est allumé. Le relais thermique ne sem | IEC 60947-4-1:2018 | ☐ |
 | Banc | `bobine-coupee` | I | mono-bt, tri | Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1  | NF EN 61243-3:2014 (VAT) | ☐ |

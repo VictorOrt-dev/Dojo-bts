@@ -77,16 +77,34 @@ function afficherListe(vue, tousLesCas, dom) {
       </section>`).join('')}`;
 }
 
+// Embranchements (niveau III) : une étape peut porter un `id` et `branche: true` (hors du chemin normal) ; un choix
+// peut porter `vers` (id de l'étape suivante, quel que soit son verdict) et `consequence` ({ texte, minutes }) :
+// la machine change d'état, le choix ne se rattrape pas, et le rapport chiffre ce qu'il a coûté.
+const principales = c => c.etapes.filter(e => !e.branche);
+const indexDe = (c, id) => c.etapes.findIndex(e => e.id === id);
+// Étape suivante sur le chemin normal (les étapes « branche » ne se rejoignent que par `vers`).
+function suivante(c, i) {
+  for (let j = i + 1; j < c.etapes.length; j++) if (!c.etapes[j].branche) return j;
+  return -1;
+}
+
+const horaire = m => m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, '0')}` : ''}` : `${m} min`;
+
 function jouer(vue, c, tousLesCas) {
   const diff = difficulte(c.niveau);
   const partie = {
     etape: 0,
+    numero: 1,        // rang de l'étape jouée (les embranchements allongent le parcours)
+    consequences: [], // { texte, minutes } : ce que les choix ont coûté
     reussies: 0,      // étapes réussies du premier coup
     alertes: 0,       // choix dangereux
     resultats: [],    // état de chaque borne : 'juste' | 'moyen' | 'faux'
     tentes: new Set(),
     ordre: []
   };
+
+  // Nombre d'étapes affiché : le chemin normal, allongé des embranchements déjà parcourus.
+  const total = () => Math.max(principales(c).length, partie.numero + (c.etapes[partie.etape].branche ? 1 : principales(c).filter((_, k, l) => c.etapes.indexOf(l[k]) > partie.etape).length));
 
   const afficherEtape = () => {
     const e = c.etapes[partie.etape];
@@ -103,12 +121,13 @@ function jouer(vue, c, tousLesCas) {
       ${partie.etape === 0 ? bon : `<details class="approfondir"><summary>Relire le bon d'intervention</summary>${bon}</details>`}
       <div class="session-entete">
         <div class="session-chiffres">
-          <span>Étape ${deuxChiffres(partie.etape + 1)}/${deuxChiffres(c.etapes.length)}</span>
+          <span>Étape ${deuxChiffres(partie.numero)}/${deuxChiffres(total())}</span>
           <span class="session-score">${partie.alertes ? `${partie.alertes} alerte${partie.alertes > 1 ? 's' : ''} sécurité` : ''}</span>
         </div>
-        ${bornier(partie.etape, partie.resultats, c.etapes.length)}
+        ${bornier(partie.numero - 1, partie.resultats, total())}
       </div>
-      <section class="etape">
+      ${e.branche ? '<p class="etat-machine">Conséquence de ton choix : la situation a changé.</p>' : ''}
+      <section class="etape${e.branche ? ' etape-branche' : ''}">
         <p class="situation">${esc(typo(e.situation))}</p>
         <h3 class="question">${esc(typo(e.question))}</h3>
         <div class="choix">
@@ -130,7 +149,7 @@ function jouer(vue, c, tousLesCas) {
     if (premierChoix) {
       partie.resultats.push(v.borne);
       if (ch.verdict === 'bon') partie.reussies++;
-      vue.querySelectorAll('.borne')[partie.etape].className = `borne ${v.borne}`;
+      vue.querySelectorAll('.borne')[partie.numero - 1].className = `borne ${v.borne}`;
     }
 
     vue.querySelectorAll('.choix-btn').forEach(b => {
@@ -139,20 +158,23 @@ function jouer(vue, c, tousLesCas) {
       if (j === i) b.classList.add(v.suite ? (ch.verdict === 'bon' ? 'juste' : 'moyen') : 'faux');
     });
 
-    const derniere = partie.etape === c.etapes.length - 1;
-    const libelle = v.suite ? (derniere ? 'Voir le diagnostic final' : 'Étape suivante') : 'Choisir une autre démarche';
+    const cible = ch.vers ? indexDe(c, ch.vers) : v.suite ? suivante(c, partie.etape) : null;
+    if (ch.consequence) partie.consequences.push(ch.consequence);
+    const libelle = ch.vers ? 'Voir ce qui se passe' : v.suite ? (cible === -1 ? 'Voir le diagnostic final' : 'Étape suivante') : 'Choisir une autre démarche';
     const zone = vue.querySelector('#retour-choix');
     zone.innerHTML = `
       <section class="explication ${v.classe}">
         <p class="verdict"><span class="tampon">${v.tampon}</span>${ch.verdict === 'danger' ? '<span class="gain">Alerte sécurité</span>' : ''}</p>
         <div class="${v.bloc}"><p class="lecon-titre">${v.titre}</p><p>${esc(typo(ch.explication))}</p></div>
+        ${ch.consequence ? `<div class="consequence"><p class="lecon-titre">Conséquence${ch.consequence.minutes ? ` · +${horaire(ch.consequence.minutes)} d'arrêt` : ''}</p><p>${esc(typo(ch.consequence.texte))}</p></div>` : ''}
         <div class="action-collee"><button id="suite" class="btn principal" type="button">${libelle}</button></div>
       </section>`;
     zone.querySelector('#suite').addEventListener('click', () => {
-      if (!v.suite) return reessayer();
-      partie.etape++;
-      if (partie.etape < c.etapes.length) afficherEtape();
-      else finir();
+      if (cible === null) return reessayer();
+      if (cible === -1) return finir();
+      partie.etape = cible;
+      partie.numero++;
+      afficherEtape();
     });
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
@@ -168,7 +190,8 @@ function jouer(vue, c, tousLesCas) {
   };
 
   const finir = () => {
-    const parfait = partie.reussies === c.etapes.length && partie.alertes === 0;
+    const parfait = partie.reussies === partie.numero && partie.alertes === 0 && !partie.consequences.length;
+    const minutesPerdues = partie.consequences.reduce((t, k) => t + (k.minutes ?? 0), 0);
     const xp = partie.reussies * diff.xp + (parfait ? BAREME.sessionParfaite : 0);
     if (xp) annoncerMontee(gagnerXP(xp));
     noterReponse('panne', c.id, parfait);
@@ -180,11 +203,12 @@ function jouer(vue, c, tousLesCas) {
     vue.innerHTML = `
       <section class="bilan">
         <p class="surtitre">Diagnostic final</p>
-        <p class="bilan-score">${deuxChiffres(partie.reussies)}<small>/${deuxChiffres(c.etapes.length)}</small></p>
+        <p class="bilan-score">${deuxChiffres(partie.reussies)}<small>/${deuxChiffres(partie.numero)}</small></p>
         <p class="bilan-message">${message}</p>
         <p class="bilan-xp">+${xp} XP · étapes réussies du premier coup${partie.alertes ? ` · ${partie.alertes} alerte${partie.alertes > 1 ? 's' : ''} sécurité` : ''}</p>
       </section>
       <section class="rapport-panne">
+        ${partie.consequences.length ? `<div class="consequence bilan-degats"><p class="lecon-titre">Ce que tes choix ont coûté${minutesPerdues ? ` · ${horaire(minutesPerdues)} d'arrêt en plus` : ''}</p><ul>${partie.consequences.map(k => `<li>${esc(typo(k.texte))}</li>`).join('')}</ul></div>` : ''}
         <div class="essentiel">
           <div class="lecon"><p class="lecon-titre">La cause</p><p>${esc(typo(cause.court))}</p></div>
           ${blocRisque(c.conclusion.risque, { court: true })}

@@ -303,7 +303,7 @@ export default async function ({ t, url: U, navigateur }) {
   const casIncomplets = [];
   for (const c of pannes) {
     await p.goto(U + '#/entrainement'); await p.goto(U + `#/entrainement/panne?c=${c.id}`); await p.waitForSelector('.etape');
-    for (const e of c.etapes) {
+    for (const e of c.etapes.filter(x => !x.branche)) {
       await p.waitForSelector('.etape .choix-btn:not([disabled])');
       await p.click(`.choix-btn[data-i="${e.choix.findIndex(x => x.verdict === 'bon')}"]`); await p.click('#suite');
     }
@@ -313,6 +313,24 @@ export default async function ({ t, url: U, navigateur }) {
     if (!visible || !(await p.isVisible('.rapport-panne .norme'))) casIncomplets.push(c.id);
   }
   t.ok(casIncomplets.length === 0, `les ${pannes.length} cas se jouent jusqu'au diagnostic final, avec risque et norme` + (casIncomplets.length ? ' — ' + casIncomplets.join(', ') : ''));
+  // Embranchements : chaque « vers » mène à une étape existante ; un mauvais choix change la suite et se paie au rapport.
+  const branches = pannes.filter(c => c.etapes.some(e => e.branche));
+  t.ok(branches.length >= 2 && branches.every(c => c.niveau === 3 && c.etapes.every(e => e.choix.every(x => !x.vers || c.etapes.some(f => f.id === x.vers)))
+    && c.etapes.filter(e => e.branche).every(e => e.choix.find(x => x.verdict === 'bon').vers)), `${branches.length} cas de niveau III à embranchements, tous les « vers » mènent à une étape`);
+  {
+    const c = pannes.find(x => x.id === 'pompe-thermique-rearme');
+    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/panne?c=pompe-thermique-rearme'); await p.waitForSelector('.etape');
+    const clic = async texte => { await p.waitForSelector('.etape .choix-btn:not([disabled])'); await p.click(`.choix-btn:has-text("${texte}")`); await p.click('#suite'); };
+    await clic('Réarmer et relancer');
+    t.ok(await p.isVisible('.etat-machine') && (await p.textContent('.situation')).includes('brûlant'), 'réarmer sans chercher : la machine change d\'état (le relais redéclenche, carter brûlant)');
+    await clic('Réarmer une troisième fois');
+    t.ok((await p.textContent('.situation')).includes('grillé'), 'troisième réarmement : le moteur est grillé, le cas continue dans ce nouvel état');
+    await clic('Consigner, faire remplacer le moteur');
+    for (const id of ['mecanique', 'remise']) await clic(c.etapes.find(e => e.id === id).choix.find(x => x.verdict === 'bon').texte.slice(0, 30));
+    await p.waitForSelector('.rapport-panne');
+    t.ok((await p.textContent('.bilan-degats')).includes('4 h 15') && (await p.textContent('.bilan-message')).includes('sécurité'),
+      'rapport : « Ce que tes choix ont coûté » (4 h 15 d\'arrêt en plus, moteur à remplacer) et alerte de sécurité');
+  }
 
   t.section('F. Nouveau nom « Elec learning »');
   const textes = [];
