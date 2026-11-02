@@ -1,6 +1,8 @@
 {
   "id": "depart-moteur",
   "titre": "Départ moteur direct",
+  "titreHtml": "Départ moteur <em>direct</em>",
+  "schema": "img/banc/depart-moteur.svg",
   "domaines": ["tri", "mono-bt"],
   "description": "Pompe de transfert 5,5 kW, 400 V, 11 A. Sectionneur porte-fusibles aM Q1, contacteur KM1, relais thermique F2. Commande en 230 V par transformateur T1, pupitre Marche / Arrêt distant relié par un câble de 3 conducteurs (40 m).",
   "noeuds": [

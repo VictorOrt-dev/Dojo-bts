@@ -9,7 +9,7 @@ const { GENERATEURS } = await import('../js/calcul.js');
 const lire = f => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'));
 const reco = lire('data/reconnaissance.json');
 const cas = lire('data/pannes.json');
-const banc = lire('data/banc-depart-moteur.json');
+const banc = { pannes: ['data/banc-depart-moteur.json', 'data/banc-eclairage.json'].flatMap(f => lire(f).pannes) };
 
 const lignes = [
   ...reco.map(q => ({ mode: 'Reconnaissance', id: q.id, niveau: q.niveau, domaines: q.domaines, titre: q.question, norme: q.norme, verifie: q.verifie })),

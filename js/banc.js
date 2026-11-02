@@ -9,6 +9,7 @@ import { annoncerMontee } from './entrainement.js';
 import { frontispice, typo as typoBase } from './mise-en-page.js';
 import { parmi } from './hasard.js';
 import { pannesCandidates } from './parcours.js';
+import { CIRCUITS, PROFILS } from './banc-profils.js';
 import { etiquetteNiveau } from './difficulte.js';
 import { esc } from './util.js';
 import { pucesDomaines } from './domaines.js';
@@ -30,17 +31,18 @@ const GUIDE = {
   3: "Onglet « Actions » › « Consigner le départ » : avant tout Ω ou tout démontage.",
   fin: "Les trois gestes de base sont acquis. À toi de trouver la panne."
 };
-const PINCE = [{ id: 0, libelle: 'L1 (borne U)' }, { id: 1, libelle: 'L2 (borne V)' }, { id: 2, libelle: 'L3 (borne W)' }];
-const FUSIBLES = [{ id: 'fu1', libelle: 'FU1 (commande)' }, { id: 'fu-l1', libelle: 'Q1 · L1' }, { id: 'fu-l2', libelle: 'Q1 · L2' }, { id: 'fu-l3', libelle: 'Q1 · L3' }];
 const nb = (x, d = 1) => x.toLocaleString('fr-FR', { maximumFractionDigits: d });
 const horloge = m => `${String(Math.floor(m / 60)).padStart(2, '0')} h ${String(m % 60).padStart(2, '0')}`;
 
-let promesse = null;
-function chargerBanc() {
-  promesse ??= fetch('data/banc-depart-moteur.json')
-    .then(r => { if (!r.ok) throw new Error(`data/banc-depart-moteur.json introuvable (HTTP ${r.status})`); return r.json(); })
-    .catch(err => { promesse = null; throw err; });
-  return promesse;
+const promesses = new Map();
+export function chargerBanc(id = 'depart-moteur') {
+  const c = CIRCUITS.find(x => x.id === id) ?? CIRCUITS[0];
+  if (!promesses.has(c.id)) {
+    promesses.set(c.id, fetch(c.fichier)
+      .then(r => { if (!r.ok) throw new Error(`${c.fichier} introuvable (HTTP ${r.status})`); return r.json(); })
+      .catch(err => { promesses.delete(c.id); throw err; }));
+  }
+  return promesses.get(c.id);
 }
 
 let derniereCasse = null;          // évite de retomber deux fois de suite sur la même panne
@@ -49,8 +51,12 @@ export const interventionEnCours = () => interventionCourante;
 
 export async function renderBanc({ vue, definirTitre, params }) {
   definirTitre('Banc de mesure');
-  const banc = await chargerBanc();
-  // ?panne=<id> force une panne précise (utilisé par les tests automatisés) ; sinon tirage au sort.
+  // ?circuit=<id> choisit le circuit (départ moteur par défaut) ; ?panne=<id> force une panne précise (tests).
+  const voulu = params?.get('panne');
+  let banc = await chargerBanc(params?.get('circuit') ?? 'depart-moteur');
+  if (voulu && !banc.pannes.some(p => p.id === voulu)) {
+    for (const c of CIRCUITS) { const b = await chargerBanc(c.id); if (b.pannes.some(p => p.id === voulu)) banc = b; }
+  }
   // Pannes graduées : un débutant commence par une panne de niveau I, jamais par la plus difficile.
   const panne = banc.pannes.find(p => p.id === params?.get('panne')) ?? parmi(pannesCandidates(stockage.lire(), banc.pannes, derniereCasse));
   derniereCasse = panne.id;
@@ -58,7 +64,11 @@ export async function renderBanc({ vue, definirTitre, params }) {
 }
 
 function demarrer(vue, banc, panne) {
+  const P = PROFILS[banc.id];
   const etat = interventionCourante = {
+    circuit: banc.id,
+    tl: false,                     // éclairage : position du télérupteur (allumé / éteint)
+    appui: false,                  // éclairage : appui bref sur S1 pendant un essai
     panne: panne.id,
     consigne: false,
     km: false,
@@ -74,14 +84,14 @@ function demarrer(vue, banc, panne) {
     resolu: false,
     onglet: 'multimetre',
     consoleOuverte: false,         // l'appareil de mesure arrive replié : le contenu d'abord
-    mesure: { fonction: 'hz', rouge: 'c0', noir: 'n0', lecture: null },
+    mesure: { fonction: 'hz', ...P.mesureDepart, lecture: null },
     pince: 1,
     dernier: null,
     faits: new Set(),        // gestes accomplis, pour suivre la démarche (indices)
     indices: 0,              // nombre d'indices utilisés (rapport et XP)
     indicesVus: new Set(),
     suggestion: null,        // action mise en évidence par un indice
-    selFusible: 'fu1',
+    selFusible: P.controles[0]?.id ?? null,
     selPiece: null
   };
   const noeuds = banc.noeuds.filter(n => !n.interne);
@@ -93,9 +103,10 @@ function demarrer(vue, banc, panne) {
     (el.commande === 'q1' && !e.consigne) ||
     (el.commande === 'km' && e.km) ||
     (el.commande === 'marche' && e.marche) ||
-    (el.commande === 'relais' && !e.relais)));
+    (el.commande === 'relais' && !e.relais) ||
+    (el.commande === 'tl' && e.tl) ||
+    (el.commande === 'appui' && e.appui)));
   const lire = (a, b, mode, e = etat) => tension(banc, fermes(e), a, b, mode);
-  const voyantH1 = () => lire('c1', 'n0', 'loz').valeur > 150;
 
   // Ce que veut dire une lecture en volts, en une phrase.
   const lireEnClair = (m, amont) => {
@@ -118,36 +129,8 @@ function demarrer(vue, banc, panne) {
     signaler(texte, 'danger', titre);
   };
 
-  // Appui sur Marche (par toi ou par le collègue). Renvoie les courants de ligne pendant l'essai.
-  const essai = () => {
-    const bobineOk = !etat.ouverts.has('bobine');
-    const appel = lire('x2', 'n0', 'hz', { ...etat, marche: true });
-    if (!bobineOk || appel.instable || appel.valeur < 150) {
-      etat.km = false;
-      return { courants: [0, 0, 0], texte: bobineOk ? 'Rien ne se passe : le contacteur ne colle pas.' : 'Rien ne se passe : le contacteur ne colle pas, aucun claquement.' };
-    }
-    etat.km = true;
-    // Une phase manque si sa cartouche est fondue. (Contacteur fermé, la phase coupée est réalimentée par les
-    // enroulements du moteur : un voltmètre en aval y lirait une tension de retour trompeuse.)
-    const phases = ['fu-l1', 'fu-l2', 'fu-l3'].map(f => !etat.ouverts.has(f));
-    if (phases.every(Boolean)) {
-      const maintien = lire('x2', 'n0', 'hz');
-      if (maintien.valeur > 150 && !maintien.instable) {
-        etat.moteur = 'tourne';
-        if (etat.ouverts.size === 0) etat.resolu = true;
-        return { courants: [8.1, 8.3, 8.0], texte: 'Le contacteur colle et reste maintenu : le moteur démarre et tourne normalement.' };
-      }
-      etat.km = false;
-      return { courants: [0, 0, 0], texte: 'Le contacteur colle tant que Marche est appuyé, puis retombe : l\'auto-maintien ne tient pas.' };
-    }
-    etat.essaisBloques++;
-    etat.km = false;
-    etat.relais = true;
-    etat.moteur = 'arrêté';
-    const texte = 'Le contacteur colle, le moteur grogne sans démarrer… au bout de 8 s, le relais thermique déclenche et le contacteur retombe.';
-    if (etat.essaisBloques === 3) danger('Moteur relancé bloqué à répétition', `${texte} C'est le troisième essai moteur bloqué : le bobinage chauffe à chaque fois, il sent le chaud. On arrête de relancer et on cherche.`);
-    return { courants: phases.map(ok => (ok ? 67 : 0)), texte };
-  };
+  // Ce qui se passe à l'essai dépend du circuit (banc-profils.js).
+  const essai = (via = 'essai') => P.essai({ etat, lire, danger }, via);
 
   const actions = {
     mesurer() {
@@ -157,7 +140,7 @@ function demarrer(vue, banc, panne) {
           etat.mesure.lecture = null;
           return danger('Ohmmètre sur un circuit non consigné', 'Une mesure de résistance se fait hors tension : circuit consigné, absence de tension vérifiée. Sous tension, la lecture est fausse et tu grilles le fusible du multimètre (ou pire). Il faut aller en chercher un neuf.', 15);
         }
-        if (['L1', 'L2', 'L3'].some(n => n === rouge || n === noir)) {
+        if (P.amont.some(n => n === rouge || n === noir)) {
           etat.mesure.lecture = null;
           return danger('Ohmmètre sur l\'amont du sectionneur', 'L\'amont de Q1 reste sous tension même consigné : jamais d\'ohmmètre sur les bornes d\'arrivée. Fusible du multimètre grillé.', 15);
         }
@@ -167,7 +150,7 @@ function demarrer(vue, banc, panne) {
         noter(`Ω ${label(rouge)} → ${label(noir)} : ${etat.mesure.lecture.valeur} ${etat.mesure.lecture.unite}`, banc.durees.mesure);
       } else {
         const m = lire(rouge, noir, fonction);
-        const amont = etat.consigne && ['L1', 'L2', 'L3'].some(n => n === rouge || n === noir) && m.valeur > 50;
+        const amont = etat.consigne && P.amont.some(n => n === rouge || n === noir) && m.valeur > 50;
         etat.mesure.lecture = { valeur: nb(m.valeur, 0), unite: 'V~', note: lireEnClair(m, amont) };
         noter(`${fonction === 'loz' ? 'V~ LoZ' : 'V~'} ${label(rouge)} → ${label(noir)} : ${etat.mesure.lecture.valeur} V${m.instable && m.valeur > 2 ? ' (instable)' : ''}`, banc.durees.mesure);
       }
@@ -177,8 +160,8 @@ function demarrer(vue, banc, panne) {
       if (etat.consigne) return signaler('Le départ est consigné : pas d\'essai possible. Déconsigne d\'abord.', 'info');
       const r = essai();
       const i = r.courants[etat.pince];
-      noter(`Pince sur ${PINCE[etat.pince].libelle} pendant un essai : ${nb(i, 1)} A`, banc.durees.pince);
-      signaler(`${r.texte} La pince sur ${PINCE[etat.pince].libelle} indique ${nb(i, 1)} A ${i > 30 ? '(courant de démarrage bloqué : plaque 11 A)' : ''}`.trim(), r.courants.some(x => x > 30) ? 'alerte' : 'info');
+      noter(`Pince sur ${P.pince[etat.pince].libelle} pendant un essai : ${nb(i, 2)} A`, banc.durees.pince);
+      signaler(`${r.texte} La pince sur ${P.pince[etat.pince].libelle} indique ${nb(i, 2)} A ${i > 0 ? P.pinceNote(i) : ''}`.trim(), r.courants.some(x => x > 30) ? 'alerte' : 'info');
     },
     essai() {
       if (etat.consigne) return signaler('Le départ est consigné : pas d\'essai possible. Déconsigne d\'abord.', 'info');
@@ -189,11 +172,11 @@ function demarrer(vue, banc, panne) {
     collegue() {
       if (etat.consigne) return signaler('Le départ est consigné : appuyer sur Marche ne sert à rien.', 'info');
       etat.marche = !etat.marche;
-      noter(etat.marche ? 'Un collègue maintient Marche enfoncé' : 'Le collègue relâche Marche', banc.durees.collegue);
+      noter(P.collegueJournal[etat.marche ? 0 : 1], banc.durees.collegue);
       if (etat.marche) {
-        const r = essai();
-        signaler(`Un collègue maintient Marche. ${r.texte}`, 'info');
-      } else signaler('Le collègue relâche Marche.', 'info');
+        const r = essai('collegue');
+        signaler(`${P.collegueJournal[0]}. ${r.texte}`, 'info');
+      } else signaler(`${P.collegueJournal[1]}.`, 'info');
     },
     rearmer() {
       const etait = etat.relais && !etat.ouverts.has('f2-95');
@@ -204,19 +187,23 @@ function demarrer(vue, banc, panne) {
     consigner() {
       if (etat.consigne) {
         etat.consigne = false;
-        noter('Déconsignation : Q1 refermé', banc.durees.deconsigner);
-        return signaler('Départ déconsigné : Q1 est refermé, l\'installation est de nouveau sous tension.', 'info');
+        noter(`Déconsignation : ${P.organe} refermé`, banc.durees.deconsigner);
+        return signaler(`Déconsigné : ${P.organe} est refermé, l'installation est de nouveau sous tension.`, 'info');
       }
       etat.consigne = true; etat.km = false; etat.marche = false; etat.moteur = 'arrêté';
-      noter('Consignation : Q1 ouvert et cadenassé, absence de tension vérifiée', banc.durees.consigner);
-      signaler('Départ consigné : Q1 ouvert et cadenassé, VAT vérifié. L\'amont du sectionneur (arrivée L1, L2, L3) reste sous tension.', 'ok');
+      noter(`Consignation : ${P.organe} ouvert et cadenassé, absence de tension vérifiée`, banc.durees.consigner);
+      signaler(P.consigneTexte, 'ok');
     },
     controlerFusible(id) {
-      const f = FUSIBLES.find(x => x.id === id);
-      if (!etat.consigne) return danger('Fusible retiré sans consignation', `Retirer une cartouche sous tension expose aux pièces nues et peut créer un arc si un courant circule. On consigne d'abord.`, 3);
+      const f = P.controles.find(x => x.id === id);
+      const fusible = P.controleNom === 'Fusible';
+      if (!etat.consigne) return fusible
+        ? danger('Fusible retiré sans consignation', `Retirer une cartouche sous tension expose aux pièces nues et peut créer un arc si un courant circule. On consigne d'abord.`, 3)
+        : danger('Pièce démontée sans consignation', `${f.libelle} : on ne démonte rien sous tension, même une lampe. Consigne d'abord, vérifie l'absence de tension.`, 3);
       const fondu = etat.ouverts.has(id);
-      noter(`Fusible ${f.libelle} sorti et contrôlé : ${fondu ? 'OL (fondu)' : '0,0 Ω (bon)'}`, 3);
-      signaler(`Fusible ${f.libelle}, sorti de son support : ${fondu ? 'OL, il est fondu.' : '0,0 Ω, il est bon.'}`, 'info');
+      noter(`${fusible ? `Fusible ${f.libelle} sorti et contrôlé` : `Contrôle : ${f.libelle}`} : ${fondu ? (fusible ? 'OL (fondu)' : 'OL (coupée)') : '0,0 Ω (bon)'}`, 3);
+      signaler(fusible ? `Fusible ${f.libelle}, sorti de son support : ${fondu ? 'OL, il est fondu.' : '0,0 Ω, il est bon.'}`
+        : `${f.libelle}, à l'ohmmètre : ${fondu ? 'OL, elle est coupée : hors service.' : 'continuité correcte, elle est bonne.'}`, 'info');
     },
     remplacer(id) {
       const c = banc.composants.find(x => x.id === id);
@@ -251,17 +238,20 @@ function demarrer(vue, banc, panne) {
     vue.innerHTML = `
       <header class="frontispice frontispice-banc">
         <p class="surtitre">Banc de mesure · panne cachée ${etiquetteNiveau(panne.niveau, { long: true })}</p>
-        <h2 class="titre-chapitre">Départ moteur <em>direct</em></h2>
+        <h2 class="titre-chapitre">${banc.titreHtml}</h2>
       </header>
+      <nav class="segments choix-circuit" aria-label="Circuit du banc">
+        ${CIRCUITS.map(c => `<a href="#/entrainement/banc?circuit=${c.id}"${c.id === banc.id ? ' aria-current="true"' : ''}>${esc(c.court)}</a>`).join('')}
+      </nav>
       <p class="reco-domaines">${pucesDomaines(banc.domaines)}</p>
-      <p class="mission"><strong>Ta mission :</strong> trouver la pièce en panne, la remplacer, puis faire redémarrer le moteur.</p>
+      <p class="mission"><strong>Ta mission :</strong> ${esc(P.mission)}</p>
       <details class="approfondir mode-emploi"><summary>Comment ça marche ?</summary>
         <ol class="etapes-banc">
           <li><strong>Ouvre l'appareil de mesure</strong> : la barre en bas de l'écran. Touche-la pour le déplier ou le replier.</li>
           <li><strong>Mesure sous tension</strong> (onglet Multimètre) : choisis deux points, touche « Mesurer ». On suit le courant depuis la source : là où la tension disparaît, la panne est juste avant.</li>
           <li><strong>Consigne</strong> (onglet Actions) avant de mesurer en Ω ou de démonter quoi que ce soit.</li>
           <li><strong>Confirme</strong> à l'ohmmètre ou en contrôlant le fusible, puis <strong>remplace</strong> la pièce.</li>
-          <li><strong>Déconsigne et fais un essai</strong> : si le moteur tourne, c'est gagné. Le rapport compte ton temps, tes alertes sécurité et les pièces changées pour rien.</li>
+          <li><strong>Déconsigne et fais un essai</strong> : ${esc(P.reussite)}. Le rapport compte ton temps, tes alertes sécurité et les pièces changées pour rien.</li>
         </ol>
         <p class="discret petit">Bloqué ? Le bouton « Indice » place les pointes pour toi et explique pourquoi.</p>
       </details>
@@ -277,15 +267,10 @@ function demarrer(vue, banc, panne) {
       </div>
 
       <ul class="etat-armoire">
-        ${pastille('Q1', etat.consigne ? 'consigné' : 'fermé', etat.consigne ? 'neutre' : 'ok')}
-        ${pastille('Voyant H1', voyantH1() ? 'allumé' : 'éteint', voyantH1() ? 'ok' : 'neutre')}
-        ${pastille('KM1', etat.km ? 'collé' : 'retombé', etat.km ? 'ok' : 'neutre')}
-        ${pastille('Relais F2', etat.relais ? 'déclenché' : 'normal', etat.relais ? 'alerte' : 'neutre')}
-        ${pastille('Moteur', etat.moteur, etat.moteur === 'tourne' ? 'ok' : 'neutre')}
-        ${etat.marche ? pastille('Marche', 'maintenu', 'alerte') : ''}
+        ${P.pastilles({ etat, lire })}
       </ul>
 
-      <details class="approfondir"><summary>Voir le schéma</summary><div class="schema"><img src="img/banc/depart-moteur.svg" alt="Schéma du départ moteur : puissance à gauche, commande à droite"></div></details>
+      <details class="approfondir"><summary>Voir le schéma</summary><div class="schema"><img src="${esc(banc.schema)}" alt="Schéma : ${esc(banc.titre)}"></div></details>
 
       ${etat.onglet === 'multimetre' ? `<p class="aide aide-fonction">${esc(FONCTIONS.find(f => f.id === fonction).libelle)} : ${esc(FONCTIONS.find(f => f.id === fonction).aide)}</p>` : ''}
       <div id="resultat-banc">${dernier}</div>
@@ -326,21 +311,21 @@ function demarrer(vue, banc, panne) {
 
         ${etat.onglet === 'pince' ? `
           <div class="instrument">
-            <p class="aide">Courant d'un conducteur pendant un essai de démarrage.</p>
+            <p class="aide">Courant d'un conducteur pendant un essai.</p>
             <div class="selecteur trois" role="group" aria-label="Conducteur">
-              ${PINCE.map(c => `<button type="button" data-pince="${c.id}" aria-pressed="${c.id === etat.pince}">${c.libelle}</button>`).join('')}
+              ${P.pince.map(c => `<button type="button" data-pince="${c.id}" aria-pressed="${c.id === etat.pince}">${c.libelle}</button>`).join('')}
             </div>
             <button id="pince" class="btn principal" type="button">Lancer un essai, pince en place</button>
           </div>` : ''}
 
         ${etat.onglet === 'actions' ? `
           <div class="instrument actions-banc">
-            <button class="btn ${etat.consigne ? '' : 'principal'}" type="button" data-action="consigner"${etat.suggestion === 'consigner' ? ' data-suggere="true"' : ''}>${etat.consigne ? 'Déconsigner (refermer Q1)' : 'Consigner le départ (Q1 + VAT)'}</button>
-            <button class="btn" type="button" data-action="essai"${etat.suggestion === 'essai' ? ' data-suggere="true"' : ''}>Essai : appuyer sur Marche</button>
-            <button class="btn" type="button" data-action="collegue"${etat.suggestion === 'collegue' ? ' data-suggere="true"' : ''}>${etat.marche ? 'Le collègue relâche Marche' : 'Un collègue maintient Marche'}</button>
-            <button class="btn" type="button" data-action="rearmer"${etat.suggestion === 'rearmer' ? ' data-suggere="true"' : ''}>Réarmer le relais thermique</button>
+            <button class="btn ${etat.consigne ? '' : 'principal'}" type="button" data-action="consigner"${etat.suggestion === 'consigner' ? ' data-suggere="true"' : ''}>${esc(etat.consigne ? P.deconsigner : P.consigner)}</button>
+            <button class="btn" type="button" data-action="essai"${etat.suggestion === 'essai' ? ' data-suggere="true"' : ''}>${esc(P.essaiLibelle)}</button>
+            <button class="btn" type="button" data-action="collegue"${etat.suggestion === 'collegue' ? ' data-suggere="true"' : ''}>${esc(P.collegue[etat.marche ? 1 : 0])}</button>
+            ${P.rearmer ? `<button class="btn" type="button" data-action="rearmer"${etat.suggestion === 'rearmer' ? ' data-suggere="true"' : ''}>Réarmer le relais thermique</button>` : ''}
             <div class="ligne-action">
-              <select id="fusible" aria-label="Fusible à contrôler">${FUSIBLES.map(f => `<option value="${f.id}"${f.id === etat.selFusible ? ' selected' : ''}>${esc(f.libelle)}</option>`).join('')}</select>
+              <select id="fusible" aria-label="${P.controleNom === 'Fusible' ? 'Fusible' : 'Pièce'} à contrôler">${P.controles.map(f => `<option value="${f.id}"${f.id === etat.selFusible ? ' selected' : ''}>${esc(f.libelle)}</option>`).join('')}</select>
               <button class="btn" type="button" data-action="controlerFusible"${etat.suggestion === 'controlerFusible' ? ' data-suggere="true"' : ''}>Contrôler</button>
             </div>
             <div class="ligne-action">
@@ -423,6 +408,7 @@ function demarrer(vue, banc, panne) {
     if (geste === 'controlerFusible' && etat.consigne) f.add(`f:${detail}`);
     if (geste === 'remplacer' && etat.consigne) f.add(`r:${detail}`);
     if (geste === 'collegue' && etat.marche) f.add('marche');
+    if (geste === 'essai') f.add('appui');
     if (geste === 'rearmer' && !etat.relais && utile()) f.add('rearme-apres');
   };
   const fait = etape => {
@@ -434,6 +420,7 @@ function demarrer(vue, banc, panne) {
     if (etape.deconsigner) return f.has('deconsigne-apres');
     if (etape.collegue) return f.has('marche');
     if (etape.rearmer) return f.has('rearme-apres') || (!etat.relais && utile() && f.has('deconsigne-apres'));
+    if (etape.appui) return f.has('appui');
     if (etape.essai) return etat.resolu;
     return true;
   };
@@ -460,7 +447,7 @@ function demarrer(vue, banc, panne) {
     else if (etape.remplacer) { etat.suggestion = 'remplacer'; etat.selPiece = etape.remplacer; }
     else if (etape.collegue) etat.suggestion = 'collegue';
     else if (etape.rearmer) etat.suggestion = 'rearmer';
-    else if (etape.essai) etat.suggestion = 'essai';
+    else if (etape.essai || etape.appui) etat.suggestion = 'essai';
     signaler(`${etape.pourquoi} Le bon bouton est mis en évidence dans l'onglet Actions.`, 'indice', 'Indice');
   };
 

@@ -2,7 +2,7 @@
 
 *Fichier généré par `node outils/relecture.mjs` : ne pas modifier à la main.*
 
-**125 éléments sur 125 à valider.** Pour chaque ligne, le formateur vérifie l'exactitude
+**130 éléments sur 130 à valider.** Pour chaque ligne, le formateur vérifie l'exactitude
 technique, le niveau, le risque et la référence normative (édition comprise), puis passe `"verifie": true` dans le fichier source
 (`data/*.json` ; pour un calcul, ajouter `verifie: true` au générateur dans `js/calcul.js`).
 
@@ -146,3 +146,8 @@ Les éditions sont ajoutées automatiquement depuis `js/normes.js` : les confirm
 | Banc | `bobine-coupee` | I | mono-bt, tri | Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1  | NF EN 61243-3:2014 (VAT) | ☐ |
 | Banc | `cable-pupitre` | III | mono-bt, tri | Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1  | NF EN 60204-1:2018 (§ 13) | ☐ |
 | Banc | `fusible-l2` | II | tri | Au démarrage, le moteur grogne, puis tout s'arrête au bout de quelques secondes. L'opérate | NF EN 60269 (série) (fusibles aM) | ☐ |
+| Banc | `lampe-h2` | I | mono-bt | La lampe du fond du couloir (H2) ne s'allume plus. H1 fonctionne. | NF C 15-100:2002 · NF C 18-510:2012+A1:2020 | ☐ |
+| Banc | `bobine-kl` | I | mono-bt | Aucun poussoir n'allume le couloir. On n'entend plus le télérupteur claquer au tableau. | IEC 60669-2-2:2006 · NF C 15-100:2002 | ☐ |
+| Banc | `cable-s3` | II | mono-bt | Le poussoir S3, au fond du couloir, ne commande plus rien. S1, à l'entrée, fonctionne. | NF C 15-100:2002 · NF C 18-510:2012+A1:2020 | ☐ |
+| Banc | `neutre-boite` | II | mono-bt, securite | Plus rien ne s'allume, alors que le télérupteur claque à chaque appui. Un collègue a senti | NF C 18-510:2012+A1:2020 (VAT sur tous les conducteurs actifs, neutre compris) · NF C 15-100:2002 | ☐ |
+| Banc | `contact-kl` | III | mono-bt | Le télérupteur claque à chaque appui, mais rien ne s'allume. Hier soir, l'éclairage cligno | IEC 60669-2-2:2006 · NF C 15-100:2002 | ☐ |

@@ -121,6 +121,43 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok((await p.textContent('.note-mesure')).includes('0 V : pas de tension'), 'lecture à 0 V : « pas de tension entre ces deux points »');
   t.ok(await p.isVisible('.mission') && (await p.textContent('.mission')).includes('Ta mission'), 'la mission est écrite en clair en haut du banc');
 
+  t.section('I. Banc · second circuit : éclairage par télérupteur');
+  {
+    const bancE = await (await fetch(U + 'data/banc-eclairage.json')).json();
+    t.ok(bancE.pannes.length >= 5 && [1, 2, 3].every(n => bancE.pannes.some(x => x.niveau === n))
+      && bancE.pannes.every(x => x.pistes?.length && x.risque.length > 60 && x.norme && x.piege && x.ouvre.every(id => bancE.composants.some(c => c.repare.includes(id)))),
+      `éclairage : ${bancE.pannes.length} pannes, niveaux I à III, chacune réparable, avec démarche, piège, risque et norme`);
+    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc'); await p.waitForSelector('.choix-circuit');
+    await p.click('.choix-circuit a:has-text("Éclairage")'); await p.waitForFunction(() => document.querySelector('.titre-chapitre')?.textContent.includes('télérupteur'));
+    t.ok((await p.textContent('.titre-chapitre')).includes('télérupteur') && (await p.textContent('.etat-armoire')).includes('Lampe H2')
+      && (await p.getAttribute('.choix-circuit a[aria-current="true"]', 'href')).includes('eclairage'), 'choix du circuit : éclairage par télérupteur, voyants lampes et télérupteur');
+    // Neutre coupé : 230 V sur le neutre des lampes
+    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?panne=neutre-boite'); await p.waitForSelector('.tableau-bord');
+    await action('essai');
+    t.ok((await p.textContent('#resultat-banc')).includes('rien ne s\'allume') && (await p.textContent('.etat-armoire')).includes('position allumé'), 'neutre coupé : le télérupteur bascule, rien ne s\'allume');
+    t.ok((await mesure('hz', 'nb', 'PE')).v === '230', 'neutre des lampes à 230 V par rapport à la terre : le piège du neutre coupé');
+    t.ok((await mesure('hz', 'd', 'PE')).v === '230', 'la phase arrive bien au retour lampes');
+    await ouvrir('contact-kl'); await action('essai');
+    t.ok((await mesure('hz', 'd', 'PE')).v === '0' && (await mesure('hz', 'a', 'PE')).v === '230', 'contact brûlé : même symptôme, mais 0 V au retour lampes et 230 V avant le contact');
+    // Lampe contrôlée en place : on mesure l'autre lampe en parallèle
+    await ouvrir('lampe-h2'); await action('consigner');
+    t.ok((await mesure('ohm', 'd2', 'h2n')).v === '2,65', 'lampe H2 mesurée en place : 2,65 kΩ (c\'est H1 en parallèle)');
+    await action('controlerFusible', 'h2');
+    t.ok((await p.textContent('#resultat-banc')).includes('OL'), 'lampe H2 sortie de sa douille : OL, hors service');
+    for (const id of bancE.pannes.map(x => x.id)) {
+      await ouvrir(id);
+      let gestes = 0;
+      while (!(await p.$('.bilan')) && gestes < 20) {
+        await p.click('.bouton-indice');
+        const suggere = await p.$('[data-suggere="true"]');
+        if (suggere) await suggere.click(); else await p.click('#mesurer');
+        gestes++;
+      }
+      const r = await etat();
+      t.ok(await p.isVisible('.bilan') && r.resolu && r.dangers === 0, `éclairage · ${id} : réparée en ${gestes} gestes guidés par les indices, sans alerte de sécurité`);
+    }
+  }
+
   t.section('I. Banc · pannes graduées');
   {
     const { contexte: c, page: q } = await nouvellePage(navigateur);

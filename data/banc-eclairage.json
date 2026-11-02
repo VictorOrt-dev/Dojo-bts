@@ -1,0 +1,613 @@
+{
+  "id": "eclairage",
+  "titre": "Éclairage de couloir par télérupteur",
+  "titreHtml": "Éclairage <em>par télérupteur</em>",
+  "schema": "img/banc/eclairage.svg",
+  "domaines": [
+    "mono-bt"
+  ],
+  "description": "Couloir d'un atelier : deux lampes H1 et H2 commandées par télérupteur KL depuis deux poussoirs, S1 à l'entrée et S3 au fond (25 m de câble). Disjoncteur bipolaire Q1 10 A au tableau, boîte de commande et boîte de dérivation au plafond.",
+  "noeuds": [
+    {
+      "id": "L",
+      "label": "Arrivée phase (amont Q1)",
+      "zone": "Tableau"
+    },
+    {
+      "id": "N",
+      "label": "Arrivée neutre (amont Q1)",
+      "zone": "Tableau"
+    },
+    {
+      "id": "PE",
+      "label": "Barrette de terre PE",
+      "zone": "Tableau"
+    },
+    {
+      "id": "a",
+      "label": "Q1 : sortie phase (entrée contact KL)",
+      "zone": "Tableau"
+    },
+    {
+      "id": "an",
+      "label": "Q1 : sortie neutre (bornier N)",
+      "zone": "Tableau"
+    },
+    {
+      "id": "r",
+      "label": "KL : A1 (bobine du télérupteur)",
+      "zone": "Tableau"
+    },
+    {
+      "id": "t",
+      "label": "KL : sortie du contact (retour lampes)",
+      "zone": "Tableau"
+    },
+    {
+      "id": "b",
+      "label": "Boîte de commande : phase des poussoirs",
+      "zone": "Poussoirs"
+    },
+    {
+      "id": "r1",
+      "label": "Boîte de commande : retour bobine",
+      "zone": "Poussoirs"
+    },
+    {
+      "id": "s3a",
+      "label": "S3 (fond du couloir) : arrivée phase",
+      "zone": "Poussoirs"
+    },
+    {
+      "id": "s3o",
+      "label": "S3 : sortie vers la bobine",
+      "zone": "Poussoirs"
+    },
+    {
+      "id": "d",
+      "label": "Boîte de dérivation : retour lampes",
+      "zone": "Éclairage"
+    },
+    {
+      "id": "nb",
+      "label": "Boîte de dérivation : neutre",
+      "zone": "Éclairage"
+    },
+    {
+      "id": "h1n",
+      "label": "H1 : borne neutre",
+      "zone": "Éclairage"
+    },
+    {
+      "id": "d2",
+      "label": "H2 : borne phase (retour lampe)",
+      "zone": "Éclairage"
+    },
+    {
+      "id": "h2n",
+      "label": "H2 : borne neutre",
+      "zone": "Éclairage"
+    }
+  ],
+  "sources": {
+    "L": [
+      230,
+      0
+    ],
+    "N": [
+      0,
+      0
+    ],
+    "PE": [
+      0,
+      0
+    ]
+  },
+  "transformateurs": [],
+  "fantomes": {
+    "s3a": {
+      "couplage": "b",
+      "facteur": 0.4
+    },
+    "s3o": {
+      "couplage": "b",
+      "facteur": 0.4
+    },
+    "d": {
+      "couplage": "a",
+      "facteur": 0.3
+    },
+    "nb": {
+      "couplage": "a",
+      "facteur": 0.3
+    }
+  },
+  "elements": [
+    {
+      "id": "q1-l",
+      "a": "L",
+      "b": "a",
+      "R": 0.01,
+      "commande": "q1"
+    },
+    {
+      "id": "q1-n",
+      "a": "N",
+      "b": "an",
+      "R": 0.01,
+      "commande": "q1"
+    },
+    {
+      "id": "cbl-c",
+      "a": "a",
+      "b": "b",
+      "R": 0.3
+    },
+    {
+      "id": "s1",
+      "a": "b",
+      "b": "r1",
+      "R": 0.02,
+      "commande": "appui"
+    },
+    {
+      "id": "cbl-s3",
+      "a": "b",
+      "b": "s3a",
+      "R": 0.6
+    },
+    {
+      "id": "s3",
+      "a": "s3a",
+      "b": "s3o",
+      "R": 0.02,
+      "commande": "marche"
+    },
+    {
+      "id": "cbl-s3r",
+      "a": "s3o",
+      "b": "r1",
+      "R": 0.6
+    },
+    {
+      "id": "cbl-r",
+      "a": "r1",
+      "b": "r",
+      "R": 0.3
+    },
+    {
+      "id": "kl",
+      "a": "r",
+      "b": "an",
+      "R": 4000
+    },
+    {
+      "id": "tl",
+      "a": "a",
+      "b": "t",
+      "R": 0.02,
+      "commande": "tl"
+    },
+    {
+      "id": "cbl-t",
+      "a": "t",
+      "b": "d",
+      "R": 0.4
+    },
+    {
+      "id": "h1",
+      "a": "d",
+      "b": "h1n",
+      "R": 2645
+    },
+    {
+      "id": "n-h1",
+      "a": "h1n",
+      "b": "nb",
+      "R": 0.05
+    },
+    {
+      "id": "cbl-h2",
+      "a": "d",
+      "b": "d2",
+      "R": 0.3
+    },
+    {
+      "id": "h2",
+      "a": "d2",
+      "b": "h2n",
+      "R": 2645
+    },
+    {
+      "id": "n-h2",
+      "a": "h2n",
+      "b": "nb",
+      "R": 0.05
+    },
+    {
+      "id": "n-boite",
+      "a": "nb",
+      "b": "an",
+      "R": 0.4
+    }
+  ],
+  "composants": [
+    {
+      "id": "lampe-h1",
+      "libelle": "Lampe H1",
+      "duree": 5,
+      "repare": [
+        "h1"
+      ]
+    },
+    {
+      "id": "lampe-h2",
+      "libelle": "Lampe H2",
+      "duree": 5,
+      "repare": [
+        "h2"
+      ]
+    },
+    {
+      "id": "telerupteur",
+      "libelle": "Télérupteur KL",
+      "duree": 20,
+      "repare": [
+        "kl",
+        "tl"
+      ]
+    },
+    {
+      "id": "poussoir-s1",
+      "libelle": "Poussoir S1",
+      "duree": 10,
+      "repare": [
+        "s1"
+      ]
+    },
+    {
+      "id": "poussoir-s3",
+      "libelle": "Poussoir S3",
+      "duree": 10,
+      "repare": [
+        "s3"
+      ]
+    },
+    {
+      "id": "cable-s3",
+      "libelle": "Câble vers S3 (25 m)",
+      "duree": 40,
+      "repare": [
+        "cbl-s3",
+        "cbl-s3r"
+      ]
+    },
+    {
+      "id": "boite",
+      "libelle": "Connexions de la boîte de dérivation",
+      "duree": 20,
+      "repare": [
+        "n-boite",
+        "n-h1",
+        "n-h2",
+        "cbl-h2"
+      ]
+    },
+    {
+      "id": "disjoncteur",
+      "libelle": "Disjoncteur Q1",
+      "duree": 15,
+      "repare": [
+        "q1-l",
+        "q1-n"
+      ]
+    }
+  ],
+  "durees": {
+    "mesure": 2,
+    "pince": 3,
+    "essai": 1,
+    "collegue": 2,
+    "rearmer": 1,
+    "consigner": 8,
+    "deconsigner": 4
+  },
+  "pannes": [
+    {
+      "id": "lampe-h2",
+      "niveau": 1,
+      "domaines": [
+        "mono-bt"
+      ],
+      "symptome": "La lampe du fond du couloir (H2) ne s'allume plus. H1 fonctionne.",
+      "ouvre": [
+        "h2"
+      ],
+      "reference": 22,
+      "cause": "La lampe H2 est hors service : son filament (ou son driver LED) est coupé.",
+      "methode": "On allume, on mesure aux bornes de la lampe : 230 V arrivent. La lampe reçoit la tension et ne s'allume pas : on la sort de sa douille pour la contrôler, puis on la remplace.",
+      "piege": "Mesurée en place, la lampe H2 affiche environ 2,6 kΩ au lieu de « OL » : c'est H1, en parallèle par la boîte de dérivation, que l'on mesure. Une lampe se contrôle sortie de sa douille.",
+      "risque": "Changer une lampe « sous tension parce que c'est rapide » : douille sous 230 V, échelle, réflexe de recul. La chute est souvent plus grave que l'électrisation.",
+      "norme": "NF C 15-100 · NF C 18-510",
+      "pistes": [
+        {
+          "appui": true,
+          "pourquoi": "Allume le couloir pour voir ce qui fonctionne : appuie sur S1."
+        },
+        {
+          "mesure": [
+            "hz",
+            "d2",
+            "h2n"
+          ],
+          "pourquoi": "H2 reste éteinte : la tension arrive-t-elle à ses bornes ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "230 V aux bornes de H2, et elle reste éteinte : la lampe est en cause. Consigne avant de la sortir."
+        },
+        {
+          "controle": "h2",
+          "pourquoi": "Sors H2 de sa douille et contrôle-la : en place, tu mesurerais H1 en parallèle."
+        },
+        {
+          "remplacer": "lampe-h2",
+          "pourquoi": "La lampe est coupée : remplace-la."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Lampe changée : déconsigne pour essayer."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Appuie sur S1 : les deux lampes doivent s'allumer."
+        }
+      ]
+    },
+    {
+      "id": "bobine-kl",
+      "niveau": 1,
+      "domaines": [
+        "mono-bt"
+      ],
+      "symptome": "Aucun poussoir n'allume le couloir. On n'entend plus le télérupteur claquer au tableau.",
+      "ouvre": [
+        "kl"
+      ],
+      "reference": 34,
+      "cause": "La bobine du télérupteur KL est coupée : elle reçoit 230 V à chaque appui, mais ne fait plus basculer le contact.",
+      "methode": "Un collègue maintient un poussoir appuyé ; on mesure aux bornes de la bobine : 230 V. Hors tension, l'ohmmètre donne OL : bobine coupée, on remplace le télérupteur.",
+      "piege": "Accuser les poussoirs : ils sont trois en parallèle, et aucun ne marche. Ce qui est commun à tous, c'est la bobine (et son alimentation).",
+      "risque": "Une bobine qui grille a souvent chauffé longtemps avant : poussoir resté coincé, surtension. Remplacer sans chercher pourquoi, c'est griller la suivante.",
+      "norme": "IEC 60669-2-2 · NF C 15-100",
+      "pistes": [
+        {
+          "collegue": true,
+          "pourquoi": "Demande à un collègue de maintenir S3 appuyé : la bobine reste alimentée le temps de mesurer."
+        },
+        {
+          "mesure": [
+            "hz",
+            "r",
+            "an"
+          ],
+          "pourquoi": "Rien ne claque. La tension arrive-t-elle sur la bobine du télérupteur pendant l'appui ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "230 V sur la bobine et rien ne bouge : consigne pour contrôler la bobine."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "r",
+            "an"
+          ],
+          "pourquoi": "Contrôle la continuité de la bobine, circuit consigné."
+        },
+        {
+          "remplacer": "telerupteur",
+          "pourquoi": "Bobine coupée (OL) : remplace le télérupteur."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Télérupteur neuf : déconsigne pour essayer."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Appuie sur S1 : le télérupteur doit claquer et le couloir s'allumer."
+        }
+      ]
+    },
+    {
+      "id": "cable-s3",
+      "niveau": 2,
+      "domaines": [
+        "mono-bt"
+      ],
+      "symptome": "Le poussoir S3, au fond du couloir, ne commande plus rien. S1, à l'entrée, fonctionne.",
+      "ouvre": [
+        "cbl-s3"
+      ],
+      "reference": 48,
+      "cause": "Le conducteur de phase entre la boîte de commande et S3 est coupé (écrasé lors de la pose d'un faux plafond).",
+      "methode": "Un collègue maintient S3 : rien ne claque. 230 V à la boîte de commande, 0 V à l'arrivée de S3 : la phase se perd entre les deux. Hors tension, l'ohmmètre confirme la coupure du conducteur.",
+      "piege": "Accuser le poussoir parce que « c'est lui qui ne marche pas » : 230 V à la boîte, 0 V au poussoir, la coupure est dans le câble. Changer S3 ne changerait rien.",
+      "risque": "Un conducteur coupé dans un faux plafond peut toucher une ossature métallique : si c'est la phase côté boîte, l'ossature passe sous tension.",
+      "norme": "NF C 15-100 · NF C 18-510",
+      "pistes": [
+        {
+          "collegue": true,
+          "pourquoi": "Demande à un collègue de maintenir S3 appuyé : c'est ce poussoir qui ne commande plus."
+        },
+        {
+          "mesure": [
+            "hz",
+            "b",
+            "PE"
+          ],
+          "pourquoi": "Rien ne claque depuis S3. La phase est-elle présente dans la boîte de commande ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "s3a",
+            "PE"
+          ],
+          "pourquoi": "230 V à la boîte. Et à l'arrivée du poussoir S3 ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "230 V à la boîte, 0 V à S3 : la phase se perd dans le câble. Consigne pour le contrôler."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "b",
+            "s3a"
+          ],
+          "pourquoi": "Contrôle la continuité entre la boîte de commande et S3."
+        },
+        {
+          "remplacer": "cable-s3",
+          "pourquoi": "Conducteur coupé (OL) : remplace le câble vers S3."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Câble remplacé : déconsigne pour essayer."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Essaie l'éclairage pour vérifier la remise en service."
+        }
+      ]
+    },
+    {
+      "id": "neutre-boite",
+      "niveau": 2,
+      "domaines": [
+        "mono-bt",
+        "securite"
+      ],
+      "symptome": "Plus rien ne s'allume, alors que le télérupteur claque à chaque appui. Un collègue a senti « un picotement » en touchant le neutre d'une lampe.",
+      "ouvre": [
+        "n-boite"
+      ],
+      "reference": 45,
+      "cause": "Le neutre des lampes s'est desserré dans la boîte de dérivation : il ne rejoint plus le tableau. Contact fermé, les bornes « neutre » des lampes sont portées à 230 V à travers les lampes.",
+      "methode": "On allume : la phase arrive bien au retour lampes. Entre le neutre des lampes et la terre, on mesure 230 V au lieu de 0 : le neutre est coupé en aval. Hors tension, l'ohmmètre donne OL entre le neutre de la boîte et le tableau.",
+      "piege": "Un neutre coupé n'est pas un neutre sans tension : côté lampes, il est porté à 230 V à travers elles. On le traite comme une phase tant qu'on n'a pas mesuré.",
+      "risque": "Le « picotement » au neutre est une électrisation sous 230 V. Toucher un neutre sans VAT, c'est parier sur une connexion qu'on n'a pas vue.",
+      "norme": "NF C 18-510 (VAT sur tous les conducteurs actifs, neutre compris) · NF C 15-100",
+      "pistes": [
+        {
+          "appui": true,
+          "pourquoi": "Appuie sur S1 : le télérupteur claque-t-il ? Les lampes s'allument-elles ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "d",
+            "PE"
+          ],
+          "pourquoi": "Il claque, rien ne s'allume. La phase arrive-t-elle au retour lampes, dans la boîte de dérivation ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "nb",
+            "PE"
+          ],
+          "pourquoi": "La phase arrive. Le neutre des lampes est-il bien à 0 V par rapport à la terre ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "Le neutre des lampes est à 230 V : il ne rejoint plus le tableau. Consigne pour le contrôler."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "nb",
+            "an"
+          ],
+          "pourquoi": "Contrôle la continuité du neutre entre la boîte de dérivation et le tableau."
+        },
+        {
+          "remplacer": "boite",
+          "pourquoi": "Neutre coupé (OL) : refais les connexions de la boîte de dérivation."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Connexions refaites : déconsigne pour essayer."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Appuie sur S1 : les lampes doivent s'allumer."
+        }
+      ]
+    },
+    {
+      "id": "contact-kl",
+      "niveau": 3,
+      "domaines": [
+        "mono-bt"
+      ],
+      "symptome": "Le télérupteur claque à chaque appui, mais rien ne s'allume. Hier soir, l'éclairage clignotait.",
+      "ouvre": [
+        "tl"
+      ],
+      "reference": 52,
+      "cause": "Le contact de puissance du télérupteur est brûlé : il ne ferme plus, alors que le mécanisme bascule normalement.",
+      "methode": "On allume : 0 V sur le retour lampes, alors qu'il y a 230 V à l'entrée du contact. La tension s'arrête dans le contact : hors tension, l'ohmmètre confirme OL, télérupteur en position « allumé ».",
+      "piege": "Même symptôme que le neutre coupé (ça claque, rien ne s'allume) : c'est la mesure sur le retour lampes qui tranche. 230 V : chercher le neutre ; 0 V : remonter vers le contact.",
+      "risque": "Un contact qui clignote fait des arcs : il chauffe, noircit le télérupteur et ses voisins. Laissé en place, c'est un départ de feu possible dans le tableau.",
+      "norme": "IEC 60669-2-2 · NF C 15-100",
+      "pistes": [
+        {
+          "appui": true,
+          "pourquoi": "Appuie sur S1 : le télérupteur claque-t-il ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "d",
+            "PE"
+          ],
+          "pourquoi": "Il claque, rien ne s'allume. La phase arrive-t-elle au retour lampes ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "a",
+            "PE"
+          ],
+          "pourquoi": "0 V au retour lampes. Et à l'entrée du contact du télérupteur ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "230 V avant le contact, rien après : consigne pour le contrôler."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "a",
+            "t"
+          ],
+          "pourquoi": "Contrôle la continuité du contact du télérupteur, en position « allumé »."
+        },
+        {
+          "remplacer": "telerupteur",
+          "pourquoi": "Contact ouvert (OL) alors qu'il devrait être fermé : remplace le télérupteur."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Télérupteur neuf : déconsigne pour essayer."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Appuie sur S1 : le couloir doit s'allumer."
+        }
+      ]
+    }
+  ]
+}

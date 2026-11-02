@@ -367,6 +367,13 @@ la cause, la démarche d'un pro et le piège du cas.
   `{ consigner: true }`, `{ controle: 'fu1' | 'fu-l2' }`, `{ remplacer: id }`, `{ deconsigner: true }`, `{ collegue: true }`,
   `{ rearmer: true }`, `{ essai: true }`. Le test **I** vérifie que chaque panne se résout en suivant seulement les indices, sans alerte.
 - `#/entrainement/banc?panne=<id>` force une panne précise (tests).
+- **Deux circuits** (`js/banc-profils.js`, sélecteur en tête du banc, `?circuit=eclairage`) : le départ moteur direct
+  et l'**éclairage de couloir par télérupteur** (`data/banc-eclairage.json`, schéma `img/banc/eclairage.svg`) : Q1
+  bipolaire, poussoirs S1 et S3 (25 m), télérupteur KL, boîte de dérivation, lampes H1 et H2. Cinq pannes graduées :
+  lampe H2 (I), bobine du télérupteur (I), câble vers S3 (II), neutre coupé dans la boîte (II, neutre des lampes à
+  230 V), contact du télérupteur brûlé (III, même symptôme que le neutre coupé : c'est la mesure du retour lampes qui
+  tranche). Un profil de circuit fournit les textes, les voyants, la pince, les pièces à contrôler hors circuit et ce
+  qui se passe à l'essai ; multimètre, consignation, indices et rapport sont communs. Nouveau type de piste : `{ appui: true }`.
 - **Sous le pouce** : la console d'instruments (onglets Multimètre / Pince / Actions, V~ / LoZ / Ω, pointe rouge et COM,
   afficheur et « Mesurer » côte à côte) est fixée au-dessus des onglets ; le contenu (symptôme, bon d'intervention, état
   de l'armoire, schéma, résultat, journal) défile au-dessus. Le bon d'intervention se replie au premier geste.
@@ -427,10 +434,10 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
-- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios)
+- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios), second circuit au banc (éclairage par télérupteur)
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
-- [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)
+- [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)
 

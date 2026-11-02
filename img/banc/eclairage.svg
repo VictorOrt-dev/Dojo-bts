@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" font-family="JetBrains Mono, Menlo, monospace" font-size="10" fill="none" stroke="#1A120D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <rect width="360" height="420" fill="#F4EEE4" stroke="none"/>
+  <g fill="#1A120D" stroke="none" font-weight="700">
+    <text x="22" y="18">L</text><text x="62" y="18">N</text><text x="96" y="18">PE</text>
+    <text x="80" y="66">Q1</text><text x="190" y="118">KL</text><text x="236" y="124">bobine</text>
+    <text x="22" y="200">S1</text><text x="110" y="200">S3</text>
+    <text x="150" y="250">boîte de commande</text>
+    <text x="150" y="296">boîte de dérivation</text>
+    <text x="196" y="372">H1</text><text x="296" y="372">H2</text>
+  </g>
+  <g fill="#6B5D50" stroke="none" font-size="9">
+    <text x="128" y="200">25 m</text>
+    <text x="230" y="174">contact</text>
+  </g>
+  <!-- arrivée et disjoncteur bipolaire Q1 -->
+  <path d="M25 24V48M65 24V48"/>
+  <path d="M25 48L36 66M65 48L76 66"/>
+  <path d="M25 70V92M65 70V92"/>
+  <path d="M30 57H72" stroke-dasharray="3 3"/>
+  <path d="M100 24V400" stroke="#2F8F4E" stroke-dasharray="6 4"/>
+  <!-- phase vers le contact KL et vers les poussoirs -->
+  <path d="M25 92H220V150"/>
+  <path d="M220 150L232 168M220 172V200"/>
+  <path d="M25 92V180"/>
+  <!-- neutre -->
+  <path d="M65 92V110H330V340"/>
+  <!-- bobine KL -->
+  <rect x="270" y="128" width="40" height="22" rx="2"/>
+  <path d="M290 110V128M290 150V236"/>
+  <!-- poussoirs S1 et S3 en parallèle -->
+  <path d="M25 180L38 196M25 200V236H290"/>
+  <path d="M25 180H112V180"/>
+  <path d="M112 180L125 196M112 200V236"/>
+  <circle cx="25" cy="180" r="2.5" fill="#1A120D"/>
+  <!-- retour lampes et lampes en parallèle -->
+  <path d="M220 200V282H312"/>
+  <path d="M200 282V330M300 282V330"/>
+  <circle cx="200" cy="344" r="13"/><path d="M191 335L209 353M209 335L191 353"/>
+  <circle cx="300" cy="344" r="13"/><path d="M291 335L309 353M309 335L291 353"/>
+  <path d="M200 357V390H330V340M300 357V390"/>
+  <circle cx="220" cy="282" r="2.5" fill="#1A120D"/><circle cx="300" cy="282" r="2.5" fill="#1A120D"/>
+  <circle cx="300" cy="390" r="2.5" fill="#1A120D"/><circle cx="330" cy="390" r="2.5" fill="#1A120D"/>
+</svg>

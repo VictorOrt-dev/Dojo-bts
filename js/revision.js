@@ -10,6 +10,8 @@ import { chargerQuestions } from './quiz.js';
 import { chargerPannes } from './panne.js';
 import { GENERATEURS } from './calcul.js';
 import { chargerScenarios } from './isolement.js';
+import { chargerBanc } from './banc.js';
+import { CIRCUITS } from './banc-profils.js';
 import { frontispice, titreSection } from './mise-en-page.js';
 import { etiquetteNiveau } from './difficulte.js';
 import { typo } from './mise-en-page.js';
@@ -30,9 +32,10 @@ function quand(revoir, maintenant) {
 
 export async function renderRevision({ vue, definirTitre }) {
   definirTitre('À réviser');
-  const [questions, cas, banc, iso] = await Promise.all([
-    chargerQuestions(), chargerPannes(), fetch('data/banc-depart-moteur.json').then(r => r.json()), chargerScenarios()
+  const [questions, cas, bancs, iso] = await Promise.all([
+    chargerQuestions(), chargerPannes(), Promise.all(CIRCUITS.map(c => chargerBanc(c.id))), chargerScenarios()
   ]);
+  const banc = { pannes: bancs.flatMap(b => b.pannes) };
   const maintenant = Date.now();
   const tout = enRevision(stockage.lire(), maintenant);
   const titre = r => r.mode === 'reco' ? questions.find(q => q.id === r.id)?.question

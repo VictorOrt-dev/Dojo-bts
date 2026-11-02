@@ -1006,3 +1006,7 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .megohmmetre .note-mesure.alerte { color: var(--attention); }
 .megohmmetre .nixie-valeur { font-size: 32px; }
 .megohmmetre #tester { min-height: 56px; }
+
+/* ---------- Banc : choix du circuit ---------- */
+.choix-circuit { grid-template-columns: 1fr 1fr; margin: 12px 0 4px; }
+.choix-circuit a { min-height: 44px; }

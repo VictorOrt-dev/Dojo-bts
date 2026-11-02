@@ -16,6 +16,7 @@ export default async function ({ t }) {
   parcoursGuide(t);
   correctionEnDeuxTemps(t);
   revisionEspacee(t);
+  bancEclairage(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -239,6 +240,20 @@ function correctionEnDeuxTemps(t) {
 }
 
 // ---------- Révision des erreurs : 5 boîtes de Leitner (leitner.js) ----------
+
+function bancEclairage(t) {
+  t.section('U6. Solveur du banc : circuit d\'éclairage par télérupteur');
+  const b = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/banc-eclairage.json'), 'utf8'));
+  const fermes = e => b.elements.filter(el => !(e.ouverts ?? []).includes(el.id) && (!el.commande || (el.commande === 'q1' && !e.consigne) || (el.commande === 'tl' && e.tl) || (el.commande === 'appui' && e.appui) || (el.commande === 'marche' && e.marche)));
+  const v = (e, a, c, m = 'hz') => Math.round(tension(b, fermes(e), a, c, m).valeur);
+  t.ok(v({ appui: true }, 'r', 'an') === 230 && v({ marche: true }, 'r', 'an') === 230 && v({}, 'r', 'an') === 0, 'bobine du télérupteur : 230 V pendant l\'appui sur S1 ou S3, 0 V au repos');
+  t.ok(v({ tl: true }, 'd', 'h1n') === 230 && v({ tl: true }, 'd2', 'h2n') === 230 && v({}, 'd', 'h1n') === 0, 'contact fermé : 230 V aux bornes des deux lampes');
+  t.ok(v({ tl: true, ouverts: ['n-boite'] }, 'nb', 'PE') === 230 && v({ tl: true, ouverts: ['n-boite'] }, 'd', 'h1n') === 0, 'neutre coupé dans la boîte : neutre des lampes à 230 V, lampes éteintes');
+  t.ok(tension(b, fermes({ ouverts: ['n-boite'] }), 'nb', 'PE').instable && v({ ouverts: ['n-boite'] }, 'nb', 'PE', 'loz') === 0, 'neutre coupé, contact ouvert : tension fantôme instable, effacée en LoZ');
+  t.ok(v({ marche: true, ouverts: ['cbl-s3'] }, 's3a', 'PE') === 0 && v({ marche: true, ouverts: ['cbl-s3'] }, 'b', 'PE') === 230, 'câble vers S3 coupé : 230 V à la boîte de commande, 0 V à S3');
+  t.ok(Math.round(resistance(b, fermes({ tl: true, consigne: true, ouverts: ['h2'] }), 'd2', 'h2n')) === 2645 && resistance(b, fermes({ consigne: true, ouverts: ['kl'] }), 'r', 'an') === Infinity,
+    'Ω : lampe H2 coupée mesurée en place = H1 en parallèle (2 645 Ω) ; bobine coupée = OL');
+}
 
 function revisionEspacee(t) {
   t.section('U5. Révision des erreurs (leitner.js) : répétition espacée en 5 boîtes');
