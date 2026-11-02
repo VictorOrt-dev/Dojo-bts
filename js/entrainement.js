@@ -12,6 +12,7 @@ import { prochaineSeance, ordreModes, conseilBanc } from './parcours.js';
 import { aReviser } from './leitner.js';
 import { recommandation } from './guidage.js';
 import { indicateurSerie, verifierBadges, vibrer } from './insignes.js';
+import { BLOCS } from './blocs.js';
 import { chargerPannes } from './panne.js';
 
 export const TAILLE_SESSION = 10;
@@ -111,6 +112,15 @@ export async function renderEntrainement({ vue, definirTitre }) {
         <span class="mode-record">${MODES[id].record()}</span>
       </a>`).join('')}
     </nav>
+
+    <section class="blocs-parcours" aria-label="Le parcours en 3 blocs">
+      <h3 class="blocs-titre">Le parcours en 3 blocs</h3>
+      ${BLOCS.map((b, i) => `
+        <nav class="bloc" aria-label="${esc(b.titre)}" data-bloc="${b.id}">
+          <p class="bloc-entete"><span class="bloc-num">${i + 1}</span><span><strong>${esc(b.titre)}</strong><span class="bloc-desc">${esc(b.desc)}</span></span></p>
+          <div class="bloc-liens">${b.liens.map(l => `<a href="${l.href}">${esc(l.libelle)}</a>`).join('')}</div>
+        </nav>`).join('')}
+    </section>
 
     <details class="notice">
       <summary>Notice · domaines techniques</summary>

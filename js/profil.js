@@ -4,7 +4,7 @@ import * as stockage from './storage.js';
 import { carteNiveau, TAILLE_SESSION } from './entrainement.js';
 import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
-import { frontispice, titreSection, ligneEtat, deuxChiffres } from './mise-en-page.js';
+import { frontispice, titreSection, ligneEtat, deuxChiffres, typo } from './mise-en-page.js';
 import { enRevision } from './leitner.js';
 import { vitrine, verifierBadges } from './insignes.js';
 import { esc, plurielS } from './util.js';
@@ -120,13 +120,14 @@ export async function renderProfil({ vue, definirTitre }) {
           <button type="button" data-theme="bakelite" aria-pressed="${theme === 'bakelite'}">Sombre</button>
           <button type="button" data-theme="porcelaine" aria-pressed="${theme === 'porcelaine'}">Clair</button>
         </div>
-        <p class="discret petit espace">Auto : suit le réglage clair / sombre du téléphone. Sombre : noir profond, économe sur écran OLED. Clair : lisible en plein soleil.</p>
+        <p class="discret petit espace">${typo('Auto : suit le réglage clair / sombre du téléphone. Sombre : noir profond, économe sur écran OLED. Clair : lisible en plein soleil.')}</p>
       </div>
     </section>
 
     <section class="sauvegarde">
       ${titreSection('06', 'Sauvegarde')}
       <div class="corps">
+        <p class="donnees-locales"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes données de progression restent <strong>100 % locales</strong> sur ton appareil. Zéro compte requis, zéro serveur externe.</span></p>
         ${ligneEtat(sauvegarde.etat, sauvegarde.texte)}
         <p class="discret petit">Tes données restent sur ce téléphone. Exporte un fichier régulièrement (Fichiers, iCloud, Drive ou mail).</p>
         <div class="actions">

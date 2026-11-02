@@ -53,6 +53,7 @@ const FICHIERS = [
   'js/guidage.js',
   'js/badges.js',
   'js/insignes.js',
+  'js/blocs.js',
   'js/util.js',
   'js/xp.js',
   'data/banc-depart-moteur.json',

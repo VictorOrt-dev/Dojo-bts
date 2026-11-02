@@ -99,7 +99,7 @@ node tests/lancer.mjs
 ```
 
 On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
-`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `guidage`, `insignes`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `guidage`, `insignes`, `lancement`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
 
 | Fichier | Contenu |
 |---|---|
@@ -402,6 +402,23 @@ la cause, la démarche d'un pro et le piège du cas.
   été faites correctement. `lecture()` est pure.
 - XP : 30 si juste, − 15 par alerte, − 10 par dégât, − 5 par erreur de méthode (minimum 10), + 20 sans faute.
 
+## Prise en main et parcours en 3 blocs (`js/bienvenue.js`, `js/blocs.js`)
+
+- **Premier lancement** : l'objectif en deux phrases (simulateur de terrain ; hors connexion, sans compte, progression
+  sur le téléphone), les 3 blocs du parcours, puis « Où en es-tu ? » (3 profils).
+- **Les 3 blocs** (`BLOCS`), rappelés sur l'accueil avec des raccourcis directs :
+  1. Bases & monophasé : Reconnaissance I, calculs monophasé, cas de sécurité ;
+  2. Armoire & banc : banc départ moteur, banc éclairage, cas TBT et commande ;
+  3. Triphasé, mégohmmètre & HTA : calculs triphasé, mesure d'isolement, cas HTA.
+
+## Données 100 % locales
+
+- Aucune donnée ne quitte l'appareil : pas de compte, pas de serveur, pas de mesure d'audience, polices embarquées.
+  Le Carnet le dit : « Tes données de progression restent 100 % locales sur ton appareil. Zéro compte requis, zéro
+  serveur externe. »
+- Export JSON (partage iOS ou téléchargement) et import contrôlé ; la suite **P** vérifie l'aller-retour complet
+  export → tout effacer → import (statistiques, révision, positionnement, insignes, série, jalons).
+
 ## Prochaine étape : guidage par domaine (`js/guidage.js`)
 
 - L'encart de l'accueil est choisi d'après les réponses enregistrées en local (`stats.<mode>.elements`), cumulées par
@@ -489,6 +506,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
 - [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios), second circuit au banc (éclairage par télérupteur)
+- [x] Lancement : première prise en main en 2 phrases, parcours en 3 blocs, mention « 100 % locales », audit ergonomique iPhone (touches ≥ 44 px, textes ≥ 12 px, clair et sombre)
 - [x] Phase 2 : 8 insignes de terrain, séries de jours, tampons « Insigne obtenu » et « Niveau validé »
 - [x] Phase 1 : prochaine étape guidée par domaine (lacunes), 23 fiches mémo sous les corrections et dans le Carnet
 - [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
