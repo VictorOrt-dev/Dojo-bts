@@ -100,7 +100,8 @@
       "methode": "Voyant éteint : on remonte vers la source. 230 V au secondaire de T1, 0 V en sortie de FU1 : le fusible est en cause. Hors tension, on le retire pour le mesurer.",
       "piege": "Mesuré en place, un fusible fondu affiche quelques kΩ au lieu de « OL » : tu mesures alors le voyant et l'enroulement du transformateur, branchés en parallèle. Un fusible se contrôle sorti de son support.",
       "risque": "Remplacer un fusible de commande par un calibre plus fort, ou par un fil, pour « que ça tienne » : au prochain défaut, c'est l'isolant du câblage qui fond au lieu du fusible, et un court-circuit entre fils de commande peut provoquer un démarrage intempestif.",
-      "norme": "NF EN 60204-1 (§ 7.2.4)"
+      "norme": "NF EN 60204-1 (§ 7.2.4)",
+      "pistes": [{"mesure": ["hz", "c0", "n0"], "pourquoi": "Voyant éteint : on remonte jusqu'à la source de la commande. Mesure au secondaire du transformateur T1, par rapport au 0 V."}, {"mesure": ["hz", "c1", "n0"], "pourquoi": "Le transformateur donne bien 230 V ? Mesure juste après le fusible de commande FU1."}, {"consigner": true, "pourquoi": "230 V avant FU1, 0 V après : la tension s'arrête dans le fusible. Pour le contrôler, consigne d'abord le départ."}, {"controle": "fu1", "pourquoi": "Sors FU1 de son support pour le mesurer : en place, il te tromperait."}, {"remplacer": "fu1", "pourquoi": "C'est trouvé : remplace le fusible FU1."}, {"deconsigner": true, "pourquoi": "Réparation faite : déconsigne le départ (Q1 refermé)."}, {"essai": true, "pourquoi": "Dernier geste : un essai. Appuie sur Marche et vérifie que le moteur tourne."}]
     },
     {
       "id": "contact-95-96",
@@ -112,7 +113,8 @@
       "methode": "Voyant allumé : la commande est alimentée. On suit le 230 V dans l'ordre du schéma : 230 V sur F2 : 95, 0 V sur F2 : 96. Le contact est ouvert. Hors tension, la continuité 95-96 le confirme.",
       "piege": "Réarmer en boucle un relais qui n'est pas déclenché : le bouton de réarmement ne répare pas un contact usé.",
       "risque": "Shunter 95-96 pour relancer la pompe supprime la protection du moteur contre la surcharge et le manque de phase : le bobinage cuit sans que rien ne coupe, avec risque de feu dans l'armoire.",
-      "norme": "IEC 60947-4-1"
+      "norme": "IEC 60947-4-1",
+      "pistes": [{"mesure": ["hz", "c1", "n0"], "pourquoi": "Le voyant est allumé : la commande est alimentée. Suis le 230 V : mesure sur la borne 95 du relais thermique."}, {"mesure": ["hz", "x1", "n0"], "pourquoi": "Mesure maintenant à la sortie du contact, sur la borne 96."}, {"consigner": true, "pourquoi": "230 V sur 95, 0 V sur 96 : le contact est ouvert. Consigne pour le vérifier à l'ohmmètre."}, {"mesure": ["ohm", "c1", "x1"], "pourquoi": "À l'ohmmètre, entre 95 et 96 : un contact fermé fait « bip »."}, {"remplacer": "relais", "pourquoi": "C'est trouvé : remplace le relais thermique."}, {"deconsigner": true, "pourquoi": "Réparation faite : déconsigne le départ (Q1 refermé)."}, {"essai": true, "pourquoi": "Dernier geste : un essai. Appuie sur Marche et vérifie que le moteur tourne."}]
     },
     {
       "id": "bobine-coupee",
@@ -124,7 +126,8 @@
       "methode": "Un collègue maintient Marche : tu lis 230 V entre A1 et A2, mais le contacteur ne colle pas. La tension arrive, la bobine ne fait pas son travail. Hors tension, A1-A2 à l'ohmmètre : circuit ouvert au lieu de quelques centaines d'ohms.",
       "piege": "Sans appui sur Marche, A1 est en l'air : un multimètre classique y affiche une tension fantôme d'environ 90 V qui ne veut rien dire. Le mode LoZ la fait disparaître.",
       "risque": "Une lecture en haute impédance trompe dans les deux sens : 91 V fantômes font croire une bobine alimentée, et une valeur faible sur un conducteur flottant peut faire croire à une absence de tension. Avant de toucher, seul un VAT conclut.",
-      "norme": "NF EN 61243-3 (VAT)"
+      "norme": "NF EN 61243-3 (VAT)",
+      "pistes": [{"mesure": ["hz", "x1", "n0"], "pourquoi": "Le voyant est allumé. Vérifie que le 230 V arrive au départ du câble du pupitre (X1 : 1)."}, {"collegue": true, "pourquoi": "Demande à un collègue de maintenir Marche : la bobine du contacteur doit alors recevoir 230 V."}, {"mesure": ["hz", "x2", "n0"], "pourquoi": "Marche maintenu : mesure sur la borne A1 de la bobine, par rapport au 0 V."}, {"consigner": true, "pourquoi": "230 V sur la bobine, et pourtant le contacteur ne colle pas : la bobine est suspecte. Consigne pour la mesurer."}, {"mesure": ["ohm", "x2", "n0"], "pourquoi": "À l'ohmmètre, la bobine entre A1 et A2 : quelques centaines d'ohms si elle est bonne."}, {"remplacer": "bobine", "pourquoi": "C'est trouvé : remplace la bobine du contacteur."}, {"deconsigner": true, "pourquoi": "Réparation faite : déconsigne le départ (Q1 refermé)."}, {"essai": true, "pourquoi": "Dernier geste : un essai. Appuie sur Marche et vérifie que le moteur tourne."}]
     },
     {
       "id": "cable-pupitre",
@@ -136,7 +139,8 @@
       "methode": "230 V sur X1 : 1 dans l'armoire, rien de franc sur S1 : 11 au pupitre : la coupure est entre les deux, dans le câble. Le mode LoZ supprime la fausse lecture ; hors tension, la continuité X1 : 1 → S1 : 11 confirme (OL).",
       "piege": "La tension fantôme : sur S1 : 11 ou KM1 : 13, un multimètre classique affiche environ 90 V au lieu de 0. On croit à une tension « faible » et on soupçonne le transformateur ou un contact résistif. Le mode LoZ (ou un VAT) tranche.",
       "risque": "Un câble écrasé a son isolant blessé : la coupure franche d'aujourd'hui peut devenir un court-circuit demain. Si le conducteur de Marche touche celui de l'alimentation en aval du bouton Arrêt, la pompe démarre toute seule.",
-      "norme": "NF EN 60204-1 (§ 13)"
+      "norme": "NF EN 60204-1 (§ 13)",
+      "pistes": [{"mesure": ["hz", "x1", "n0"], "pourquoi": "Le voyant est allumé. Le 230 V arrive-t-il au départ du câble du pupitre (X1 : 1) ?"}, {"mesure": ["hz", "s11", "n0"], "pourquoi": "Mesure maintenant à l'autre bout du câble, au pupitre, sur S1 : 11."}, {"mesure": ["loz", "s11", "n0"], "pourquoi": "La lecture hésite : refais la même mesure en LoZ pour savoir si c'est une vraie tension."}, {"consigner": true, "pourquoi": "0 V en LoZ : c'était une tension fantôme, le fil est coupé quelque part. Consigne pour le vérifier."}, {"mesure": ["ohm", "x1", "s11"], "pourquoi": "Continuité du fil, de X1 : 1 dans l'armoire à S1 : 11 au pupitre."}, {"remplacer": "cable", "pourquoi": "C'est trouvé : remplace le câble du pupitre."}, {"deconsigner": true, "pourquoi": "Réparation faite : déconsigne le départ (Q1 refermé)."}, {"essai": true, "pourquoi": "Dernier geste : un essai. Appuie sur Marche et vérifie que le moteur tourne."}]
     },
     {
       "id": "fusible-l2",
@@ -149,7 +153,8 @@
       "methode": "Moteur qui grogne = manque de phase. En aval des fusibles, chaque phase par rapport à la terre : L1 et L3 à 230 V, L2 à 0. Entre phases, Q1 : 2 – Q1 : 4 affiche environ 230 V au lieu de 400 V. Hors tension, continuité du fusible L2 : OL. On change les trois cartouches et on réarme le relais.",
       "piege": "Relancer pour « voir » : chaque essai chauffe un moteur qui ne peut pas démarrer. Et après réparation, il faut réarmer le relais thermique, sinon rien ne redémarre.",
       "risque": "Ne changer que la cartouche fondue : les deux autres ont vu le même courant de défaut et fondront au prochain démarrage. Et chaque relance en monophasé fait chauffer un moteur qui ne peut pas démarrer.",
-      "norme": "NF EN 60269 (fusibles aM)"
+      "norme": "NF EN 60269 (fusibles aM)",
+      "pistes": [{"mesure": ["hz", "p1", "p2"], "pourquoi": "Un moteur qui grogne, c'est souvent une phase qui manque. Mesure entre L1 et L2, après les fusibles (Q1 : 2 et Q1 : 4)."}, {"mesure": ["hz", "p1", "p3"], "pourquoi": "Compare avec L1 et L3 (Q1 : 2 et Q1 : 6) : entre deux phases, on attend 400 V."}, {"mesure": ["loz", "p1", "p2"], "pourquoi": "La lecture L1-L2 hésite : refais-la en LoZ."}, {"consigner": true, "pourquoi": "La phase L2 manque après son fusible. Consigne pour contrôler la cartouche."}, {"controle": "fu-l2", "pourquoi": "Sors la cartouche de L2 et contrôle-la."}, {"remplacer": "fusibles", "pourquoi": "Cartouche fondue : on change les trois, les deux autres ont vu le même défaut."}, {"deconsigner": true, "pourquoi": "Réparation faite : déconsigne le départ (Q1 refermé)."}, {"rearmer": true, "pourquoi": "Le relais thermique a déclenché pendant le démarrage raté : réarme-le."}, {"essai": true, "pourquoi": "Dernier geste : un essai. Appuie sur Marche et vérifie que le moteur tourne."}]
     }
   ]
 }

@@ -106,7 +106,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, visite guidée en 3 gestes, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
 | `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
-| `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) |
+| `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
 `.github/workflows/test.yml`, Chromium mis en cache) et bloque le déploiement en cas d'échec. Changer de version de Playwright :
@@ -329,9 +329,22 @@ la cause, la démarche d'un pro et le piège du cas.
   (fraction de `fantomes[nœud].couplage`) au multimètre classique, avec un afficheur instable ; en LoZ, elle disparaît.
 - **Gestes dangereux** (alerte sécurité + temps perdu) : ohmmètre sans consigner, ohmmètre sur l'amont de Q1,
   retirer un fusible ou démonter une pièce sous tension, 3e essai sur un moteur bloqué.
-- **XP** : 50 si réparé, − 10 par pièce inutile, − 15 par alerte sécurité (minimum 10), + 20 si sans faute (aucune alerte, aucune pièce inutile, temps ≤ 1,3 × la référence).
+- **Mission en une ligne** en tête d'écran (« trouver la pièce en panne, la remplacer, faire redémarrer le moteur ») et
+  panneau repliable **« Comment ça marche ? »** : la démarche en 4 étapes (mesurer sous tension en suivant le courant,
+  consigner, confirmer en Ω ou contrôler le fusible puis remplacer, déconsigner et essayer).
+- **Bouton « Indice »** (console) : donne l'étape suivante de la démarche de référence de la panne (`pistes`), avec son
+  pourquoi. Pour une mesure, il règle la fonction et place les deux pointes ; pour un geste, il ouvre Actions et
+  surligne le bouton (`data-suggere`), en présélectionnant le fusible ou la pièce. Une étape déjà faite par l'élève
+  est sautée ; un indice n'est compté qu'une fois par étape.
+- **Lectures en clair** sous l'afficheur : « ≈ 230 V : la tension arrive bien entre ces deux points », « 0 V : pas de
+  tension », « OL : circuit ouvert », « l'afficheur hésite : refais en LoZ », « l'amont reste sous tension, même consigné ».
+- **XP** : 50 si réparé, − 10 par pièce inutile, − 15 par alerte sécurité, − 5 par indice (minimum 10), + 20 si sans faute
+  (aucune alerte, aucune pièce inutile, aucun indice, temps ≤ 1,3 × la référence). Le rapport affiche les indices utilisés.
 - **Ajouter une panne** : un objet dans `pannes` : `{ id, symptome, ouvre: [éléments coupés], relaisDeclenche?,
-  reference (minutes), domaines, cause, methode, piege, risque, norme }`. Elle doit être réparable par un élément de `composants[].repare`.
+  reference (minutes), domaines, cause, methode, piege, risque, norme, pistes }`. Elle doit être réparable par un élément de `composants[].repare`.
+  `pistes` = la démarche de référence, une étape par objet, chacune avec un `pourquoi` : `{ mesure: [fonction, rouge, noir] }`,
+  `{ consigner: true }`, `{ controle: 'fu1' | 'fu-l2' }`, `{ remplacer: id }`, `{ deconsigner: true }`, `{ collegue: true }`,
+  `{ rearmer: true }`, `{ essai: true }`. Le test **I** vérifie que chaque panne se résout en suivant seulement les indices, sans alerte.
 - `#/entrainement/banc?panne=<id>` force une panne précise (tests).
 - **Sous le pouce** : la console d'instruments (onglets Multimètre / Pince / Actions, V~ / LoZ / Ω, pointe rouge et COM,
   afficheur et « Mesurer » côte à côte) est fixée au-dessus des onglets ; le contenu (symptôme, bon d'intervention, état
@@ -367,6 +380,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantier 4 : service worker « cache d'abord » versionné, mises à jour atomiques
 - [x] Audit UX, chantier 1 : premier lancement, « Ta prochaine séance », déblocage souple, test de positionnement
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
+- [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)

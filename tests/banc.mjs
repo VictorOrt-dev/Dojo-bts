@@ -92,6 +92,28 @@ export default async function ({ t, url: U, navigateur }) {
   await action('rearmer'); await action('essai');
   t.ok(await p.isVisible('.bilan'), 'relais réarmé : le moteur tourne');
 
+  t.section('I. Banc · indices : chaque panne se résout en suivant seulement les indices');
+  for (const id of ['fu1-fondu', 'contact-95-96', 'bobine-coupee', 'cable-pupitre', 'fusible-l2']) {
+    await ouvrir(id);
+    let gestes = 0;
+    while (!(await p.$('.bilan')) && gestes < 20) {
+      await p.click('.bouton-indice');
+      const suggere = await p.$('[data-suggere="true"]');
+      if (suggere) await suggere.click(); else await p.click('#mesurer');
+      gestes++;
+    }
+    const resultat = await etat();
+    const rapport = (await p.textContent('main')).replace(/\s+/g, ' ');
+    t.ok(await p.isVisible('.bilan') && resultat.resolu && resultat.dangers === 0 && /Indices utilisés\s*[1-9]/.test(rapport),
+      `${id} : réparée en ${gestes} gestes guidés par les indices, sans alerte de sécurité ; indices comptés au rapport`);
+  }
+  await ouvrir('cable-pupitre');
+  await p.click('[data-fonction="hz"]'); await p.selectOption('#rouge', 's11'); await p.selectOption('#noir', 'n0'); await p.click('#mesurer');
+  t.ok((await p.textContent('.note-mesure')).includes('LoZ'), 'lecture qui hésite : « Refais la mesure en LoZ » écrit en clair');
+  await p.click('[data-fonction="loz"]'); await p.click('#mesurer');
+  t.ok((await p.textContent('.note-mesure')).includes('0 V : pas de tension'), 'lecture à 0 V : « pas de tension entre ces deux points »');
+  t.ok(await p.isVisible('.mission') && (await p.textContent('.mission')).includes('Ta mission'), 'la mission est écrite en clair en haut du banc');
+
   t.section('I. Banc · accès, schéma, abandon');
   await p.goto(U + '#/entrainement'); await p.waitForSelector('a[href="#/entrainement/banc"]');
   await p.click('a[href="#/entrainement/banc"]'); await p.waitForSelector('.tableau-bord');
