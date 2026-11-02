@@ -13,6 +13,7 @@ import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus } from './tuteur.js
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
 import { zoneMemo, remplirMemo } from './memos.js';
+import { noterIsolementPropre } from './insignes.js';
 
 export const TENSIONS_ESSAI = [250, 500, 1000];
 const NOMS_ELECTRONIQUE = { variateur: 'le variateur', automate: 'les cartes de l\'automate' };
@@ -168,6 +169,7 @@ function jouer(vue, s, scenarios) {
     const xp = juste ? Math.max(10, 30 - 15 * etat.dangers.length - 10 * etat.degats.length - 5 * etat.methode.length) + (parfait ? 20 : 0) : 0;
     if (xp) annoncerMontee(gagnerXP(xp));
     noterReponse('isolement', s.id, juste && !etat.dangers.length);
+    if (juste && !etat.degats.length) noterIsolementPropre(s.id);
     noterSession('isolement', juste ? 1 : 0);
     const message = parfait ? 'Mesure de pro.' : juste ? 'Bonne conclusion.' : v.bon ? 'Bonne intuition, mesures incomplètes.' : 'Conclusion à revoir.';
     const autre = scenarios[scenarios.indexOf(s) + 1];

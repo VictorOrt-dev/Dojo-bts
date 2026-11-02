@@ -15,6 +15,7 @@ const SUITES = {
   'parcours': { fichier: './parcours.mjs', navigateur: true, titre: 'Premier lancement et parcours guidé (navigateur iPhone 13)' },
   'isolement': { fichier: './isolement.mjs', navigateur: true, titre: 'Mesure d\'isolement au mégohmmètre (navigateur iPhone 13)' },
   'guidage': { fichier: './guidage.mjs', navigateur: true, titre: 'Guidage de l\'accueil et fiches mémo (navigateur iPhone 13)' },
+  'insignes': { fichier: './insignes.mjs', navigateur: true, titre: 'Insignes de terrain et séries (navigateur iPhone 13)' },
   'ergonomie': { fichier: './ergonomie.mjs', navigateur: true, titre: 'Ergonomie de terrain : banc sous le pouce, lisibilité, thème (navigateur iPhone 13)' },
   'service-worker': { fichier: './service-worker.mjs', navigateur: true, titre: 'Service worker en production : réseau lent, hors ligne, mise à jour' }
 };

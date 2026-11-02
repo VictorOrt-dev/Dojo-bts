@@ -6,6 +6,7 @@ import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
 import { frontispice, titreSection, ligneEtat, deuxChiffres } from './mise-en-page.js';
 import { enRevision } from './leitner.js';
+import { vitrine, verifierBadges } from './insignes.js';
 import { esc, plurielS } from './util.js';
 import { PROFILS } from './parcours.js';
 
@@ -58,6 +59,7 @@ function blocRevision(etat) {
 
 export async function renderProfil({ vue, definirTitre }) {
   definirTitre('Carnet');
+  verifierBadges();   // insignes mérités par un état importé ou ancien
   const etat = stockage.lire();
   const persistant = await stockage.estPersistant();
   const sauvegarde = etatSauvegarde(etat.derniereSauvegarde);
@@ -83,8 +85,13 @@ export async function renderProfil({ vue, definirTitre }) {
       </div>
     </section>
 
+    <section class="qualifications">
+      ${titreSection('02', 'Qualifications & insignes')}
+      <div class="corps">${vitrine(etat)}</div>
+    </section>
+
     <section>
-      ${titreSection('02', 'Fiches mémo')}
+      ${titreSection('03', 'Fiches mémo')}
       <div class="corps">
         <p class="discret">La formule, le schéma ou la règle à avoir en tête, en 30 secondes. Elles s'ouvrent aussi sous une correction quand tu te trompes.</p>
         <div class="actions"><a class="btn" href="#/entrainement/memos">Ouvrir les fiches mémo</a></div>
@@ -92,7 +99,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('03', 'Ton profil')}
+      ${titreSection('04', 'Ton profil')}
       <div class="corps">
         <div class="selecteur selecteur-profil" role="group" aria-label="Profil">
           ${PROFILS.map(p => `<button type="button" data-profil="${p.id}" aria-pressed="${etat.profil === p.id}">${esc(p.court)}</button>`).join('')}
@@ -106,7 +113,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('04', 'Affichage')}
+      ${titreSection('05', 'Affichage')}
       <div class="corps">
         <div class="selecteur selecteur-theme" role="group" aria-label="Thème d'affichage">
           <button type="button" data-theme="auto" aria-pressed="${theme === 'auto'}">Auto</button>
@@ -118,7 +125,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section class="sauvegarde">
-      ${titreSection('05', 'Sauvegarde')}
+      ${titreSection('06', 'Sauvegarde')}
       <div class="corps">
         ${ligneEtat(sauvegarde.etat, sauvegarde.texte)}
         <p class="discret petit">Tes données restent sur ce téléphone. Exporte un fichier régulièrement (Fichiers, iCloud, Drive ou mail).</p>
@@ -133,7 +140,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('06', 'Appareil')}
+      ${titreSection('07', 'Appareil')}
       <div class="corps">
         ${estInstallee()
           ? ligneEtat('ok', 'App installée sur l’écran d’accueil.')
@@ -148,7 +155,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('07', 'Remise à zéro')}
+      ${titreSection('08', 'Remise à zéro')}
       <div class="corps">
         <button id="btn-effacer" class="btn danger" type="button">Tout effacer</button>
       </div>

@@ -8,7 +8,7 @@ import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annonce
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
-import { conseilNiveau } from './parcours.js';
+import { conseilNiveau, SEUIL } from './parcours.js';
 import { aReviser } from './leitner.js';
 import { zoneMemo, remplirMemo } from './memos.js';
 import * as stockage from './storage.js';
@@ -1437,6 +1437,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       total: session.exercices.length,
       xpGagne: session.xp,
       onRejouer: () => renderCalcul({ vue, definirTitre, auNettoyage, params }),
+      valide: !dom && !revision && session.exercices.length >= 10 && session.score >= SEUIL,
       suite: revision ? { href: '#/entrainement/revision', libelle: 'Retour à « À réviser »' } : session.score >= 8 && suivantNiveau ? { href: lienSeance('#/entrainement/calcul', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };

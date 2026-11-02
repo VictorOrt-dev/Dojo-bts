@@ -62,6 +62,12 @@ export function remplirMemo(zone) {
   chargerMemos().then(memos => {
     if (!zone.isConnected) return;
     zone.innerHTML = blocMemo(memoPour(memos, zone.dataset.memoMode, zone.dataset.memoId));
+    // Une fiche ouverte après une erreur compte pour l'insigne « Rigueur normative » (une fois par correction).
+    zone.querySelector('.memo')?.addEventListener('toggle', ev => {
+      if (!ev.target.open || zone.dataset.compte) return;
+      zone.dataset.compte = '1';
+      import('./insignes.js').then(m => m.noterMemoOuvert());
+    });
   }).catch(() => {});
 }
 

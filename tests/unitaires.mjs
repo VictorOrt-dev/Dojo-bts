@@ -12,6 +12,7 @@ import * as L from '../js/leitner.js';
 import { auditer } from '../outils/audit.mjs';
 import * as G from '../js/guidage.js';
 import { markdown, memoPour } from '../js/memos.js';
+import * as B from '../js/badges.js';
 
 export default async function ({ t }) {
   await auditIntegrite(t);
@@ -22,6 +23,7 @@ export default async function ({ t }) {
   revisionEspacee(t);
   bancEclairage(t);
   guidageEtMemos(t);
+  insignesEtSeries(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -90,7 +92,10 @@ function controleDesSauvegardes(t) {
     derniereSauvegarde: 1761900000000,
     preferences: { matiere: 'porcelaine', visiteBanc: true },
     profil: 'formation',
-    positionnement: { niveau: 2, score: 8, date: 1761900000000, niveaux: { reco: 2, calcul: 1, panne: 0 } }
+    positionnement: { niveau: 2, score: 8, date: 1761900000000, niveaux: { reco: 2, calcul: 1, panne: 0 } },
+    activite: { jours: ['2026-10-30', '2026-10-31', '2026-11-01'] },
+    jalons: { memosApresErreur: 4, isolementPropre: ['iso-prises-neuves'] },
+    badges: { 'habilite-banc': 1761900000000 }
   };
   const r = controler(valide);
   t.ok(r.anomalies.length === 0 && isDeepStrictEqual(r.etat, valide), 'sauvegarde conforme : acceptée telle quelle');
@@ -345,4 +350,55 @@ function guidageEtMemos(t) {
   const html = markdown('Règle **forte** et `U = R × I`\n\n- un\n- deux\n\n```\nA ── B\n```\n> Jamais <script>alert(1)</script>');
   t.ok(html.includes('<strong>forte</strong>') && html.includes('<code>U = R × I</code>') && html.includes('<ul><li>un</li><li>deux</li></ul>')
     && html.includes('<pre class="memo-schema">A ── B</pre>') && html.includes('memo-regle') && !html.includes('<script>'), 'Markdown des fiches : gras, code, listes, schéma en texte, règle ; HTML échappé');
+}
+
+// ---------- Insignes de terrain et séries (badges.js) ----------
+
+function insignesEtSeries(t) {
+  t.section('U8. Insignes de terrain et séries de jours (badges.js)');
+  const lire = f => JSON.parse(fs.readFileSync(path.join(RACINE, f), 'utf8'));
+  t.ok(B.jourLocal(new Date(2026, 0, 5)) === '2026-01-05' && B.ajouterJour(['2026-01-05'], '2026-01-05').length === 1
+    && B.ajouterJour(['2026-01-06'], '2026-01-05').join() === '2026-01-05,2026-01-06', 'jour local « AAAA-MM-JJ », sans doublon, trié');
+  const j = ['2026-02-26', '2026-02-27', '2026-02-28', '2026-03-01', '2026-03-05'];
+  t.ok(B.serieEnCours(j, '2026-03-05') === 1 && B.serieEnCours(j, '2026-03-06') === 1 && B.serieEnCours(j, '2026-03-07') === 0,
+    'série en cours : compte encore le lendemain, retombe à 0 après un jour sans entraînement');
+  t.ok(B.serieEnCours(j.slice(0, 4), '2026-03-01') === 4 && B.meilleureSerie(j) === 4, 'série à cheval sur la fin février (28 jours) : 4 jours, meilleure série 4');
+  t.ok(B.serieEnCours(['2026-03-29', '2026-03-30'], '2026-03-30') === 2, 'passage à l\'heure d\'été : la série ne se casse pas');
+  t.ok(B.serieEnCours([], '2026-03-01') === 0 && B.meilleureSerie([]) === 0, 'aucun jour : série 0');
+
+  const cas = lire('data/pannes.json');
+  t.ok(B.CAS_EMBRANCHEMENTS.join() === cas.filter(c => c.etapes.some(e => e.branche)).map(c => c.id).join()
+    && B.SCENARIOS_ISOLEMENT.join() === lire('data/isolement.json').map(x => x.id).join()
+    && B.CAS_CONSIGNATION.every(id => cas.some(c => c.id === id)), 'listes des insignes à jour avec les données (cas à embranchements, 6 mesures, cas de consignation)');
+  t.ok(B.BADGES.length >= 6 && B.BADGES.length <= 8 && new Set(B.BADGES.map(b => b.id)).size === B.BADGES.length
+    && B.BADGES.every(b => b.icone.startsWith('<svg') && !/<text/.test(b.icone) && b.nom && b.critere), `${B.BADGES.length} insignes : icône SVG sans texte, nom et critère`);
+
+  const vide = { stats: {}, activite: { jours: [] }, jalons: {}, badges: {} };
+  t.ok(B.badgesMerites(vide).length === 0, 'nouvel utilisateur : aucun insigne');
+  const el = (n, ok = true) => Object.fromEntries(Array.from({ length: n }, (_, i) => [`c${i}`, { essais: 1, reussites: ok ? 1 : 0 }]));
+  const plein = {
+    stats: {
+      banc: { elements: { 'fu1-fondu': { essais: 2, reussites: 1 } } },
+      panne: { elements: { ...el(4, false), 'pompe-thermique-rearme': { essais: 1, reussites: 1 }, 'consignation-contacteur': { essais: 2, reussites: 1 }, 'vat-procedure': { essais: 1, reussites: 1 } } },
+      calcul: { meilleurScore: 10, elements: {} }
+    },
+    activite: { jours: ['2026-03-01', '2026-03-02', '2026-03-03'] },
+    jalons: { memosApresErreur: 10, isolementPropre: [...B.SCENARIOS_ISOLEMENT] },
+    badges: {}
+  };
+  t.ok(B.badgesMerites(plein).length === B.BADGES.length, 'toutes les conditions remplies : les 8 insignes mérités');
+  const presque = structuredClone(plein);
+  presque.stats.banc.elements['fu1-fondu'].reussites = 0;
+  presque.jalons.memosApresErreur = 9; presque.jalons.isolementPropre.pop();
+  presque.stats.panne.elements['pompe-thermique-rearme'] = { essais: 2, reussites: 1 };
+  presque.activite.jours = ['2026-03-01', '2026-03-02', '2026-03-04'];
+  presque.stats.calcul.meilleurScore = 9;
+  t.ok(B.badgesMerites(presque).sort().join() === 'chasseur-pannes,consignateur', 'une condition manquée de peu : insigne refusé (banc avec alerte, 9 fiches, 5 mesures sur 6, embranchement au 2e essai, série coupée, 9/10)');
+  t.ok(B.nouveauxBadges({ ...plein, badges: { 'habilite-banc': 1 } }).length === B.BADGES.length - 1, 'insigne déjà enregistré : pas décerné une seconde fois');
+  const prog = B.badge('chasseur-pannes').progression(presque);
+  t.ok(prog.valeur === 5 && prog.cible === 5 && B.badge('megohmmetre').progression(presque).valeur === 5, 'progression affichable : 5/5 cas, 5/6 mesures');
+
+  const abime = controler({ version: 1, activite: { jours: ['hier'] }, jalons: { memosApresErreur: -1 }, badges: { 'habilite-banc': 'jamais' } });
+  t.ok(abime.anomalies.some(a => a.startsWith('activite')) && abime.anomalies.some(a => a.startsWith('jalons')) && abime.anomalies.some(a => a.includes('badges'))
+    && abime.etat.activite.jours.length === 0 && Object.keys(abime.etat.badges).length === 0, 'sauvegarde : jours, jalons ou insignes abîmés refusés, valeurs par défaut au démarrage');
 }

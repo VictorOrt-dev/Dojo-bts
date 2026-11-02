@@ -23,7 +23,7 @@ export default async function ({ t, url: U, navigateur }) {
     t.ok((await p.getAttribute('.prochaine', 'data-type')) === 'lacune' && /Taux d'échec élevé en Triphasé \(64\s%\)/.test(texte) && texte.includes('Lancer la séance ciblée'),
       `accueil : « ${texte.match(/Taux d'échec[^)]*\)/)?.[0]} », avec « Lancer la séance ciblée »`);
     t.ok(href === '#/entrainement/calcul?n=2&d=tri' && (await p.textContent('.prochaine-diagnostic')).includes('TRI 36'), 'encart : réussite par domaine affichée, routage vers les calculs de niveau II en triphasé');
-    await p.click('.prochaine'); await p.waitForSelector('.clavier');
+    await p.click('.prochaine'); await p.waitForSelector('.exercice');   // pas de clavier si le 1er calcul est un QCM (couplage)
     const domaines = await p.evaluate(async () => { const c = await import('/js/calcul.js'); return c.sessionEnCours().exercices.map(e => e.generateur.domaines.includes('tri') && e.generateur.niveau === 2); });
     t.ok(domaines.length === 10 && domaines.every(Boolean), 'un toucher lance directement la séance ciblée : 10 calculs de niveau II, tous en triphasé');
 

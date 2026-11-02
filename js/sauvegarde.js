@@ -24,7 +24,10 @@ export function etatParDefaut() {
     derniereSauvegarde: null, // horodatage du dernier export
     preferences: { matiere: 'auto', visiteBanc: false },
     profil: null,            // 'debutant' | 'formation' | 'confirme' ; null = premier lancement pas encore fait
-    positionnement: null     // { niveau: 0 à 3, score: 0 à 12, date, niveaux?: { reco, calcul, panne } } : test de positionnement
+    positionnement: null,    // { niveau: 0 à 3, score: 0 à 12, date, niveaux?: { reco, calcul, panne } } : test de positionnement
+    activite: { jours: [] }, // jours d'entraînement (« AAAA-MM-JJ », heure locale) : séries
+    jalons: { memosApresErreur: 0, isolementPropre: [] },   // accomplissements suivis pour les insignes
+    badges: {}               // insignes obtenus : { id: date d'obtention }
   };
 }
 
@@ -147,6 +150,33 @@ export function controler(donnees) {
       etat.positionnement = { niveau: p.niveau, score: p.score, date: p.date };
       if (p.niveaux) etat.positionnement.niveaux = { reco: p.niveaux.reco ?? 0, calcul: p.niveaux.calcul ?? 0, panne: p.niveaux.panne ?? 0 };
     } else anomalies.push('positionnement : attendu { niveau 0 à 3, score 0 à 12, date, niveaux { reco, calcul, panne } ≤ niveau }');
+  }
+
+  // Jours d'entraînement (séries) : dates « AAAA-MM-JJ », au plus 400.
+  if (donnees.activite !== undefined) {
+    const j = donnees.activite?.jours;
+    if (estObjet(donnees.activite) && Array.isArray(j) && j.length <= 400 && j.every(x => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x))) {
+      etat.activite = { jours: [...new Set(j)].sort() };
+    } else anomalies.push('activite : attendu { jours: [« AAAA-MM-JJ »…] } (400 au plus)');
+  }
+
+  // Jalons des insignes.
+  if (donnees.jalons !== undefined) {
+    const j = donnees.jalons;
+    const memosOk = j?.memosApresErreur === undefined || (estEntierPositif(j.memosApresErreur) && j.memosApresErreur <= 1_000_000);
+    const isoOk = j?.isolementPropre === undefined || (Array.isArray(j.isolementPropre) && j.isolementPropre.length <= 100 && j.isolementPropre.every(cleValide));
+    if (estObjet(j) && memosOk && isoOk) {
+      etat.jalons = { memosApresErreur: j.memosApresErreur ?? 0, isolementPropre: [...new Set(j.isolementPropre ?? [])] };
+    } else anomalies.push('jalons : attendu { memosApresErreur (entier), isolementPropre [identifiants] }');
+  }
+
+  // Insignes obtenus : identifiant → date d'obtention.
+  if (donnees.badges !== undefined) {
+    if (!estObjet(donnees.badges) || Object.keys(donnees.badges).length > 50) anomalies.push('badges : attendu { identifiant: date }');
+    else etat.badges = filtrerEntrees(donnees.badges, 'badges', anomalies, (v, c) => {
+      if (!estHorodatage(v)) { anomalies.push(`${c} : date d'obtention attendue`); return undefined; }
+      return v;
+    });
   }
 
   return { etat, anomalies };

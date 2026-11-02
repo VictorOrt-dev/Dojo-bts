@@ -99,7 +99,7 @@ node tests/lancer.mjs
 ```
 
 On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
-`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `guidage`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `guidage`, `insignes`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
 
 | Fichier | Contenu |
 |---|---|
@@ -423,6 +423,31 @@ la cause, la démarche d'un pro et le piège du cas.
   encart replié « Comprendre la notion · titre » sous la correction.
 - Toutes les fiches, rangées par domaine : Carnet › Fiches mémo (`#/entrainement/memos`, `?m=<id>` en ouvre une).
 
+## Insignes de terrain et séries (`js/badges.js`, `js/insignes.js`)
+
+- **8 insignes** (Carnet › Qualifications & insignes), pictogrammes SVG au trait, verrouillés avec leur progression
+  ou « Obtenu le … » :
+
+  | Insigne | Condition |
+  |---|---|
+  | Habilité au banc | une panne réparée au banc sans alerte de sécurité |
+  | Maître du mégohmmètre | les 6 mesures d'isolement réussies sans endommager de matériel |
+  | Chasseur de pannes | 5 cas de panne différents menés jusqu'au diagnostic final |
+  | Rigueur normative | 10 fiches mémo ouvertes sous une correction ratée |
+  | Zéro piège | un cas de niveau III à embranchements réussi sans faute du premier coup |
+  | Régularité de chantier | 3 jours d'entraînement consécutifs |
+  | Consignateur | les cas de consignation et de VAT réussis sans faute |
+  | Sans faute | une séance de 10 questions ou 10 calculs à 10/10 |
+
+- Stockage : `activite.jours` (jours d'entraînement, heure locale), `jalons` (`memosApresErreur`, `isolementPropre`),
+  `badges` (`{ id: date }`), contrôlés à l'import. Les insignes sont vérifiés après chaque réponse et à l'ouverture
+  de l'accueil et du Carnet ; un insigne obtenu le reste.
+- **Série** : jours consécutifs jusqu'à aujourd'hui (ou hier, tant que la journée n'est pas finie), affichée
+  discrètement sur l'accueil (« Série : 3 jours ») et dans la vitrine avec la meilleure série.
+- **Retours visuels** : annonce « Insigne obtenu » dont l'icône se pose comme un tampon (jamais bloquante,
+  `pointer-events: none`), tampon « Niveau validé » sur le rapport d'une séance de niveau à 8/10 ou plus ; vibration
+  brève après un geste de l'utilisateur ; animations coupées si le téléphone demande moins de mouvement.
+
 ## À réviser : répétition espacée (`js/leitner.js`, `js/revision.js`)
 
 - Toute erreur (question ratée, calcul faux, cas pas sans faute, panne du banc avec alerte de sécurité) place l'élément
@@ -464,6 +489,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
 - [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios), second circuit au banc (éclairage par télérupteur)
+- [x] Phase 2 : 8 insignes de terrain, séries de jours, tampons « Insigne obtenu » et « Niveau validé »
 - [x] Phase 1 : prochaine étape guidée par domaine (lacunes), 23 fiches mémo sous les corrections et dans le Carnet
 - [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)

@@ -1043,3 +1043,38 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .bloc-memos { margin-top: 20px; }
 .bloc-memos .section-num { width: auto; }
 .memo { scroll-margin-top: calc(84px + env(safe-area-inset-top)); }
+
+/* ---------- Insignes de terrain et séries ---------- */
+.serie-jours { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0 0; font: 600 13px/1 var(--mono); color: var(--texte-2); }
+.serie-marques { display: inline-flex; gap: 3px; }
+.serie-marques span { width: 4px; height: 12px; border-radius: 1px; background: var(--attention); }
+.vitrine-resume { margin: 0 0 12px; font-size: 15px; line-height: 1.45; color: var(--texte-2); }
+.vitrine-resume strong { color: var(--texte-1); }
+.vitrine { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.insigne { display: grid; gap: 6px; align-content: start; padding: 14px; border-radius: var(--rayon); background: var(--surface); box-shadow: inset 0 0 0 1px var(--filet); }
+.insigne-icone { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; box-shadow: inset 0 0 0 2px currentColor; color: var(--texte-3); }
+.insigne-icone svg { width: 30px; height: 30px; }
+.insigne.obtenu .insigne-icone { color: var(--texte-1); background: var(--surface-3); box-shadow: inset 0 0 0 2px var(--juste); }
+.insigne-nom { font: 700 15px/1.25 var(--texte); color: var(--texte-1); }
+.insigne-critere { font-size: 13px; line-height: 1.4; color: var(--texte-2); }
+.insigne-etat { font: 600 12px/1.3 var(--mono); color: var(--texte-2); }
+.insigne.obtenu .insigne-etat { color: var(--juste); }
+.insigne.verrouille .insigne-nom { color: var(--texte-2); }
+
+/* Annonce d'un insigne : un tampon qui se pose, sans bloquer l'écran */
+.insigne-obtenu {
+  position: fixed; top: calc(env(safe-area-inset-top) + 64px); left: 16px; right: 16px; z-index: 21;
+  display: flex; align-items: center; gap: 14px; max-width: 560px; margin: 0 auto; padding: 14px 18px;
+  border-radius: 18px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--juste), var(--ombre);
+  color: var(--texte-1); pointer-events: none; animation: insigne-entree 260ms ease-out;
+}
+.insigne-obtenu.sortie { opacity: 0; transform: translateY(-8px); transition: opacity 300ms, transform 300ms; }
+.insigne-obtenu-icone { display: grid; place-items: center; flex: none; width: 48px; height: 48px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--juste); animation: tampon 520ms cubic-bezier(.2, 1.4, .4, 1) both; }
+.insigne-obtenu-icone svg { width: 28px; height: 28px; }
+.insigne-obtenu-surtitre { display: block; font: 700 13px/1.2 var(--mono); color: var(--juste); }
+.insigne-obtenu-nom { display: block; font: 800 18px/1.2 var(--texte); }
+.tampon-valide { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0 0; padding: 8px 14px; border-radius: 999px; box-shadow: inset 0 0 0 2px var(--juste); color: var(--juste); font: 800 15px/1 var(--texte); animation: tampon 520ms cubic-bezier(.2, 1.4, .4, 1) both; }
+.tampon-valide svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+@keyframes tampon { 0% { opacity: 0; transform: scale(1.6) rotate(-8deg); } 60% { opacity: 1; transform: scale(.94) rotate(1deg); } 100% { transform: none; } }
+@keyframes insigne-entree { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .insigne-obtenu, .insigne-obtenu-icone, .tampon-valide { animation: none; } }

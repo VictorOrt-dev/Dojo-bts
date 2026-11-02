@@ -11,6 +11,7 @@ import * as stockage from './storage.js';
 import { prochaineSeance, ordreModes, conseilBanc } from './parcours.js';
 import { aReviser } from './leitner.js';
 import { recommandation } from './guidage.js';
+import { indicateurSerie, verifierBadges, vibrer } from './insignes.js';
 import { chargerPannes } from './panne.js';
 
 export const TAILLE_SESSION = 10;
@@ -85,11 +86,13 @@ export async function renderEntrainement({ vue, definirTitre }) {
     import('./calcul.js').then(m => m.GENERATEURS).catch(() => [])
   ]);
   const reduire = l => l.map(e => ({ id: e.id, niveau: e.niveau, domaines: e.domaines }));
+  verifierBadges();   // un état importé ou ancien peut déjà mériter des insignes
   const reco = recommandation(etat, { reco: reduire(questions), calcul: reduire(generateurs), panne: reduire(cas) }, prochaine, cas);
   const conseilDuBanc = conseilBanc(etat, cas);
   vue.innerHTML = `
     <header class="salut">
       <p class="salut-date">${esc(jour)}</p>
+      ${indicateurSerie(etat)}
       <h2 class="salut-titre">${mot}, <em>${esc(n.nom.toLowerCase())}.</em></h2>
       <p class="devise">Simulateur de terrain de l'électricien</p>
       <p class="devise-sous">Conçu et éprouvé selon la réalité des armoires industrielles et la rigueur des normes en vigueur.</p>
@@ -140,7 +143,8 @@ export function enteteSession(numero, score, resultats = [], total = TAILLE_SESS
 
 // Rapport de fin de séance.
 // suite (facultatif) : { href, libelle } pour proposer le niveau supérieur après une bonne séance.
-export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onRejouer, suite = null }) {
+// valide : la séance valide un niveau (8/10 sur une séance de niveau, tous domaines) → tampon « Niveau validé ».
+export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onRejouer, suite = null, valide = false }) {
   const parfait = score === total;
   const taux = score / total;
   const message = parfait ? 'Sans faute.' : taux >= 0.7 ? 'Belle séance.' : taux >= 0.4 ? 'Ça vient, continue.' : 'Reprends les explications, puis recommence.';
@@ -148,6 +152,7 @@ export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onR
     <section class="bilan">
       <p class="surtitre">Rapport de séance</p>
       <p class="bilan-score">${deuxChiffres(score)}<small>/${deuxChiffres(total)}</small></p>
+      ${valide ? '<p class="tampon-valide" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Niveau validé</p>' : ''}
       <p class="bilan-message">${message}</p>
       <p class="bilan-xp">+${xpGagne} XP${parfait && total >= SEANCE_MIN_BONUS ? ' · bonus sans faute' : ''}</p>
     </section>
@@ -158,6 +163,7 @@ export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onR
       <a class="btn" href="#/entrainement">Retour aux exercices</a>
     </div>`;
   vue.querySelector('#rejouer').addEventListener('click', onRejouer);
+  if (valide) vibrer(30);
   window.scrollTo(0, 0);
 }
 

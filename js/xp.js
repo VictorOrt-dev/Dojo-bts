@@ -3,6 +3,8 @@
 
 import * as stockage from './storage.js';
 import { appliquerResultat } from './leitner.js';
+import { ajouterJour } from './badges.js';
+import { verifierBadges } from './insignes.js';
 
 export const NIVEAUX = [
   { nom: 'Apprenti', seuil: 0, icone: '🔰' },
@@ -56,7 +58,9 @@ export function noterReponse(mode, id, reussi) {
     e.stats ??= {};
     const m = (e.stats[mode] ??= statsVides());
     m.elements[id] = appliquerResultat(m.elements[id], reussi);   // compteurs + boîte de révision (revision.js)
+    e.activite = { jours: ajouterJour(e.activite?.jours) };       // un jour d'entraînement de plus pour la série
   });
+  verifierBadges();
 }
 
 // niveau (1, 2 ou 3) : garde aussi le meilleur score par niveau de difficulté.
@@ -72,6 +76,7 @@ export function noterSession(mode, score, niveau) {
       m.niveaux[niveau] = Math.max(m.niveaux[niveau] ?? 0, score);
     }
   });
+  verifierBadges();
 }
 
 export function statsMode(mode) {
