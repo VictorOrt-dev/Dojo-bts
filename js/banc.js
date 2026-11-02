@@ -23,7 +23,7 @@ const FONCTIONS = [
 ];
 // Visite guidée : les 3 gestes qui font comprendre le banc à un débutant.
 const GUIDE = {
-  1: "Choisis tes deux pointes, puis touche « Mesurer » en V~.",
+  1: "Ouvre l'appareil de mesure (barre du bas), choisis tes deux pointes, puis touche « Mesurer » en V~.",
   2: "Même mesure en V~ LoZ : si la valeur s'effondre, c'était une tension fantôme.",
   3: "Onglet « Actions » › « Consigner le départ » : avant tout Ω ou tout démontage.",
   fin: "Les trois gestes de base sont acquis. À toi de trouver la panne."
@@ -70,6 +70,7 @@ function demarrer(vue, banc, panne) {
     moteur: 'arrêté',
     resolu: false,
     onglet: 'multimetre',
+    consoleOuverte: false,         // l'appareil de mesure arrive replié : le contenu d'abord
     mesure: { fonction: 'hz', rouge: 'c0', noir: 'n0', lecture: null },
     pince: 1,
     dernier: null,
@@ -253,6 +254,7 @@ function demarrer(vue, banc, panne) {
       <p class="mission"><strong>Ta mission :</strong> trouver la pièce en panne, la remplacer, puis faire redémarrer le moteur.</p>
       <details class="approfondir mode-emploi"><summary>Comment ça marche ?</summary>
         <ol class="etapes-banc">
+          <li><strong>Ouvre l'appareil de mesure</strong> : la barre en bas de l'écran. Touche-la pour le déplier ou le replier.</li>
           <li><strong>Mesure sous tension</strong> (onglet Multimètre) : choisis deux points, touche « Mesurer ». On suit le courant depuis la source : là où la tension disparaît, la panne est juste avant.</li>
           <li><strong>Consigne</strong> (onglet Actions) avant de mesurer en Ω ou de démonter quoi que ce soit.</li>
           <li><strong>Confirme</strong> à l'ohmmètre ou en contrôlant le fusible, puis <strong>remplace</strong> la pièce.</li>
@@ -289,11 +291,20 @@ function demarrer(vue, banc, panne) {
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('') || '<li>Rien pour l\'instant.</li>'}</ol>
       </details>
 
-      <section class="console-banc" aria-label="Instruments">
+      <section class="console-banc${etat.consoleOuverte ? ' ouverte' : ''}${animerOuverture ? ' s-ouvre' : ''}" aria-label="Appareil de mesure">
         ${guideHtml}
+        <div class="poignee-ligne">
+          <button type="button" class="poignee-console" aria-expanded="${etat.consoleOuverte}" aria-controls="corps-console">
+            <span class="poignee-trait" aria-hidden="true"></span>
+            <span class="poignee-titre">Appareil de mesure</span>
+            <span class="poignee-lecture mono">${lecture ? `${esc(lecture.valeur)} ${esc(lecture.unite)}` : ''}</span>
+            <span class="poignee-sens">${etat.consoleOuverte ? 'Replier' : 'Ouvrir'}</span>
+          </button>
+          <button type="button" class="bouton-indice">Indice</button>
+        </div>
+        <div id="corps-console" class="corps-console"${etat.consoleOuverte ? '' : ' hidden'}>
         <nav class="segments onglets-banc" aria-label="Instruments">
           ${[['multimetre', 'Multimètre'], ['pince', 'Pince'], ['actions', 'Actions']].map(([id, l]) => `<a href="#" data-onglet-banc="${id}"${etat.onglet === id ? ' aria-current="true"' : ''}>${l}</a>`).join('')}
-          <button type="button" class="bouton-indice">Indice</button>
         </nav>
 
         ${etat.onglet === 'multimetre' ? `
@@ -335,7 +346,9 @@ function demarrer(vue, banc, panne) {
             </div>
             <button class="btn danger" type="button" data-action="abandonner">Abandonner et voir la panne</button>
           </div>` : ''}
+        </div>
       </section>`;
+    animerOuverture = false;
 
     // La console est fixée en bas : la page réserve sa hauteur pour que rien ne passe dessous.
     vue.classList.add('avec-console');
@@ -356,7 +369,15 @@ function demarrer(vue, banc, panne) {
     if (scrollY > maxUtile) scrollTo(0, maxUtile);
 
     vue.querySelector('.guide-passer')?.addEventListener('click', () => { terminerGuide(); afficher(); });
-    vue.querySelector('.bouton-indice').addEventListener('click', () => { indice(); apres(); });
+    vue.querySelector('.poignee-console').addEventListener('click', () => {
+      etat.consoleOuverte = !etat.consoleOuverte;
+      animerOuverture = etat.consoleOuverte;
+      afficher();
+    });
+    vue.querySelector('.bouton-indice').addEventListener('click', () => {
+      if (!etat.consoleOuverte) { etat.consoleOuverte = true; animerOuverture = true; }
+      indice(); apres();
+    });
     vue.querySelector('#fusible')?.addEventListener('change', ev => { etat.selFusible = ev.target.value; });
     vue.querySelector('#piece')?.addEventListener('change', ev => { etat.selPiece = ev.target.value; });
     vue.querySelectorAll('[data-onglet-banc]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); etat.onglet = a.dataset.ongletBanc; afficher(); }));
@@ -441,6 +462,7 @@ function demarrer(vue, banc, panne) {
   };
 
   // ---------- Visite guidée (premier passage au banc) : 3 gestes ----------
+  let animerOuverture = false;   // petite animation seulement au moment où l'on déplie
   let guide = stockage.lire().preferences?.visiteBanc ? null : 1;
   function terminerGuide() {
     guide = null;

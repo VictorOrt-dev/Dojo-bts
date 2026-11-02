@@ -13,12 +13,15 @@ export default async function ({ t, url: U, navigateur }) {
   const dansLePouce = b => b && b.y >= H * 0.45 && b.y + b.height <= H - NAV;
 
   // ---------- Banc : console fixée sous le pouce, sans défilement ----------
-  await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?panne=cable-pupitre'); await p.waitForSelector('#mesurer');
+  await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?panne=cable-pupitre'); await p.waitForSelector('.poignee-console');
+  const barre = await boite('.console-banc');
+  t.ok(barre.y + barre.height <= H - NAV && barre.height <= 170, `à l'arrivée : appareil de mesure replié en barre (${Math.round(barre.height)} px, visite guidée comprise), visible sans défiler`);
+  await p.click('.poignee-console');
   const cibles = { Mesurer: '#mesurer', 'V~': '[data-fonction="hz"]', LoZ: '[data-fonction="loz"]', 'Ω': '[data-fonction="ohm"]', 'pointe rouge': '#rouge', 'pointe COM': '#noir', afficheur: '.console-banc .nixie' };
   const positions = {};
   for (const [nom, sel] of Object.entries(cibles)) positions[nom] = await boite(sel);
-  t.ok(await p.evaluate(() => scrollY) === 0 && Object.values(positions).every(b => b && b.y >= 0 && b.y + b.height <= H - NAV),
-    'banc à l\'ouverture, sans défiler : fonctions, pointes, afficheur et « Mesurer » tous à l\'écran');
+  t.ok(Object.values(positions).every(b => b && b.y >= 0 && b.y + b.height <= H - NAV),
+    'appareil déplié, sans défiler : fonctions, pointes, afficheur et « Mesurer » tous à l\'écran');
   const haut = Math.min(...Object.values(positions).map(b => b.y));
   t.ok(dansLePouce(positions.Mesurer) && haut >= H * 0.4,
     `« Mesurer » dans la moitié basse (${Math.round(positions.Mesurer.y)} px) ; toutes les commandes dans les 60 % bas de l'écran, visite guidée comprise (la plus haute à ${Math.round(haut)} px)`);
@@ -38,7 +41,7 @@ export default async function ({ t, url: U, navigateur }) {
   await p.click('[data-onglet-banc="actions"]'); await p.click('[data-action="consigner"]');
   t.ok((await p.textContent('.guide-banc')).includes('Visite terminée')
     && await p.evaluate(() => JSON.parse(localStorage.getItem('elec-learning:v1')).preferences.visiteBanc === true), 'consignation faite : visite terminée et mémorisée');
-  await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc'); await p.waitForSelector('#mesurer');
+  await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc'); await p.waitForSelector('.poignee-console');
   t.ok(!(await p.$('.guide-banc')), 'visite déjà faite : elle ne revient pas');
 
   // ---------- Aucun texte sous 12 px, sur 12 écrans (HTML et graduations du cadran) ----------

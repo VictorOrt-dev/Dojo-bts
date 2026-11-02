@@ -349,6 +349,8 @@ la cause, la démarche d'un pro et le piège du cas.
 - **Sous le pouce** : la console d'instruments (onglets Multimètre / Pince / Actions, V~ / LoZ / Ω, pointe rouge et COM,
   afficheur et « Mesurer » côte à côte) est fixée au-dessus des onglets ; le contenu (symptôme, bon d'intervention, état
   de l'armoire, schéma, résultat, journal) défile au-dessus. Le bon d'intervention se replie au premier geste.
+  L'appareil **arrive replié** en une barre « Appareil de mesure » toujours visible (dernière mesure affichée, bouton
+  « Indice » à côté) : la toucher le déplie ou le replie ; « Indice » le déplie de lui-même.
 - **Visite guidée** au premier passage (3 gestes : mesurer en V~, refaire en LoZ pour démasquer la tension fantôme,
   consigner), passable, mémorisée dans `preferences.visiteBanc`.
 

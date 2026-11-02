@@ -923,7 +923,6 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .mode-emploi { margin: 0 0 8px; }
 .etapes-banc { margin: 12px 0 8px; padding-left: 22px; display: grid; gap: 8px; color: var(--texte-2); }
 .etapes-banc strong { color: var(--texte-1); }
-.onglets-banc { grid-template-columns: 1.35fr 1fr 1fr 1fr; }
 .bouton-indice {
   min-height: 44px;
   border: 0;
@@ -937,3 +936,36 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .bouton-indice:active { transform: scale(.97); }
 .lecon.indice { --bord-lecon: var(--lien); }
 [data-suggere="true"] { box-shadow: inset 0 0 0 2px var(--lien), 0 0 0 4px rgb(110 149 255 / .25) !important; }
+
+/* ---------- Banc : appareil de mesure repliable (barre toujours visible) ---------- */
+.console-banc:not(.ouverte) { padding-bottom: 8px; }
+.poignee-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.poignee-console {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px 8px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--filet-fort);
+  color: var(--texte-1);
+  text-align: left;
+  cursor: pointer;
+}
+.poignee-trait { position: absolute; top: 4px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--texte-3); opacity: .6; }
+.poignee-titre { font: 700 15px/1.2 var(--texte); grid-column: 1; }
+.poignee-lecture { grid-column: 2; justify-self: end; font-size: 14px; font-weight: 700; color: var(--principal); white-space: nowrap; }
+.poignee-sens { grid-column: 3; display: inline-flex; align-items: center; gap: 4px; font: 600 13px/1 var(--texte); color: var(--texte-2); }
+.poignee-sens::after { content: ''; width: 7px; height: 7px; border: solid currentColor; border-width: 2px 2px 0 0; transform: translateY(2px) rotate(-45deg); }
+.console-banc.ouverte .poignee-sens::after { transform: translateY(-2px) rotate(135deg); }
+.console-banc:not(.ouverte) .poignee-console { box-shadow: inset 0 0 0 1px var(--principal); }
+.poignee-ligne .bouton-indice { padding: 0 16px; }
+.corps-console { display: grid; gap: 8px; }
+.corps-console[hidden] { display: none; }
+.console-banc.s-ouvre .corps-console { animation: deplier-console .2s ease-out; }
+@keyframes deplier-console { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .console-banc.s-ouvre .corps-console { animation: none; } }

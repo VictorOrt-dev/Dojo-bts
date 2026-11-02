@@ -6,7 +6,9 @@ import { nouvellePage } from './outils.mjs';
 export default async function ({ t, url: U, navigateur }) {
   const { contexte, page: p } = await nouvellePage(navigateur);
   const errs = p.erreurs;
-  const onglet = async o => { await p.click(`[data-onglet-banc="${o}"]`); };
+  // L'appareil de mesure arrive replié : on le déplie (barre du bas) avant d'utiliser ses commandes.
+  const deplier = async () => { if (await p.$('.poignee-console[aria-expanded="false"]')) await p.click('.poignee-console'); };
+  const onglet = async o => { await deplier(); await p.click(`[data-onglet-banc="${o}"]`); };
   const mesure = async (f, r, n) => {
     await onglet('multimetre'); await p.click(`[data-fonction="${f}"]`);
     await p.selectOption('#rouge', r); await p.selectOption('#noir', n); await p.click('#mesurer');
@@ -108,11 +110,26 @@ export default async function ({ t, url: U, navigateur }) {
       `${id} : réparée en ${gestes} gestes guidés par les indices, sans alerte de sécurité ; indices comptés au rapport`);
   }
   await ouvrir('cable-pupitre');
-  await p.click('[data-fonction="hz"]'); await p.selectOption('#rouge', 's11'); await p.selectOption('#noir', 'n0'); await p.click('#mesurer');
+  await deplier(); await p.click('[data-fonction="hz"]'); await p.selectOption('#rouge', 's11'); await p.selectOption('#noir', 'n0'); await p.click('#mesurer');
   t.ok((await p.textContent('.note-mesure')).includes('LoZ'), 'lecture qui hésite : « Refais la mesure en LoZ » écrit en clair');
   await p.click('[data-fonction="loz"]'); await p.click('#mesurer');
   t.ok((await p.textContent('.note-mesure')).includes('0 V : pas de tension'), 'lecture à 0 V : « pas de tension entre ces deux points »');
   t.ok(await p.isVisible('.mission') && (await p.textContent('.mission')).includes('Ta mission'), 'la mission est écrite en clair en haut du banc');
+
+  t.section('I. Banc · appareil de mesure repliable');
+  await ouvrir('fu1-fondu');
+  const barre = await p.locator('.console-banc').boundingBox();
+  t.ok(!(await p.isVisible('#mesurer')) && await p.isVisible('.poignee-console') && barre.height <= 80 && barre.y > (await p.evaluate(() => innerHeight)) * 0.7,
+    `à l'arrivée : appareil replié en une barre de ${Math.round(barre.height)} px en bas de l'écran, toujours visible`);
+  t.ok(await p.isVisible('.mission') && await p.isVisible('.signale-court') && await p.isVisible('.etat-armoire'), 'replié : mission, symptôme et état de l\'armoire visibles d\'emblée');
+  await p.click('.poignee-console');
+  t.ok(await p.isVisible('#mesurer') && (await p.getAttribute('.poignee-console', 'aria-expanded')) === 'true', 'toucher la barre : l\'appareil se déplie');
+  await p.click('#mesurer');
+  t.ok(await p.isVisible('#mesurer'), 'il reste déplié pendant les mesures');
+  await p.click('.poignee-console');
+  t.ok(!(await p.isVisible('#mesurer')) && (await p.textContent('.poignee-lecture')).includes('V'), 'replié à nouveau : la dernière mesure reste lisible dans la barre');
+  await p.click('.bouton-indice');
+  t.ok(await p.isVisible('#mesurer') && await p.isVisible('.lecon.indice'), '« Indice » depuis la barre repliée : l\'appareil se déplie avec les pointes placées');
 
   t.section('I. Banc · accès, schéma, abandon');
   await p.goto(U + '#/entrainement'); await p.waitForSelector('a[href="#/entrainement/banc"]');
