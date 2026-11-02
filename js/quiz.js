@@ -10,6 +10,7 @@ import { conseilNiveau } from './parcours.js';
 import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
+import { aReviser } from './leitner.js';
 import { esc } from './util.js';
 
 const LEGENDES = {
@@ -38,8 +39,12 @@ export async function renderReco({ vue, definirTitre, params }) {
   const toutes = await chargerQuestions();
   const niveau = Number(params?.get('n'));
   const dom = domaine(params?.get('d'))?.id ?? '';
+  // Révision : les questions ratées dont la date de révision est arrivée (tous niveaux confondus).
+  const revision = params?.get('revision') === '1';
+  const dues = revision ? new Set(aReviser(stockage.lire(), 'reco').map(r => r.id)) : null;
   const diff = difficulte(niveau);
-  const disponibles = diff ? filtrerParDomaine(toutes, dom).filter(q => q.niveau === niveau) : [];
+  const disponibles = revision ? toutes.filter(q => dues.has(q.id)) : diff ? filtrerParDomaine(toutes, dom).filter(q => q.niveau === niveau) : [];
+  if (revision && !disponibles.length) { location.hash = '#/entrainement/revision'; return; }
   if (!disponibles.length) {
     renderChoixNiveau(vue, {
       mode: 'reco',
@@ -67,7 +72,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     const choix = melanger([q.nom, ...q.faux]);
 
     vue.innerHTML = `
-      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
+      <p class="niveau-seance">${revision ? `<span class="pastille-revision">Révision</span> ${etiquetteNiveau(q.niveau)}` : etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
       ${enteteSession(session.index + 1, session.score, session.resultats, session.questions.length)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
         <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
@@ -100,7 +105,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     let gain = 0;
     if (juste) {
       session.score++;
-      gain = diff.xp;
+      gain = difficulte(q.niveau).xp;
       session.xp += gain;
       annoncerMontee(gagnerXP(gain));
     }
@@ -148,14 +153,14 @@ export async function renderReco({ vue, definirTitre, params }) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('reco', session.score, dom ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
-    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1 && filtrerParDomaine(toutes, dom).some(q => q.niveau === d.n));
+    noterSession('reco', session.score, dom || revision ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
+    const suivantNiveau = revision ? null : DIFFICULTES.find(d => d.n === niveau + 1 && filtrerParDomaine(toutes, dom).some(q => q.niveau === d.n));
     afficherBilan(vue, {
       score: session.score,
       total,
       xpGagne: session.xp,
       onRejouer: () => renderReco({ vue, definirTitre, params }),
-      suite: session.score >= Math.ceil(total * 0.8) && suivantNiveau ? { href: lienSeance('#/entrainement/reco', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+      suite: revision ? { href: '#/entrainement/revision', libelle: 'Retour à « À réviser »' } : session.score >= Math.ceil(total * 0.8) && suivantNiveau ? { href: lienSeance('#/entrainement/reco', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };
 

@@ -5,6 +5,7 @@ import { carteNiveau, TAILLE_SESSION } from './entrainement.js';
 import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
 import { frontispice, titreSection, ligneEtat, deuxChiffres } from './mise-en-page.js';
+import { enRevision } from './leitner.js';
 import { esc, plurielS } from './util.js';
 import { PROFILS } from './parcours.js';
 
@@ -44,6 +45,17 @@ function resumePositionnement(p) {
   return `Positionnement : ${p.score}/12 · ${modes.join(', ')}.`;
 }
 
+// « À réviser » : erreurs enregistrées, revues à intervalles croissants (leitner.js).
+function blocRevision(etat) {
+  const tout = enRevision(etat);
+  const dus = tout.filter(r => r.du).length;
+  const texte = !tout.length ? 'À réviser : aucune erreur enregistrée.'
+    : dus ? `À réviser : ${dus} élément${dus > 1 ? 's' : ''} à revoir maintenant (${tout.length} en révision).`
+      : `À réviser : rien pour aujourd'hui (${tout.length} en révision, à revoir plus tard).`;
+  return `<div class="revision-carnet">${ligneEtat(dus ? 'attention' : 'neutre', esc(texte))}
+    ${tout.length ? `<div class="actions"><a class="btn${dus ? ' principal' : ''}" href="#/entrainement/revision">${dus ? 'Réviser mes erreurs' : 'Voir les éléments en révision'}</a></div>` : ''}</div>`;
+}
+
 export async function renderProfil({ vue, definirTitre }) {
   definirTitre('Carnet');
   const etat = stockage.lire();
@@ -66,6 +78,7 @@ export async function renderProfil({ vue, definirTitre }) {
           ${ligneInterventions('Cas de panne', 'panne')}
           ${ligneInterventions('Banc de mesure', 'banc')}
         </ul>
+        ${blocRevision(etat)}
       </div>
     </section>
 

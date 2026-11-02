@@ -9,6 +9,7 @@ import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import { conseilNiveau } from './parcours.js';
+import { aReviser } from './leitner.js';
 import * as stockage from './storage.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
@@ -1242,9 +1243,10 @@ export function generateursDe(niveau, dom = '') {
 }
 
 // Une séance compte toujours 10 calculs : les générateurs disponibles sont repris à tour de rôle.
-export function creerSession(niveau, dom = '') {
-  const dispo = generateursDe(niveau, dom);
-  const generateurs = melanger(Array.from({ length: TAILLE_SESSION }, (_, i) => dispo[i % dispo.length]));
+// En révision (ids donnés) : chaque type de calcul raté revient une fois, avec de nouvelles valeurs.
+export function creerSession(niveau, dom = '', ids = null) {
+  const dispo = ids ? GENERATEURS.filter(g => ids.includes(g.id)) : generateursDe(niveau, dom);
+  const generateurs = ids ? melanger(dispo).slice(0, TAILLE_SESSION) : melanger(Array.from({ length: TAILLE_SESSION }, (_, i) => dispo[i % dispo.length]));
   return {
     niveau,
     domaine: dom,
@@ -1269,7 +1271,10 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
   const niveau = Number(params?.get('n'));
   const dom = domaine(params?.get('d'))?.id ?? '';
   const diff = difficulte(niveau);
-  if (!diff || !generateursDe(niveau, dom).length) {
+  const revision = params?.get('revision') === '1';
+  const dus = revision ? aReviser(stockage.lire(), 'calcul').map(r => r.id).filter(id => GENERATEURS.some(g => g.id === id)) : [];
+  if (revision && !dus.length) { location.hash = '#/entrainement/revision'; return; }
+  if (!revision && (!diff || !generateursDe(niveau, dom).length)) {
     renderChoixNiveau(vue, {
       mode: 'calcul',
       base: '#/entrainement/calcul',
@@ -1283,7 +1288,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     return;
   }
 
-  const session = sessionCourante = creerSession(niveau, dom);
+  const session = sessionCourante = creerSession(niveau, dom, revision ? dus : null);
   let saisie = '';
   const exerciceCourant = () => session.exercices[session.index];
 
@@ -1322,8 +1327,8 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const ex = exerciceCourant();
     saisie = '';
     vue.innerHTML = `
-      <p class="niveau-seance">${etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
-      ${enteteSession(session.index + 1, session.score, session.resultats)}
+      <p class="niveau-seance">${revision ? `<span class="pastille-revision">Révision</span> ${etiquetteNiveau(exerciceCourant().generateur.niveau)}` : etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
+      ${enteteSession(session.index + 1, session.score, session.resultats, session.exercices.length)}
       <section class="exercice">
         <p class="surtitre">${esc(ex.generateur.titre)}</p>
         <p class="reco-domaines">${pucesDomaines(ex.generateur.domaines)}</p>
@@ -1374,7 +1379,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     noterReponse('calcul', ex.generateur.id, juste);
     let gain = 0;
     if (juste) {
-      gain = diff.xp;
+      gain = difficulte(ex.generateur.niveau).xp;
       session.score++;
       session.xp += gain;
       annoncerMontee(gagnerXP(gain));
@@ -1419,13 +1424,14 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('calcul', session.score, dom ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
-    const suivantNiveau = DIFFICULTES.find(d => d.n === niveau + 1 && generateursDe(d.n, dom).length);
+    noterSession('calcul', session.score, dom || revision ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
+    const suivantNiveau = revision ? null : DIFFICULTES.find(d => d.n === niveau + 1 && generateursDe(d.n, dom).length);
     afficherBilan(vue, {
       score: session.score,
+      total: session.exercices.length,
       xpGagne: session.xp,
       onRejouer: () => renderCalcul({ vue, definirTitre, auNettoyage, params }),
-      suite: session.score >= 8 && suivantNiveau ? { href: lienSeance('#/entrainement/calcul', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
+      suite: revision ? { href: '#/entrainement/revision', libelle: 'Retour à « À réviser »' } : session.score >= 8 && suivantNiveau ? { href: lienSeance('#/entrainement/calcul', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };
 

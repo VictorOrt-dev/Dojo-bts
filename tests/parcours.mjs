@@ -88,4 +88,32 @@ export default async function ({ t, url: U, navigateur }) {
   await p2.goto(U); await p2.waitForSelector('.plaque');
   t.ok(p2.url().endsWith('#/entrainement') || !p2.url().includes('bienvenue'), 'utilisateur existant (350 XP, pas de profil) : accueil direct, sans questionnaire');
   await c2.close();
+
+  // ---------- À réviser : une erreur revient, puis s'espace ----------
+  const { contexte: c3, page: p3 } = await nouvellePage(navigateur);
+  const lireEtat = () => p3.evaluate(() => JSON.parse(localStorage.getItem('elec-learning:v1')));
+  await p3.goto(U + '#/profil'); await p3.waitForSelector('.revision-carnet');
+  t.ok((await p3.textContent('.revision-carnet')).includes('aucune erreur'), 'Carnet : « À réviser » vide au départ');
+  await p3.goto(U + '#/entrainement/reco?n=1'); await p3.waitForSelector('.choix-btn');
+  const src = await p3.getAttribute('.reco-visuel img', 'src');
+  const question = (await p3.textContent('.question')).replace(/\s/g, '');
+  const rate = qs.find(x => x.image === src && x.question.replace(/\s/g, '') === question);
+  const textes = (await p3.locator('.choix-btn').allTextContents()).map(x => x.replace(/\s/g, '').slice(1));
+  await p3.locator('.choix-btn').nth(textes.findIndex(x => x !== rate.nom.replace(/\s/g, ''))).click();
+  t.ok((await lireEtat()).stats.reco.elements[rate.id].boite === 1, `question ratée (${rate.id}) : boîte 1 de révision`);
+  await p3.goto(U + '#/entrainement'); await p3.waitForSelector('.prochaine');
+  t.ok((await p3.textContent('.rappel-revision')).includes('1 erreur'), 'accueil : rappel « À réviser : 1 erreur à revoir aujourd\'hui »');
+  await p3.click('.rappel-revision'); await p3.waitForSelector('.bloc-revision');
+  t.ok((await p3.textContent('.bloc-revision[data-mode="reco"]')).includes('boîte 1/5'), 'écran « À réviser » : la question, en boîte 1/5, à revoir maintenant');
+  await p3.click('.bloc-revision[data-mode="reco"] .btn.principal'); await p3.waitForSelector('.choix-btn');
+  t.ok((await p3.textContent('.niveau-seance')).includes('Révision') && (await p3.textContent('.entete-session, .session-entete, main')).includes('/01'),
+    'séance de révision : une seule question, celle qui a été ratée');
+  const textes2 = (await p3.locator('.choix-btn').allTextContents()).map(x => x.replace(/\s/g, '').slice(1));
+  await p3.locator('.choix-btn').nth(textes2.findIndex(x => x === rate.nom.replace(/\s/g, ''))).click();
+  const el = (await lireEtat()).stats.reco.elements[rate.id];
+  t.ok(el.boite === 2 && el.revoir - Date.now() > 20 * 3600 * 1000, 'réussie en révision : boîte 2, revue dans un jour');
+  await p3.goto(U + '#/profil'); await p3.waitForSelector('.revision-carnet');
+  t.ok((await p3.textContent('.revision-carnet')).includes('rien pour aujourd'), 'Carnet : plus rien à revoir aujourd\'hui, 1 élément en révision');
+  t.ok(p3.erreurs.length === 0, 'révision : aucune erreur dans la console' + (p3.erreurs.length ? ' — ' + p3.erreurs.join(' | ') : ''));
+  await c3.close();
 }

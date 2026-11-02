@@ -369,6 +369,16 @@ la cause, la démarche d'un pro et le piège du cas.
 - **Visite guidée** au premier passage (3 gestes : mesurer en V~, refaire en LoZ pour démasquer la tension fantôme,
   consigner), passable, mémorisée dans `preferences.visiteBanc`.
 
+## À réviser : répétition espacée (`js/leitner.js`, `js/revision.js`)
+
+- Toute erreur (question ratée, calcul faux, cas pas sans faute, panne du banc avec alerte de sécurité) place l'élément
+  en **boîte 1**, à revoir tout de suite. Chaque réussite le fait monter d'une boîte : revu après 1, 3, 7 puis 15 jours ;
+  réussi en boîte 5, il sort de la révision. Une erreur le renvoie en boîte 1. Stocké dans `stats.<mode>.elements[id]`
+  (`boite`, `revoir`), contrôlé à l'import.
+- Écran `#/entrainement/revision` (depuis le Carnet ou le rappel de l'accueil) : éléments à revoir par mode ;
+  `#/entrainement/reco?revision=1` et `#/entrainement/calcul?revision=1` lancent une séance des seuls éléments dus,
+  les cas et les pannes du banc s'ouvrent directement.
+
 ## XP et niveaux (`js/xp.js`)
 
 | Action | XP |
@@ -399,9 +409,9 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
+- [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes)
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
-- [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)
 
 ## Renommer le dépôt (facultatif)

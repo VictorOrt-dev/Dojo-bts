@@ -11,6 +11,7 @@ import { renderPanne } from './panne.js';
 import { renderBanc } from './banc.js';
 import { renderBienvenue } from './bienvenue.js';
 import { renderPositionnement } from './positionnement.js';
+import { renderRevision } from './revision.js';
 import { premierLancement } from './parcours.js';
 import { appliquerTheme } from './theme.js';
 import * as stockage from './storage.js';
@@ -80,6 +81,7 @@ async function router() {
         if (!id && premierLancement(stockage.lire())) { location.replace('#/bienvenue'); break; }
         if (!id) await renderEntrainement(ctx);
         else if (id === 'positionnement') await renderPositionnement(ctx);
+        else if (id === 'revision') await renderRevision(ctx);
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
         else if (id === 'panne') await renderPanne(ctx);

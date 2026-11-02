@@ -2,6 +2,7 @@
 // Tout est enregistré via storage.js : e.xp (nombre) et e.stats[mode].
 
 import * as stockage from './storage.js';
+import { appliquerResultat } from './leitner.js';
 
 export const NIVEAUX = [
   { nom: 'Apprenti', seuil: 0, icone: '🔰' },
@@ -54,9 +55,7 @@ export function noterReponse(mode, id, reussi) {
   stockage.modifier(e => {
     e.stats ??= {};
     const m = (e.stats[mode] ??= statsVides());
-    const s = (m.elements[id] ??= { essais: 0, reussites: 0 });
-    s.essais++;
-    if (reussi) s.reussites++;
+    m.elements[id] = appliquerResultat(m.elements[id], reussi);   // compteurs + boîte de révision (revision.js)
   });
 }
 

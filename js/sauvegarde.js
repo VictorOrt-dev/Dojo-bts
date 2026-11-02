@@ -57,7 +57,13 @@ function controlerElement(valeur, chemin, anomalies) {
     anomalies.push(`${chemin} : attendu { essais, reussites } entiers, avec reussites ≤ essais`);
     return undefined;
   }
-  return { essais: valeur.essais, reussites: valeur.reussites };
+  // Révision (Leitner) : boîte 1 à 5 et date de prochaine révision, toujours ensemble.
+  if (valeur.boite === undefined && valeur.revoir === undefined) return { essais: valeur.essais, reussites: valeur.reussites };
+  if (!(Number.isSafeInteger(valeur.boite) && valeur.boite >= 1 && valeur.boite <= 5 && estHorodatage(valeur.revoir))) {
+    anomalies.push(`${chemin} : révision attendue { boite 1 à 5, revoir (date) }`);
+    return { essais: valeur.essais, reussites: valeur.reussites };
+  }
+  return { essais: valeur.essais, reussites: valeur.reussites, boite: valeur.boite, revoir: valeur.revoir };
 }
 
 function controlerMode(m, chemin, anomalies) {

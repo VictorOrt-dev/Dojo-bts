@@ -9,6 +9,7 @@ import { esc } from './util.js';
 import { DOMAINES, puceDomaine } from './domaines.js';
 import * as stockage from './storage.js';
 import { prochaineSeance, ordreModes, conseilBanc } from './parcours.js';
+import { aReviser } from './leitner.js';
 import { chargerPannes } from './panne.js';
 
 export const TAILLE_SESSION = 10;
@@ -76,6 +77,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
     </header>
 
     ${carteProchaine(prochaine)}
+    ${(n => n ? `<a class="rappel-revision" href="#/entrainement/revision"><strong>À réviser :</strong> ${n} erreur${n > 1 ? 's' : ''} à revoir aujourd'hui →</a>` : '')(aReviser(etat).length)}
 
     ${carteNiveau()}
 

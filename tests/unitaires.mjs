@@ -8,12 +8,14 @@ import { tension, resistance } from '../js/circuit.js';
 import { controler, etatParDefaut, XP_MAX } from '../js/sauvegarde.js';
 import * as P from '../js/parcours.js';
 import { resume, MOTS_POURQUOI, MOTS_RISQUE } from '../js/tuteur.js';
+import * as L from '../js/leitner.js';
 
 export default async function ({ t }) {
   physiqueDuBanc(t);
   controleDesSauvegardes(t);
   parcoursGuide(t);
   correctionEnDeuxTemps(t);
+  revisionEspacee(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -234,4 +236,33 @@ function correctionEnDeuxTemps(t) {
   for (const b of lire('data/banc-depart-moteur.json').pannes) pires.push({ id: b.id, n: 2 + mots(resume(b.cause, MOTS_POURQUOI).court) + 4 + mots(resume(b.risque, MOTS_RISQUE).court) });
   pires.sort((a, b) => b.n - a.n);
   t.ok(pires[0].n <= PLAFOND, `reconnaissance, cas de panne, banc : essentiel le plus long = ${pires[0].n} mots (${pires[0].id}), plafond ${PLAFOND}`);
+}
+
+// ---------- Révision des erreurs : 5 boîtes de Leitner (leitner.js) ----------
+
+function revisionEspacee(t) {
+  t.section('U5. Révision des erreurs (leitner.js) : répétition espacée en 5 boîtes');
+  const J = 24 * 60 * 60 * 1000, t0 = 1_800_000_000_000;
+  const rate = L.appliquerResultat(undefined, false, t0);
+  t.ok(rate.essais === 1 && rate.reussites === 0 && rate.boite === 1 && rate.revoir === t0, 'erreur : boîte 1, à revoir tout de suite');
+  t.ok(isDeepStrictEqual(L.appliquerResultat(undefined, true, t0), { essais: 1, reussites: 1 }), 'réussi du premier coup : n\'entre pas en révision');
+  let e = rate; const dates = [];
+  for (let i = 0; i < 4; i++) { e = L.appliquerResultat(e, true, t0); dates.push((e.revoir - t0) / J); }
+  t.ok(e.boite === 5 && dates.join() === '1,3,7,15', `réussites successives : boîtes 2 à 5, revues après ${dates.join(', ')} jours`);
+  const sorti = L.appliquerResultat(e, true, t0);
+  t.ok(sorti.boite === undefined && sorti.revoir === undefined && sorti.reussites === 5, 'réussi en boîte 5 : acquis, sort de la révision');
+  t.ok(L.appliquerResultat(e, false, t0).boite === 1, 'une erreur en boîte 4 ou 5 renvoie en boîte 1');
+  const etat = { stats: {
+    reco: { elements: { a: { essais: 2, reussites: 1, boite: 1, revoir: t0 - 1 }, b: { essais: 3, reussites: 3 } } },
+    calcul: { elements: { ohm: { essais: 2, reussites: 1, boite: 3, revoir: t0 + 3 * J } } },
+    panne: { elements: { 'vat-procedure': { essais: 1, reussites: 0, boite: 1, revoir: t0 } } }
+  } };
+  const liste = L.enRevision(etat, t0);
+  t.ok(liste.length === 3 && liste.filter(r => r.du).map(r => r.id).sort().join() === 'a,vat-procedure' && L.aReviser(etat, 'calcul', t0).length === 0
+    && L.aReviser(etat, 'calcul', t0 + 3 * J).length === 1, 'à réviser : seulement les éléments dont la date est arrivée, tous modes confondus');
+  const sauve = controler({ version: 1, stats: { reco: { elements: { a: { essais: 2, reussites: 1, boite: 2, revoir: t0 } } } } });
+  t.ok(sauve.anomalies.length === 0 && sauve.etat.stats.reco.elements.a.boite === 2, 'sauvegarde : boîte et date de révision conservées');
+  const abimee = controler({ version: 1, stats: { reco: { elements: { a: { essais: 2, reussites: 1, boite: 9, revoir: 'demain' } } } } });
+  t.ok(abimee.anomalies.some(a => a.includes('révision')) && abimee.etat.stats.reco.elements.a.boite === undefined && abimee.etat.stats.reco.elements.a.essais === 2,
+    'sauvegarde : révision abîmée refusée, compteurs gardés');
 }
