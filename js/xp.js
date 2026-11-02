@@ -51,8 +51,8 @@ function statsVides() {
   return { sessions: 0, meilleurScore: 0, derniereSession: null, elements: {} };
 }
 
-// Résultat d'une question (id = id de la question ou du générateur de calcul).
-// Ces compteurs serviront plus tard à la révision ciblée des erreurs.
+// Résultat d'une réponse (id de la question, du générateur de calcul, du cas, de la panne ou de la mesure) :
+// compteurs, 10 dernières réponses (aiguillage de l'accueil) et boîte de révision (leitner.js), jour d'activité (séries).
 export function noterReponse(mode, id, reussi) {
   stockage.modifier(e => {
     e.stats ??= {};

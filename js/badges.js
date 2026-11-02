@@ -18,13 +18,25 @@ export const jourLocal = (d = new Date()) => `${d.getFullYear()}-${deux(d.getMon
 const versDate = j => { const [a, m, d] = j.split('-').map(Number); return new Date(a, m - 1, d); };
 const ecartJours = (a, b) => Math.round((versDate(b) - versDate(a)) / 86_400_000);   // b − a, en jours
 
+// Une vraie date du calendrier (« 2026-13-45 » ou « 2026-02-30 » refusées).
+export function dateValide(j) {
+  if (typeof j !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(j)) return false;
+  const [a, m, d] = j.split('-').map(Number);
+  const date = new Date(a, m - 1, d);
+  return date.getFullYear() === a && date.getMonth() === m - 1 && date.getDate() === d && a >= 2000;
+}
+
+// Jours comptables : dates réelles, jamais dans le futur (horloge avancée puis remise à l'heure).
+export const joursValides = (jours = [], aujourdhui = jourLocal()) =>
+  [...new Set(jours)].filter(j => dateValide(j) && j <= aujourdhui).sort();
+
 export function ajouterJour(jours = [], jour = jourLocal()) {
-  return [...new Set([...jours, jour])].sort().slice(-JOURS_GARDES);
+  return [...new Set([...jours.filter(dateValide), ...(dateValide(jour) ? [jour] : [])])].sort().slice(-JOURS_GARDES);
 }
 
 // Série en cours : jours consécutifs jusqu'à aujourd'hui (ou hier, tant que la journée n'est pas finie).
 export function serieEnCours(jours = [], aujourdhui = jourLocal()) {
-  const tries = [...new Set(jours)].sort();
+  const tries = joursValides(jours, aujourdhui);
   let dernier = tries.at(-1);
   if (!dernier || ecartJours(dernier, aujourdhui) > 1) return 0;
   let n = 1;
@@ -35,8 +47,8 @@ export function serieEnCours(jours = [], aujourdhui = jourLocal()) {
   return n;
 }
 
-export function meilleureSerie(jours = []) {
-  const tries = [...new Set(jours)].sort();
+export function meilleureSerie(jours = [], aujourdhui = jourLocal()) {
+  const tries = joursValides(jours, aujourdhui);
   let meilleure = 0, courante = 0;
   tries.forEach((j, i) => { courante = i && ecartJours(tries[i - 1], j) === 1 ? courante + 1 : 1; meilleure = Math.max(meilleure, courante); });
   return meilleure;

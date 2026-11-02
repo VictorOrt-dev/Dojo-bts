@@ -54,7 +54,8 @@ function renderErreur(err, vue) {
     </header>
     <p class="note-marge">${esc(err.message)}</p>
     ${fichierLocal ? '<p class="espace">Le fichier a été ouvert directement. Lance un petit serveur : <code>python3 -m http.server</code>, puis ouvre <code>http://localhost:8000</code>.</p>' : ''}
-    <div class="actions"><button class="btn principal" type="button" onclick="location.reload()">Réessayer</button></div>`;
+    <div class="actions"><button id="reessayer" class="btn principal" type="button">Réessayer</button></div>`;
+  vue.querySelector('#reessayer').addEventListener('click', () => location.reload());   // pas de onclick : la CSP l'interdit
   console.error(err);
 }
 

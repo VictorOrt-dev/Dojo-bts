@@ -7,6 +7,8 @@
 // storage.js REFUSE une sauvegarde importée dès qu'il y a une anomalie (rien n'est modifié), et se contente
 // de NETTOYER le contenu de localStorage au démarrage (l'app ne doit jamais planter sur des données abîmées).
 
+import { dateValide, joursValides } from './badges.js';
+
 export const VERSION = 1;
 export const MODES = ['reco', 'calcul', 'panne', 'banc', 'isolement'];
 export const MATIERES = ['auto', 'bakelite', 'porcelaine'];   // auto = suit le réglage clair / sombre du téléphone
@@ -60,13 +62,19 @@ function controlerElement(valeur, chemin, anomalies) {
     anomalies.push(`${chemin} : attendu { essais, reussites } entiers, avec reussites ≤ essais`);
     return undefined;
   }
+  const base = { essais: valeur.essais, reussites: valeur.reussites };
+  // Réponses récentes (aiguillage) : jusqu'à 10 caractères « 0 » ou « 1 », jamais plus que d'essais.
+  if (valeur.recents !== undefined) {
+    if (typeof valeur.recents === 'string' && /^[01]{0,10}$/.test(valeur.recents) && valeur.recents.length <= valeur.essais) base.recents = valeur.recents;
+    else anomalies.push(`${chemin} : réponses récentes attendues (« 0 » / « 1 », 10 au plus)`);
+  }
   // Révision (Leitner) : boîte 1 à 5 et date de prochaine révision, toujours ensemble.
-  if (valeur.boite === undefined && valeur.revoir === undefined) return { essais: valeur.essais, reussites: valeur.reussites };
+  if (valeur.boite === undefined && valeur.revoir === undefined) return base;
   if (!(Number.isSafeInteger(valeur.boite) && valeur.boite >= 1 && valeur.boite <= 5 && estHorodatage(valeur.revoir))) {
     anomalies.push(`${chemin} : révision attendue { boite 1 à 5, revoir (date) }`);
-    return { essais: valeur.essais, reussites: valeur.reussites };
+    return base;
   }
-  return { essais: valeur.essais, reussites: valeur.reussites, boite: valeur.boite, revoir: valeur.revoir };
+  return { ...base, boite: valeur.boite, revoir: valeur.revoir };
 }
 
 function controlerMode(m, chemin, anomalies) {
@@ -153,11 +161,12 @@ export function controler(donnees) {
   }
 
   // Jours d'entraînement (séries) : dates « AAAA-MM-JJ », au plus 400.
+  // Date impossible : fichier abîmé, refusé. Date future (horloge avancée) : ignorée, elle ne compte jamais.
   if (donnees.activite !== undefined) {
     const j = donnees.activite?.jours;
-    if (estObjet(donnees.activite) && Array.isArray(j) && j.length <= 400 && j.every(x => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x))) {
-      etat.activite = { jours: [...new Set(j)].sort() };
-    } else anomalies.push('activite : attendu { jours: [« AAAA-MM-JJ »…] } (400 au plus)');
+    if (estObjet(donnees.activite) && Array.isArray(j) && j.length <= 400 && j.every(dateValide)) {
+      etat.activite = { jours: joursValides(j) };
+    } else anomalies.push('activite : attendu { jours: [dates réelles « AAAA-MM-JJ »…] } (400 au plus)');
   }
 
   // Jalons des insignes.

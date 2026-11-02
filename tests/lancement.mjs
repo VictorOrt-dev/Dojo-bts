@@ -126,4 +126,56 @@ export default async function ({ t, url: U, navigateur }) {
     t.ok(p.erreurs.length === 0, `mode ${nom} : aucune erreur dans la console sur ${ECRANS.length} écrans` + (p.erreurs.length ? ' — ' + p.erreurs.slice(0, 3).join(' | ') : ''));
     await contexte.close();
   }
+
+  // ---------- Audit 360° : CSP (C5), échec d'écriture (C6), libellés (C3, C4) ----------
+  {
+    const { contexte, page: p } = await nouvellePage(navigateur);
+    await p.addInitScript(() => { window.__violations = []; document.addEventListener('securitypolicyviolation', e => window.__violations.push(e.violatedDirective)); });
+    await p.goto(U + '#/entrainement'); await p.waitForSelector('.prochaine');
+    const csp = await p.getAttribute('meta[http-equiv="Content-Security-Policy"]', 'content');
+    const directive = nom => (csp.split(';').map(x => x.trim()).find(x => x.startsWith(nom + ' ')) ?? '');
+    t.ok(csp && directive('default-src') === "default-src 'self'" && directive('script-src') === "script-src 'self'" && directive('object-src').includes("'none'")
+      && !/https?:|\*/.test(csp), 'CSP : tout vient de l\'app elle-même, scripts sans « unsafe-inline », aucun hôte externe, objets interdits');
+    t.ok((await p.evaluate(() => window.__violations.length)) === 0, 'CSP : aucune violation pendant le chargement de l\'accueil');
+    const bloque = await p.evaluate(async () => {
+      window.__violations = [];
+      const img = new Image(); img.src = 'https://exemple.invalid/traceur.png';
+      const s = document.createElement('script'); s.textContent = 'window.__injecte = true'; document.body.append(s);
+      let fetchBloque = false; try { await fetch('https://exemple.invalid/donnees'); } catch { fetchBloque = true; }
+      await new Promise(r => setTimeout(r, 300));
+      return { violations: [...new Set(window.__violations)].sort().join(','), injecte: !!window.__injecte, fetchBloque };
+    });
+    t.ok(!bloque.injecte && bloque.fetchBloque && /connect-src/.test(bloque.violations) && /img-src/.test(bloque.violations) && /script-src/.test(bloque.violations),
+      `CSP en action : script injecté, image et requête externes bloqués (${bloque.violations})`);
+    await contexte.close();
+  }
+  {
+    const { contexte, page: p } = await nouvellePage(navigateur);
+    await p.goto(U + '#/entrainement/reco?n=1'); await p.waitForSelector('.choix-btn');
+    await p.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('Quota dépassé', 'QuotaExceededError'); }; });
+    await p.click('.choix-btn >> nth=0'); await p.waitForSelector('.alerte-stockage');
+    t.ok(net(await p.textContent('.alerte-stockage')).includes('Progression non enregistrée') && net(await p.textContent('.alerte-stockage')).includes('stockage de ton téléphone est plein')
+      && (await p.getAttribute('.alerte-stockage', 'role')) === 'alert', 'stockage plein : bandeau d\'alerte visible (« Progression non enregistrée », exporter depuis le Carnet)');
+    await p.click('#suivant'); await p.click('.choix-btn >> nth=0'); await p.waitForTimeout(200);
+    t.ok(await p.locator('.alerte-stockage').count() === 1, 'un seul bandeau, même si les échecs se répètent');
+    await p.click('.alerte-stockage .btn');
+    t.ok(await p.locator('.alerte-stockage').count() === 0, '« Compris » ferme le bandeau');
+    await contexte.close();
+  }
+  {
+    const { contexte, page: p } = await nouvellePage(navigateur);
+    await p.addInitScript(() => {
+      const e = JSON.parse(localStorage.getItem('elec-learning:v1'));
+      e.stats = { banc: { sessions: 2, meilleurScore: 1, derniereSession: 1, elements: { 'fu1-fondu': { essais: 2, reussites: 1 } } },
+        isolement: { sessions: 1, meilleurScore: 1, derniereSession: 1, elements: { 'iso-prises-neuves': { essais: 1, reussites: 1 } } } };
+      localStorage.setItem('elec-learning:v1', JSON.stringify(e));
+    });
+    await p.goto(U + '#/entrainement'); await p.waitForSelector('.mode-banc');
+    t.ok(net(await p.textContent('.mode-banc .mode-record')) === '1 réparée' && net(await p.textContent('.mode-banc .mode-desc')).includes('2 circuits'),
+      'accueil › Banc : « 1 réparée » (plus « sans faute ») et description des 2 circuits');
+    await p.goto(U + '#/profil'); await p.waitForSelector('.stats');
+    const carnet = net(await p.textContent('.stats'));
+    t.ok(carnet.includes('Banc de mesure1 réparée') && carnet.includes('Mesure d\'isolement1 réussie'), 'Carnet : banc « réparée », isolement « réussie »');
+    await contexte.close();
+  }
 }

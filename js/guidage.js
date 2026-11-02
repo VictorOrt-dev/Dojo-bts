@@ -1,4 +1,4 @@
-// Guidage pédagogique dynamique de l'accueil : à partir des réponses enregistrées en local (stats.<mode>.elements),
+// Guidage pédagogique dynamique de l'accueil : à partir des 10 dernières réponses de chaque élément (stats.<mode>.elements),
 // calcule la réussite par domaine technique et choisit l'encart « Prochaine étape » :
 //   1. une lacune nette (domaine le plus faible, assez de réponses) → séance ciblée sur ce domaine ;
 //   2. sinon, un niveau tout juste acquis → passage au niveau suivant ;
@@ -7,6 +7,7 @@
 
 import { DOMAINES } from './domaines.js';
 import { niveauAcquis } from './parcours.js';
+import { RECENTS } from './leitner.js';
 
 export const ESSAIS_MIN = 6;        // réponses dans un domaine avant de parler de lacune
 export const ECHEC_ALERTE = 0.35;   // taux d'échec à partir duquel on propose une séance ciblée
@@ -15,6 +16,15 @@ const ROMAIN = ['', 'I', 'II', 'III'];
 const NOMS_MODE = { reco: 'Reconnaissance', calcul: 'Calculs', panne: 'Cas de panne' };
 export const NOMS_COURTS = { 'tbt-cc': 'TBT et courant continu', 'mono-bt': 'Monophasé', tri: 'Triphasé', securite: 'Sécurité', hta: 'HTA' };
 
+// Les 10 dernières réponses d'un élément (champ `recents`). Une ancienne sauvegarde sans historique récent est
+// ramenée à 10 réponses au plus, à la même proportion : un passé lointain ne pèse jamais plus que 10 réponses.
+export function recentes(s) {
+  if (!s?.essais) return null;
+  if (typeof s.recents === 'string' && s.recents.length) return { essais: s.recents.length, reussites: [...s.recents].filter(c => c === '1').length };
+  const essais = Math.min(s.essais, RECENTS);
+  return { essais, reussites: Math.round(s.reussites / s.essais * essais) };
+}
+
 // catalogue : { reco: [{ id, niveau, domaines }], calcul: [...], panne: [...] }
 // Résultat : { [domaine]: { essais, reussites, echec, modes: { [mode]: { essais, reussites, parNiveau: {n: {essais, reussites}}, elements: [{id, niveau, essais, reussites}] } } } }
 export function bilanDomaines(etat, catalogue) {
@@ -22,7 +32,7 @@ export function bilanDomaines(etat, catalogue) {
   for (const mode of MODES) {
     const suivis = etat.stats?.[mode]?.elements ?? {};
     for (const el of catalogue[mode] ?? []) {
-      const s = suivis[el.id];
+      const s = recentes(suivis[el.id]);
       const dom = el.domaines?.[0];
       if (!s?.essais || !bilan[dom]) continue;
       const b = bilan[dom];

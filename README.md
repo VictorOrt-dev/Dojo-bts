@@ -343,7 +343,8 @@ Une séance = 10 calculs répartis entre les générateurs du niveau (et du doma
 
 ## Banc de mesure (`js/banc.js`, `js/circuit.js`, `data/banc-depart-moteur.json`)
 
-Un départ moteur direct (Q1 porte-fusibles aM, KM1, F2, M1 ; commande 230 V par T1, pupitre Marche / Arrêt distant).
+Deux circuits : un départ moteur direct (Q1 porte-fusibles aM, KM1, F2, M1 ; commande 230 V par T1, pupitre Marche / Arrêt
+distant) et un éclairage de couloir par télérupteur (voir « Deux circuits » plus bas).
 Une panne cachée est tirée au sort parmi celles du fichier (jamais deux fois de suite). L'élève mesure, consigne, contrôle
 et remplace ; chaque geste avance une **horloge d'intervention simulée** (pas de chronomètre réel). Le rapport compare
 son temps à celui d'un technicien confirmé, liste les alertes sécurité et les pièces changées pour rien, puis explique
@@ -414,6 +415,11 @@ la cause, la démarche d'un pro et le piège du cas.
 ## Données 100 % locales
 
 - Aucune donnée ne quitte l'appareil : pas de compte, pas de serveur, pas de mesure d'audience, polices embarquées.
+- **Politique de sécurité de contenu** (`index.html`) : tout vient de l'app elle-même, aucun script en ligne, aucun hôte
+  externe (images, requêtes, cadres, objets interdits) ; styles en ligne seuls autorisés. Vérifiée par la suite P, qui
+  tente un script injecté, une image et une requête externes.
+- **Écriture impossible** (stockage plein, navigation privée) : bandeau d'alerte « Progression non enregistrée », une
+  fois par ouverture, qui invite à exporter.
   Le Carnet le dit : « Tes données de progression restent 100 % locales sur ton appareil. Zéro compte requis, zéro
   serveur externe. »
 - Export JSON (partage iOS ou téléchargement) et import contrôlé ; la suite **P** vérifie l'aller-retour complet
@@ -421,8 +427,9 @@ la cause, la démarche d'un pro et le piège du cas.
 
 ## Prochaine étape : guidage par domaine (`js/guidage.js`)
 
-- L'encart de l'accueil est choisi d'après les réponses enregistrées en local (`stats.<mode>.elements`), cumulées par
-  **domaine principal** de chaque question, calcul et cas :
+- L'encart de l'accueil est choisi d'après les **10 dernières réponses** de chaque question, calcul et cas (`recents`,
+  « 1 » juste / « 0 » faux, dans `stats.<mode>.elements`), cumulées par **domaine principal** : un progrès efface la
+  lacune. Une ancienne sauvegarde sans historique récent est ramenée à 10 réponses, à la même proportion :
   1. **lacune** : un domaine avec au moins 6 réponses et 35 % d'échec ou plus (le plus faible d'abord) → « Taux d'échec
      élevé en Triphasé (42 %) — Lancer la séance ciblée », vers le mode et le niveau qui concentrent les erreurs
      (`#/entrainement/calcul?n=2&d=tri`) ou le cas le plus raté (`#/entrainement/panne?c=…`) ;
@@ -459,6 +466,8 @@ la cause, la démarche d'un pro et le piège du cas.
 - Stockage : `activite.jours` (jours d'entraînement, heure locale), `jalons` (`memosApresErreur`, `isolementPropre`),
   `badges` (`{ id: date }`), contrôlés à l'import. Les insignes sont vérifiés après chaque réponse et à l'ouverture
   de l'accueil et du Carnet ; un insigne obtenu le reste.
+- Seules les dates réelles comptent : une date impossible rend une sauvegarde invalide, une date future (horloge
+  avancée) est ignorée.
 - **Série** : jours consécutifs jusqu'à aujourd'hui (ou hier, tant que la journée n'est pas finie), affichée
   discrètement sur l'accueil (« Série : 3 jours ») et dans la vitrine avec la meilleure série.
 - **Retours visuels** : annonce « Insigne obtenu » dont l'icône se pose comme un tampon (jamais bloquante,
@@ -506,6 +515,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
 - [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios), second circuit au banc (éclairage par télérupteur)
+- [x] Audit 360° et corrections C1 à C6 : aiguillage sur les 10 dernières réponses, dates de série contrôlées, libellés du banc, CSP, alerte d'écriture
 - [x] Lancement : première prise en main en 2 phrases, parcours en 3 blocs, mention « 100 % locales », audit ergonomique iPhone (touches ≥ 44 px, textes ≥ 12 px, clair et sombre)
 - [x] Phase 2 : 8 insignes de terrain, séries de jours, tampons « Insigne obtenu » et « Niveau validé »
 - [x] Phase 1 : prochaine étape guidée par domaine (lacunes), 23 fiches mémo sous les corrections et dans le Carnet

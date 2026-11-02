@@ -34,12 +34,30 @@ function charger() {
 
 let etat = charger();
 
+// Échec d'écriture (quota plein, navigation privée) : un bandeau visible, une fois par ouverture de l'app.
+let echecSignale = false;
+function signalerEchecEcriture(err) {
+  if (echecSignale || typeof document === 'undefined') return;
+  echecSignale = true;
+  const plein = err?.name === 'QuotaExceededError' || err?.code === 22;
+  const bandeau = document.createElement('div');
+  bandeau.className = 'alerte-stockage';
+  bandeau.setAttribute('role', 'alert');
+  bandeau.innerHTML = `<p><strong>Progression non enregistrée.</strong> ${plein
+    ? 'Le stockage de ton téléphone est plein pour cette app.'
+    : 'Le navigateur refuse l\'enregistrement (navigation privée ?).'} Exporte ta sauvegarde depuis le Carnet pour ne rien perdre.</p>
+    <button type="button" class="btn">Compris</button>`;
+  bandeau.querySelector('button').addEventListener('click', () => bandeau.remove());
+  document.body.append(bandeau);
+}
+
 function enregistrer() {
   try {
     localStorage.setItem(CLE, JSON.stringify(etat));
     return true;
   } catch (err) {
     console.error('Écriture du stockage impossible (navigation privée ou quota plein ?).', err);
+    signalerEchecEcriture(err);
     return false;
   }
 }

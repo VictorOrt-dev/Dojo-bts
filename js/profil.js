@@ -25,12 +25,14 @@ function ligneStats(libelle, mode) {
   return `<li><span>${libelle}</span><span class="mono">${valeur}</span></li>`;
 }
 
-// Interventions (cas de panne, banc) : nombre de cas différents réussis sans faute, et interventions faites.
+// Interventions : éléments différents réussis, et interventions faites. Ce que « réussi » veut dire dépend du mode :
+// cas de panne sans faute ; panne du banc réparée sans alerte de sécurité ; mesure d'isolement juste, sans alerte.
+const REUSSITE = { panne: n => `${n} sans faute`, banc: n => `${n} réparée${n > 1 ? 's' : ''}`, isolement: n => `${n} réussie${n > 1 ? 's' : ''}` };
 function ligneInterventions(libelle, mode) {
   const s = statsMode(mode);
   const elements = Object.values(s.elements);
-  const sansFaute = elements.filter(e => e.reussites > 0).length;
-  const valeur = s.sessions ? `${sansFaute} sans faute · ${s.sessions} interv.` : '—';
+  const reussis = elements.filter(e => e.reussites > 0).length;
+  const valeur = s.sessions ? `${(REUSSITE[mode] ?? REUSSITE.panne)(reussis)} · ${s.sessions} interv.` : '—';
   return `<li><span>${libelle}</span><span class="mono">${valeur}</span></li>`;
 }
 

@@ -32,10 +32,10 @@ function casSansFaute() {
   return reussis ? `${reussis} sans faute` : '';
 }
 
-// Nombre de pannes différentes réussies sans faute au banc de mesure.
+// Nombre de pannes différentes réparées au banc sans alerte de sécurité (indices compris).
 function bancsReussis() {
   const n = Object.values(statsMode('banc').elements).filter(e => e.reussites > 0).length;
-  return n ? `${n} sans faute` : '';
+  return n ? `${n} réparée${n > 1 ? 's' : ''}` : '';
 }
 
 function mesuresReussies() {
@@ -50,7 +50,7 @@ function record(mode) {
 
 // Les 5 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
 const MODES = {
-  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur un départ moteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
+  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur 2 circuits, départ moteur et éclairage par télérupteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
   panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la VAT au poste HTA · par domaine', record: () => casSansFaute() },
   calcul: { titre: 'Calculs flash', desc: 'La valeur à lire avant de mesurer · par domaine et par niveau', record: () => record('calcul') },
   reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') },

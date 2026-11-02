@@ -5,9 +5,15 @@ export const BOITES = 5;
 export const INTERVALLES_JOURS = [0, 1, 3, 7, 15];   // délai avant la révision suivante, boîte 1 à 5
 export const MODES_REVISION = ['reco', 'calcul', 'panne', 'banc', 'isolement'];
 
-// Nouvel état d'un élément { essais, reussites, boite?, revoir? } après une réponse.
+export const RECENTS = 10;   // réponses récentes gardées par élément (aiguillage de l'accueil)
+
+// Nouvel état d'un élément après une réponse. `recents` : les 10 dernières réponses, « 1 » juste, « 0 » faux.
 export function appliquerResultat(element, reussi, maintenant = Date.now()) {
-  const e = { essais: (element?.essais ?? 0) + 1, reussites: (element?.reussites ?? 0) + (reussi ? 1 : 0) };
+  const e = {
+    essais: (element?.essais ?? 0) + 1,
+    reussites: (element?.reussites ?? 0) + (reussi ? 1 : 0),
+    recents: `${element?.recents ?? ''}${reussi ? 1 : 0}`.slice(-RECENTS)
+  };
   if (!reussi) return { ...e, boite: 1, revoir: maintenant };
   if (!element?.boite) return e;                              // jamais raté : rien à réviser
   const boite = element.boite + 1;

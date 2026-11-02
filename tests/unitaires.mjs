@@ -24,6 +24,7 @@ export default async function ({ t }) {
   bancEclairage(t);
   guidageEtMemos(t);
   insignesEtSeries(t);
+  correctionsAudit360(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -270,7 +271,7 @@ function revisionEspacee(t) {
   const J = 24 * 60 * 60 * 1000, t0 = 1_800_000_000_000;
   const rate = L.appliquerResultat(undefined, false, t0);
   t.ok(rate.essais === 1 && rate.reussites === 0 && rate.boite === 1 && rate.revoir === t0, 'erreur : boîte 1, à revoir tout de suite');
-  t.ok(isDeepStrictEqual(L.appliquerResultat(undefined, true, t0), { essais: 1, reussites: 1 }), 'réussi du premier coup : n\'entre pas en révision');
+  t.ok(isDeepStrictEqual(L.appliquerResultat(undefined, true, t0), { essais: 1, reussites: 1, recents: '1' }), 'réussi du premier coup : n\'entre pas en révision');
   let e = rate; const dates = [];
   for (let i = 0; i < 4; i++) { e = L.appliquerResultat(e, true, t0); dates.push((e.revoir - t0) / J); }
   t.ok(e.boite === 5 && dates.join() === '1,3,7,15', `réussites successives : boîtes 2 à 5, revues après ${dates.join(', ')} jours`);
@@ -401,4 +402,41 @@ function insignesEtSeries(t) {
   const abime = controler({ version: 1, activite: { jours: ['hier'] }, jalons: { memosApresErreur: -1 }, badges: { 'habilite-banc': 'jamais' } });
   t.ok(abime.anomalies.some(a => a.startsWith('activite')) && abime.anomalies.some(a => a.startsWith('jalons')) && abime.anomalies.some(a => a.includes('badges'))
     && abime.etat.activite.jours.length === 0 && Object.keys(abime.etat.badges).length === 0, 'sauvegarde : jours, jalons ou insignes abîmés refusés, valeurs par défaut au démarrage');
+}
+
+// ---------- Corrections de l'audit 360° (C1, C2) ----------
+
+function correctionsAudit360(t) {
+  t.section('U9. Audit 360° : aiguillage sur les 10 dernières réponses (C1), dates de série (C2)');
+  // C1 — un progrès efface la lacune
+  let el;
+  for (let i = 0; i < 10; i++) el = L.appliquerResultat(el, false, 1);
+  for (let i = 0; i < 10; i++) el = L.appliquerResultat(el, true, 1);
+  t.ok(el.essais === 20 && el.reussites === 10 && el.recents === '1111111111', 'historique : 20 réponses comptées, seules les 10 dernières gardées (« 1111111111 »)');
+  const cat = { reco: [{ id: 'a', niveau: 1, domaines: ['tri'] }], calcul: [], panne: [] };
+  const prochaine = { code: 'R1', href: '#/entrainement/reco?n=1', titre: 'Suite du parcours', desc: '' };
+  const progres = { stats: { reco: { elements: { a: el } } } };
+  t.ok(G.recommandation(progres, cat, prochaine).type === 'parcours', '10 erreurs puis 10 réussites : plus de « taux d\'échec élevé », retour au parcours');
+  let rechute = el;
+  for (let i = 0; i < 7; i++) rechute = L.appliquerResultat(rechute, false, 1);
+  const r = G.recommandation({ stats: { reco: { elements: { a: rechute } } } }, cat, prochaine);
+  t.ok(r.type === 'lacune' && r.titre.includes('(70 %)'), `7 erreurs dans les 10 dernières réponses : « ${r.titre} »`);
+  const ancien = G.recentes({ essais: 40, reussites: 10 });
+  t.ok(ancien.essais === 10 && ancien.reussites === 3, 'ancienne sauvegarde sans historique récent : ramenée à 10 réponses, même proportion');
+  t.ok(controler({ version: 1, stats: { reco: { elements: { a: { essais: 3, reussites: 1, recents: '101' } } } } }).anomalies.length === 0
+    && controler({ version: 1, stats: { reco: { elements: { a: { essais: 2, reussites: 1, recents: '101' } } } } }).anomalies.length > 0
+    && controler({ version: 1, stats: { reco: { elements: { a: { essais: 3, reussites: 1, recents: '1<b' } } } } }).anomalies.length > 0,
+    'sauvegarde : historique récent contrôlé (« 0 » / « 1 », jamais plus long que le nombre d\'essais)');
+
+  // C2 — dates impossibles ou futures
+  t.ok(B.dateValide('2028-02-29') && !B.dateValide('2026-02-29') && !B.dateValide('2026-13-45') && !B.dateValide('2026-04-31') && !B.dateValide('26-01-01') && !B.dateValide(20260101),
+    'dates : 29 février bissextile acceptée ; mois 13, 30/31 inexistants, format erroné refusés');
+  t.ok(B.serieEnCours(['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04'], '2026-11-02') === 2 && B.meilleureSerie(['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04'], '2026-11-02') === 2,
+    'horloge avancée puis remise à l\'heure : les jours futurs ne comptent pas dans la série');
+  t.ok(B.serieEnCours(['2026-13-45', '2026-11-02'], '2026-11-02') === 1 && B.ajouterJour(['2026-13-45'], '2026-11-02').join() === '2026-11-02' && B.ajouterJour([], 'n\'importe quoi').length === 0,
+    'une date impossible ne compte jamais comme jour d\'entraînement');
+  const imp = controler({ version: 1, activite: { jours: ['2026-10-31', '2026-13-45'] } });
+  const fut = controler({ version: 1, activite: { jours: ['2026-10-31', '2999-01-01'] } });
+  t.ok(imp.anomalies.some(a => a.startsWith('activite')) && fut.anomalies.length === 0 && fut.etat.activite.jours.join() === '2026-10-31',
+    'sauvegarde : date impossible refusée (fichier abîmé) ; date future ignorée sans bloquer l\'import');
 }
