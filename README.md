@@ -99,7 +99,7 @@ node tests/lancer.mjs
 ```
 
 On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques secondes, sans navigateur),
-`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
+`node tests/lancer.mjs non-regression`, `banc`, `parcours`, `isolement`, `guidage`, `ergonomie` ou `service-worker`. Le code de sortie vaut 0 si tout passe, 1 sinon.
 
 | Fichier | Contenu |
 |---|---|
@@ -402,6 +402,27 @@ la cause, la démarche d'un pro et le piège du cas.
   été faites correctement. `lecture()` est pure.
 - XP : 30 si juste, − 15 par alerte, − 10 par dégât, − 5 par erreur de méthode (minimum 10), + 20 sans faute.
 
+## Prochaine étape : guidage par domaine (`js/guidage.js`)
+
+- L'encart de l'accueil est choisi d'après les réponses enregistrées en local (`stats.<mode>.elements`), cumulées par
+  **domaine principal** de chaque question, calcul et cas :
+  1. **lacune** : un domaine avec au moins 6 réponses et 35 % d'échec ou plus (le plus faible d'abord) → « Taux d'échec
+     élevé en Triphasé (42 %) — Lancer la séance ciblée », vers le mode et le niveau qui concentrent les erreurs
+     (`#/entrainement/calcul?n=2&d=tri`) ou le cas le plus raté (`#/entrainement/panne?c=…`) ;
+  2. **niveau** : reconnaissance et calculs acquis à un niveau, pas au suivant → « Fondations acquises — Passe au niveau II » ;
+  3. sinon, la suite du **parcours guidé** (`parcours.js`).
+- L'encart affiche aussi la réussite par domaine (« TRI 58 % ») et garde l'avancement du parcours.
+
+## Fiches mémo (`js/memos.js`, `data/memos.json`)
+
+- 23 fiches de 30 secondes (100 mots au plus) : formule, schéma en texte ou règle critique. Chaque fiche porte ses
+  `cibles` (`reco`, `calcul`, `panne`, `isolement`) : **chaque** question, calcul, cas et mesure a sa fiche (vérifié par U7).
+- Texte en Markdown réduit, échappé avant mise en forme : paragraphes, listes `-`, `**gras**`, `` `code` ``, règle `>`,
+  blocs ``` pour les formules et schémas.
+- Après une erreur (question ratée, calcul faux, démarche mauvaise ou dangereuse, conclusion d'isolement fausse) :
+  encart replié « Comprendre la notion · titre » sous la correction.
+- Toutes les fiches, rangées par domaine : Carnet › Fiches mémo (`#/entrainement/memos`, `?m=<id>` en ouvre une).
+
 ## À réviser : répétition espacée (`js/leitner.js`, `js/revision.js`)
 
 - Toute erreur (question ratée, calcul faux, cas pas sans faute, panne du banc avec alerte de sécurité) place l'élément
@@ -443,6 +464,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
 - [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
 - [x] Audit pédagogique, P2 : « À réviser » (répétition espacée en 5 boîtes), cas de niveau III à embranchements, module Mesure d'isolement (6 scénarios), second circuit au banc (éclairage par télérupteur)
+- [x] Phase 1 : prochaine étape guidée par domaine (lacunes), 23 fiches mémo sous les corrections et dans le Carnet
 - [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, différentiel)

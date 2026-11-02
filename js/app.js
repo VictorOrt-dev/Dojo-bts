@@ -13,6 +13,7 @@ import { renderBienvenue } from './bienvenue.js';
 import { renderPositionnement } from './positionnement.js';
 import { renderRevision } from './revision.js';
 import { renderIsolement } from './isolement.js';
+import { renderMemos } from './memos.js';
 import { premierLancement } from './parcours.js';
 import { appliquerTheme } from './theme.js';
 import * as stockage from './storage.js';
@@ -84,6 +85,7 @@ async function router() {
         else if (id === 'positionnement') await renderPositionnement(ctx);
         else if (id === 'revision') await renderRevision(ctx);
         else if (id === 'isolement') await renderIsolement(ctx);
+        else if (id === 'memos') await renderMemos(ctx);
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
         else if (id === 'panne') await renderPanne(ctx);

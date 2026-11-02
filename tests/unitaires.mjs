@@ -10,6 +10,8 @@ import * as P from '../js/parcours.js';
 import { resume, MOTS_POURQUOI, MOTS_RISQUE } from '../js/tuteur.js';
 import * as L from '../js/leitner.js';
 import { auditer } from '../outils/audit.mjs';
+import * as G from '../js/guidage.js';
+import { markdown, memoPour } from '../js/memos.js';
 
 export default async function ({ t }) {
   await auditIntegrite(t);
@@ -19,6 +21,7 @@ export default async function ({ t }) {
   correctionEnDeuxTemps(t);
   revisionEspacee(t);
   bancEclairage(t);
+  guidageEtMemos(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -295,4 +298,51 @@ async function auditIntegrite(t) {
   const sources = fs.readdirSync(path.join(RACINE, 'js')).map(f => fs.readFileSync(path.join(RACINE, 'js', f), 'utf8')).join('\n')
     + ['data/reconnaissance.json', 'data/pannes.json', 'data/isolement.json'].map(f => fs.readFileSync(path.join(RACINE, f), 'utf8')).join('\n');
   t.ok(!/pas encore validé|validé par un formateur|"verifie"/.test(sources), 'plus aucune mention « contenu non validé » ni champ « verifie » dans l\'application');
+}
+
+// ---------- Guidage dynamique de l'accueil (guidage.js) et fiches mémo (memos.js) ----------
+
+function guidageEtMemos(t) {
+  t.section('U7. Guidage par domaine (guidage.js) et fiches mémo (memos.js)');
+  const lire = f => JSON.parse(fs.readFileSync(path.join(RACINE, f), 'utf8'));
+  const catalogue = {
+    reco: [{ id: 'r1', niveau: 1, domaines: ['tri'] }, { id: 'r2', niveau: 1, domaines: ['mono-bt'] }],
+    calcul: [{ id: 'c1', niveau: 2, domaines: ['tri'] }, { id: 'c2', niveau: 1, domaines: ['tri'] }, { id: 'c3', niveau: 1, domaines: ['securite'] }],
+    panne: [{ id: 'p1', niveau: 2, domaines: ['securite'] }]
+  };
+  const st = (reco, calcul, panne = {}) => ({ stats: { reco: { elements: reco }, calcul: { elements: calcul }, panne: { elements: panne } } });
+  const prochaine = { code: 'R1', href: '#/entrainement/reco?n=1', titre: 'Reconnaissance · niveau I', desc: '…' };
+  const e1 = st({ r1: { essais: 3, reussites: 2 }, r2: { essais: 4, reussites: 4 } }, { c1: { essais: 6, reussites: 1 }, c2: { essais: 2, reussites: 2 } });
+  const b = G.bilanDomaines(e1, catalogue);
+  t.ok(b.tri.essais === 11 && b.tri.reussites === 5 && b['mono-bt'].essais === 4 && b.securite.essais === 0, 'bilan par domaine : réponses cumulées par domaine principal (Triphasé 5/11, Monophasé 4/4)');
+  const r1 = G.recommandation(e1, catalogue, prochaine);
+  t.ok(r1.type === 'lacune' && r1.titre === 'Taux d\'échec élevé en Triphasé (55 %)' && r1.href === '#/entrainement/calcul?n=2&d=tri',
+    `lacune : « ${r1.titre} » → séance ciblée sur le mode et le niveau qui concentrent les erreurs (${r1.href})`);
+  const e2 = st({}, { c3: { essais: 2, reussites: 2 } }, { p1: { essais: 5, reussites: 1 } });
+  const r2 = G.recommandation(e2, catalogue, prochaine);
+  t.ok(r2.type === 'lacune' && r2.domaine === 'securite' && r2.href === '#/entrainement/panne?c=p1', 'lacune portée par un cas de panne : le cas le plus raté est rouvert directement');
+  const e3 = st({ r1: { essais: 3, reussites: 0 } }, {});
+  t.ok(G.recommandation(e3, catalogue, prochaine).type === 'parcours', `moins de ${G.ESSAIS_MIN} réponses dans un domaine : pas de conclusion hâtive, suite du parcours`);
+  const e4 = { ...st({ r1: { essais: 10, reussites: 8 } }, { c1: { essais: 10, reussites: 7 } }), profil: 'formation' };
+  e4.stats.reco.niveaux = { 1: 9 }; e4.stats.calcul.niveaux = { 1: 8 };
+  const r4 = G.recommandation(e4, catalogue, { code: 'R2', href: '#/entrainement/reco?n=2', titre: '', desc: '' });
+  t.ok(r4.type === 'niveau' && r4.titre === 'Fondations acquises — Passe au niveau II' && r4.href === '#/entrainement/reco?n=2', 'niveau I acquis en reconnaissance et en calculs : « Fondations acquises — Passe au niveau II »');
+
+  const memos = lire('data/memos.json');
+  const contenu = {
+    reco: lire('data/reconnaissance.json').map(q => q.id),
+    panne: lire('data/pannes.json').map(c => c.id),
+    isolement: lire('data/isolement.json').map(x => x.id),
+    calcul: [...fs.readFileSync(path.join(RACINE, 'js/calcul.js'), 'utf8').matchAll(/\n    id: '([^']+)'/g)].map(m => m[1])
+  };
+  const sansMemo = Object.entries(contenu).flatMap(([mode, ids]) => ids.filter(id => !memoPour(memos, mode, id)).map(id => `${mode}:${id}`));
+  const doublons = Object.entries(contenu).flatMap(([mode, ids]) => ids.filter(id => memos.filter(m => m.cibles?.[mode]?.includes(id)).length > 1));
+  const cibles = Object.entries(contenu).every(([mode]) => memos.every(m => (m.cibles?.[mode] ?? []).every(id => contenu[mode].includes(id))));
+  t.ok(sansMemo.length === 0 && doublons.length === 0 && cibles, `chaque question, calcul, cas et mesure a sa fiche mémo (${Object.values(contenu).flat().length} éléments, ${memos.length} fiches), aucune cible inconnue` + (sansMemo.length ? ' — sans fiche : ' + sansMemo.join(', ') : ''));
+  const mots = m => (m.texte.match(/[\p{L}\d]+/gu) ?? []).length;
+  t.ok(memos.every(m => mots(m) <= 100 && m.titre && G && ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'].includes(m.domaine)) && new Set(memos.map(m => m.id)).size === memos.length,
+    `fiches de 30 secondes : ${Math.max(...memos.map(mots))} mots au plus (plafond 100), domaine valide, ids uniques`);
+  const html = markdown('Règle **forte** et `U = R × I`\n\n- un\n- deux\n\n```\nA ── B\n```\n> Jamais <script>alert(1)</script>');
+  t.ok(html.includes('<strong>forte</strong>') && html.includes('<code>U = R × I</code>') && html.includes('<ul><li>un</li><li>deux</li></ul>')
+    && html.includes('<pre class="memo-schema">A ── B</pre>') && html.includes('memo-regle') && !html.includes('<script>'), 'Markdown des fiches : gras, code, listes, schéma en texte, règle ; HTML échappé');
 }

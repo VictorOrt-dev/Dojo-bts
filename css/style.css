@@ -1016,3 +1016,30 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .a-propos { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--filet); }
 .a-propos p { margin: 0 0 8px; color: var(--texte-2); line-height: 1.5; }
 .a-propos-titre { font-weight: 700; color: var(--texte-1) !important; }
+
+/* ---------- Prochaine étape : guidage par domaine ---------- */
+.prochaine-lacune::before { content: ""; position: absolute; top: 0; left: 20px; right: 20px; height: 4px; border-radius: 0 0 4px 4px; background: var(--faux); }
+.prochaine-diagnostic { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.diag-domaine { padding: 5px 9px; border-radius: 999px; background: rgb(128 128 128 / .16); font: 600 13px/1 var(--mono); }
+.diag-domaine.faible { box-shadow: inset 0 0 0 2px currentColor; font-weight: 800; }
+
+/* ---------- Fiches mémo ---------- */
+.zone-memo:empty { display: none; }
+.memo { margin-top: 12px; border-radius: var(--rayon); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet-fort); }
+.memo > summary { display: grid; gap: 4px; padding: 14px 44px 14px 16px; list-style: none; cursor: pointer; position: relative; min-height: 48px; }
+.memo > summary::-webkit-details-marker { display: none; }
+.memo > summary::after { content: "+"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font: 600 22px/1 var(--texte); color: var(--texte-2); }
+.memo[open] > summary::after { content: "−"; }
+.memo-etiquette { font: 700 13px/1.2 var(--mono); letter-spacing: .02em; color: var(--lien); }
+.memo-titre { font: 700 16px/1.3 var(--texte); color: var(--texte-1); }
+.memo-corps { padding: 0 16px 14px; font-size: 15px; line-height: 1.5; color: var(--texte-1); }
+.memo-corps p { margin: 0 0 10px; }
+.memo-corps ul { margin: 0 0 10px; padding-left: 20px; display: grid; gap: 6px; }
+.memo-corps code { font: 600 14px/1.4 var(--mono); padding: 1px 5px; border-radius: 6px; background: var(--surface-3); }
+.memo-schema { margin: 0 0 10px; padding: 12px; border-radius: 10px; background: var(--surface-3); font: 500 13px/1.5 var(--mono); white-space: pre; overflow-x: auto; color: var(--texte-1); }
+.memo-regle { padding: 8px 12px; border-left: 3px solid var(--attention); font-weight: 700; }
+.memo-lien { margin: 6px 0 0 !important; font-size: 14px; }
+.memo-lien a { color: var(--lien); }
+.bloc-memos { margin-top: 20px; }
+.bloc-memos .section-num { width: auto; }
+.memo { scroll-margin-top: calc(84px + env(safe-area-inset-top)); }

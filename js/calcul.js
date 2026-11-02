@@ -10,6 +10,7 @@ import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import { conseilNiveau } from './parcours.js';
 import { aReviser } from './leitner.js';
+import { zoneMemo, remplirMemo } from './memos.js';
 import * as stockage from './storage.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
@@ -1412,9 +1413,11 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
                ${blocPourquoi(pourquoi.court)}
                ${blocRisque(ex.generateur.risque, { court: true })}
              </div>
+             ${zoneMemo('calcul', ex.generateur.id)}
              ${enSavoirPlus(`${pourquoi.complet ? '' : blocPourquoi(diagnostic ?? ex.explication)}${calculPose}${diagnostic ? rappel : ''}${piege}${risqueComplet(ex.generateur.risque)}${norme}`, 'En savoir plus : calcul posé, méthode, norme')}`}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Calcul suivant'}</button></div>
       </section>`;
+    remplirMemo(zone.querySelector('.zone-memo'));
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };

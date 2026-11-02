@@ -12,6 +12,7 @@ import { melanger } from './hasard.js';
 import { esc } from './util.js';
 import { domaine, filtrerParDomaine, pucesDomaines, barreDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
+import { zoneMemo, remplirMemo } from './memos.js';
 import { conseilCas } from './parcours.js';
 import * as stockage from './storage.js';
 
@@ -166,9 +167,11 @@ function jouer(vue, c, tousLesCas) {
       <section class="explication ${v.classe}">
         <p class="verdict"><span class="tampon">${v.tampon}</span>${ch.verdict === 'danger' ? '<span class="gain">Alerte sécurité</span>' : ''}</p>
         <div class="${v.bloc}"><p class="lecon-titre">${v.titre}</p><p>${esc(typo(ch.explication))}</p></div>
+        ${['mauvais', 'danger'].includes(ch.verdict) ? zoneMemo('panne', c.id) : ''}
         ${ch.consequence ? `<div class="consequence"><p class="lecon-titre">Conséquence${ch.consequence.minutes ? ` · +${horaire(ch.consequence.minutes)} d'arrêt` : ''}</p><p>${esc(typo(ch.consequence.texte))}</p></div>` : ''}
         <div class="action-collee"><button id="suite" class="btn principal" type="button">${libelle}</button></div>
       </section>`;
+    remplirMemo(zone.querySelector('.zone-memo'));
     zone.querySelector('#suite').addEventListener('click', () => {
       if (cible === null) return reessayer();
       if (cible === -1) return finir();

@@ -63,7 +63,7 @@ export default async function ({ t, url: U, navigateur }) {
     // La bonne réponse est lue dans l'état du test (exposé pour les tests), jamais dans le DOM.
     const q = await p.evaluate(async () => { const m = await import('/js/positionnement.js'); const x = m.positionnementEnCours(); const q = x.questions[x.index]; return { bonne: q.choix.indexOf(q.bonne), mode: q.mode, n: q.choix.length }; });
     modesVus.add(q.mode);
-    if (q.mode === 'calcul' && (q.bonne < 0 || q.n < 3)) throw new Error('calcul du positionnement sans bonne réponse ou avec moins de 3 choix');
+    if (q.mode === 'calcul' && (q.bonne < 0 || q.n < 2)) throw new Error('calcul du positionnement sans bonne réponse ou avec moins de 2 choix'); // couplage : QCM natif étoile / triangle
     await p.locator('.choix-btn').nth(q.bonne).click();
     vues++;
     await p.click('#suivant');

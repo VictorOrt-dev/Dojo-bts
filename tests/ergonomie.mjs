@@ -47,7 +47,7 @@ export default async function ({ t, url: U, navigateur }) {
   // ---------- Aucun texte sous 12 px, sur 12 écrans (HTML et graduations du cadran) ----------
   const ecrans = ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=2', '#/entrainement/calcul?n=2', '#/entrainement/panne',
     '#/entrainement/panne?c=moteur-grogne', '#/entrainement/banc?panne=fu1-fondu', '#/profil', '#/entrainement/positionnement',
-    '#/entrainement/calcul?d=hta', '#/entrainement/panne?d=securite', '#/entrainement/reco?n=3&d=hta'];
+    '#/entrainement/calcul?d=hta', '#/entrainement/panne?d=securite', '#/entrainement/reco?n=3&d=hta', '#/entrainement/memos?m=slt', '#/entrainement/memos?m=chute-tension'];
   const trop = new Map();
   for (const h of ecrans) {
     await p.goto(U + '#/x'); await p.goto(U + h); await p.waitForTimeout(350);
@@ -66,7 +66,7 @@ export default async function ({ t, url: U, navigateur }) {
     });
     petits.forEach(x => trop.set(x, h));
   }
-  t.ok(trop.size === 0, `aucun texte sous 12 px sur ${ecrans.length} écrans` + (trop.size ? ' — ' + [...trop].slice(0, 6).map(([x, h]) => `${x} ${h}`).join(' | ') : ''));
+  t.ok(trop.size === 0, `aucun texte sous 12 px sur ${ecrans.length} écrans (fiches mémo comprises)` + (trop.size ? ' — ' + [...trop].slice(0, 6).map(([x, h]) => `${x} ${h}`).join(' | ') : ''));
 
   // ---------- Thème : « Auto » suit le téléphone ; le choix manuel reste prioritaire ----------
   for (const [schema, attendu] of [['light', 'porcelaine'], ['dark', undefined]]) {

@@ -12,6 +12,7 @@ import { pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus } from './tuteur.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
+import { zoneMemo, remplirMemo } from './memos.js';
 
 export const TENSIONS_ESSAI = [250, 500, 1000];
 const NOMS_ELECTRONIQUE = { variateur: 'le variateur', automate: 'les cartes de l\'automate' };
@@ -191,6 +192,7 @@ function jouer(vue, s, scenarios) {
         <div class="lecon"><p class="lecon-titre">Ce qu'il y avait</p><p>${esc(typo(s.conclusion.cause))}</p></div>
         ${blocRisque(s.conclusion.risque, { court: true })}
       </div>
+      ${juste ? '' : zoneMemo('isolement', s.id)}
       ${enSavoirPlus(`
         <div class="lecon"><p class="lecon-titre">Le remède</p><p>${esc(typo(s.conclusion.remede))}</p></div>
         <div class="piege-terrain"><p class="lecon-titre">Le piège en armoire</p><p>${esc(typo(s.conclusion.piege))}</p></div>
@@ -203,6 +205,7 @@ function jouer(vue, s, scenarios) {
         <a class="btn${autre ? '' : ' principal'}" href="#/entrainement/isolement?s=${encodeURIComponent(s.id)}&r=${Date.now()}">Refaire cette mesure</a>
         <a class="btn" href="#/entrainement/isolement">Toutes les mesures</a>
       </div>`;
+    remplirMemo(vue.querySelector('.zone-memo'));
     window.scrollTo(0, 0);
   };
 

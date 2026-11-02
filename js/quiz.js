@@ -11,6 +11,7 @@ import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { aReviser } from './leitner.js';
+import { zoneMemo, remplirMemo } from './memos.js';
 import { esc } from './util.js';
 
 const LEGENDES = {
@@ -136,9 +137,11 @@ export async function renderReco({ vue, definirTitre, params }) {
                ${blocPourquoi(pourquoi.court)}
                ${blocRisque(q.risque, { court: true })}
              </div>
+             ${zoneMemo('reco', q.id)}
              ${enSavoirPlus(`${pourquoi.complet || !pourquoiPas ? '' : blocPourquoi(pourquoiPas)}${lecon}${risqueComplet(q.risque)}${ficheTechnique}`)}`}
         <div class="action-collee"><button id="suivant" class="btn principal" type="button">${derniere ? 'Voir le rapport' : 'Question suivante'}</button></div>
       </section>`;
+    remplirMemo(zone.querySelector('.zone-memo'));
     zone.querySelector('#suivant').addEventListener('click', suivant);
     zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };

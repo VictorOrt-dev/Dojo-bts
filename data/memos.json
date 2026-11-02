@@ -1,0 +1,410 @@
+[
+  {
+    "id": "contacts-no-nf",
+    "titre": "Contacts NO / NF et repérage des bornes",
+    "domaine": "tbt-cc",
+    "cibles": {
+      "reco": [
+        "sym-contact-no",
+        "sym-contact-nf",
+        "sym-bp-no",
+        "sym-bp-nf",
+        "reco-no-bornes",
+        "reco-nf-bornes",
+        "reco-thermique-bornes",
+        "reco-contacteur-bobine",
+        "reco-auto-maintien"
+      ]
+    },
+    "texte": "**NO** (à fermeture) : ouvert au repos. **NF** (à ouverture) : fermé au repos.\n\nRepère d'un contact auxiliaire : **dizaine = numéro d'ordre**, **unité = fonction**.\n\n- `1-2` NF · `3-4` NO → 1er NO = **13-14**, 2e NF = **21-22**\n- `95-96` NF du relais thermique : **coupe** la bobine\n- `97-98` NO du relais thermique : **signale** le défaut\n- Bobine : **A1-A2**\n\n```\nArrêt (NF) ── Marche (NO) ──┬── A1 [KM1] A2\n                 └─ 13-14 KM1 ┘   (auto-maintien en parallèle)\n```\n\nRègle : arrêts et sécurités en **NF**, pour qu'un fil coupé arrête la machine."
+  },
+  {
+    "id": "depart-moteur",
+    "titre": "Départ moteur : sectionner, protéger, commander",
+    "domaine": "tri",
+    "cibles": {
+      "reco": [
+        "sym-bobine",
+        "mat-contacteur",
+        "mat-relais-thermique",
+        "sym-thermique",
+        "mat-disjoncteur-moteur",
+        "reco-contacteur-protection",
+        "reco-reglage-molette",
+        "reco-reglage-thermique"
+      ],
+      "calcul": [
+        "intensite",
+        "charge-moteur"
+      ],
+      "panne": [
+        "moteur-grogne",
+        "pompe-thermique-rearme"
+      ]
+    },
+    "texte": "Trois fonctions, trois appareils :\n\n- **Sectionner** : Q1 (sectionneur, fusibles **aM** : courts-circuits seulement)\n- **Commander** : KM1 (contacteur, **pas** un organe de séparation)\n- **Protéger contre la surcharge** : F2 (relais thermique, réglé sur **l'In de la plaque** à la tension du réseau)\n\nPlaque 230/400 V – 19/11 A sur réseau 400 V → étoile → réglage **11 A**.\n\n`In = Pu / (√3 × U × η × cos φ)`\n\nMoteur qui **grogne** sans démarrer : penser **manque de phase**. Thermique déclenché : on cherche la cause, on ne monte pas le réglage."
+  },
+  {
+    "id": "appareils-coupure",
+    "titre": "Sectionneur, interrupteur, disjoncteur, fusible",
+    "domaine": "tri",
+    "cibles": {
+      "reco": [
+        "sym-sectionneur",
+        "sym-disjoncteur",
+        "reco-sectionneur-charge",
+        "sym-fusible",
+        "mat-disjoncteur-modulaire"
+      ]
+    },
+    "texte": "Pour chaque appareil : coupe en charge ? · coupe un court-circuit ? · assure la séparation ?\n\n- **Sectionneur** : non · non · **oui** (trait perpendiculaire au bout du contact)\n- **Interrupteur** : **oui** · non · selon modèle\n- **Disjoncteur** : **oui** · **oui** (croix ×) · selon modèle\n- **Contacteur** : oui · non · **non**\n- **Fusible** : coupe le court-circuit **une fois**, à remplacer à l'identique (calibre, gG / aM, taille)\n\nRègle : on coupe d'abord la charge, **puis** on ouvre le sectionneur. Jamais l'inverse."
+  },
+  {
+    "id": "courbes-calibres",
+    "titre": "Calibres, courbes et sélectivité",
+    "domaine": "mono-bt",
+    "cibles": {
+      "reco": [
+        "reco-c16",
+        "reco-prises-25"
+      ],
+      "calcul": [
+        "magnetique-courbe",
+        "reglage-ir",
+        "iz-correction"
+      ],
+      "panne": [
+        "selectivite-tgbt",
+        "tgbt-reenclenchement",
+        "poste-general-bt"
+      ]
+    },
+    "texte": "**C16** = courbe C, calibre 16 A. Magnétique garanti à :\n\n- **B** : 3 à **5 In** · **C** : 5 à **10 In** · **D** : 10 à **20 In**\n\nCondition de protection d'un câble : `Ib ≤ In (ou Ir) ≤ Iz`\n\n`Iz corrigé = Iz tableau × K température × K groupement`\n\nPrises : 1,5 mm² → 16 A · 2,5 mm² → **20 A**.\n\n**Sélectivité** : seul l'appareil juste en amont du défaut doit couper. Elle se vérifie dans les **tables du constructeur**, pas en « montant » le général.\n\nDéclenchement **magnétique** = court-circuit : on ne referme pas pour voir."
+  },
+  {
+    "id": "consignation",
+    "titre": "Consignation en 5 temps (NF C 18-510)",
+    "domaine": "securite",
+    "cibles": {
+      "reco": [
+        "reco-cadenas-pancarte",
+        "reco-vat-appareil",
+        "reco-epi-vat"
+      ],
+      "panne": [
+        "consignation-contacteur",
+        "vat-procedure",
+        "double-source"
+      ]
+    },
+    "texte": "1. **Séparer** : ouvrir l'organe de séparation (pas un contacteur, pas l'arrêt d'urgence)\n2. **Condamner** : cadenas personnel + pancarte\n3. **Identifier** : c'est bien ce circuit, et **toutes** ses sources (onduleur, secours…)\n4. **VAT** : détecteur bipolaire testé **avant et après**, sur tous les conducteurs, avec gants isolants et écran facial\n5. **MALT-CC** : en BT, seulement s'il y a risque de réalimentation ou d'induction ; en HTA, toujours\n\n> Arrêté n'est pas séparé. Cadenassé n'est pas consigné. Seule la VAT autorise à toucher."
+  },
+  {
+    "id": "vat-cat",
+    "titre": "Multimètre, VAT et catégories de mesure",
+    "domaine": "securite",
+    "cibles": {
+      "reco": [
+        "reco-cat-marquage",
+        "reco-cat-tgbt",
+        "reco-cat-fusibles"
+      ]
+    },
+    "texte": "La **catégorie** dit quelles surtensions l'appareil supporte :\n\n- **CAT II** : prises de courant\n- **CAT III** : tableaux de distribution, installation fixe\n- **CAT IV** : **origine** de l'installation (branchement, comptage, TGBT de tête)\n\nLa tension associée (« CAT IV 600 V ») se compare à la tension **par rapport à la terre** (230 V en 230/400 V).\n\nUn multimètre **n'est pas un VAT** : calibre, cordon, pile… il peut afficher 0 V sous tension. La borne **A** est protégée par un fusible à fort pouvoir de coupure : on le remplace **à l'identique**."
+  },
+  {
+    "id": "domaines-tension",
+    "titre": "Domaines de tension et habilitations",
+    "domaine": "hta",
+    "cibles": {
+      "reco": [
+        "reco-domaine-hta",
+        "reco-habilitation-b1v"
+      ]
+    },
+    "texte": "En alternatif :\n\n- **TBT** ≤ 50 V · **BTA** 50 à 500 V · **BTB** 500 à 1 000 V\n- **HTA** 1 à 50 kV · **HTB** > 50 kV\n\nHabilitation : **B** = BT et TBT, **H** = haute tension.\n\n- **0** : travaux non électriques · **1** : exécutant · **2** : chargé de travaux\n- **BR** : intervention BT générale · **BC / HC** : chargé de consignation · **BE / HE** : opérations spécifiques (mesure, manœuvre…)\n- **V** : voisinage\n\nEntrer dans un local qui contient de la HTA : au moins **H0**, même pour travailler sur la BT."
+  },
+  {
+    "id": "effets-courant",
+    "titre": "Le courant dans le corps, et le 30 mA",
+    "domaine": "securite",
+    "cibles": {
+      "reco": [
+        "sym-differentiel"
+      ],
+      "calcul": [
+        "courant-corps"
+      ],
+      "panne": [
+        "differentiel-perceuse"
+      ]
+    },
+    "texte": "`I = U / R corps` : la résistance du corps chute avec la tension, l'eau, la surface de contact.\n\nOrdres de grandeur à 50 Hz (IEC 60479-1) :\n\n- **0,5 mA** : perception\n- **≈ 10 mA** : contraction, on ne lâche plus\n- **quelques dizaines de mA**, une fraction de seconde : **fibrillation**\n\nD'où le **différentiel 30 mA** sur les prises et circuits terminaux : il compare l'aller et le retour, et coupe s'il manque quelque chose.\n\n> Un 30 mA qui déclenche protège quelqu'un. On cherche la fuite, on ne touche jamais à la protection."
+  },
+  {
+    "id": "slt",
+    "titre": "Schémas de liaison à la terre : TT, TN, IT",
+    "domaine": "securite",
+    "cibles": {
+      "reco": [
+        "reco-tn-c-ddr",
+        "sym-terre-protection"
+      ],
+      "calcul": [
+        "contact-tt",
+        "lmax-tn"
+      ],
+      "panne": [
+        "barrette-terre",
+        "it-premier-defaut"
+      ]
+    },
+    "texte": "- **TT** : défaut = quelques ampères par la terre → **différentiel** obligatoire. Condition : `Ra × IΔn ≤ 50 V`\n- **TN** : défaut = **court-circuit** par le PE → le **magnétique** coupe (≤ 0,4 s en 230 V). Longueur max à respecter. En **TN-C**, pas de différentiel : le PEN traverserait le tore\n- **IT** : 1er défaut = **rien ne coupe**, le **CPI** alerte. Le 2e défaut, lui, coupe : on répare entre les deux\n\n```\nUc = Ra × Id     Id = U0 / (Ra + Rb)     (TT)\n```\n\nRéf. : IEC 60364-4-41, § 411."
+  },
+  {
+    "id": "differentiels",
+    "titre": "Différentiels : types et fuites",
+    "domaine": "mono-bt",
+    "cibles": {
+      "reco": [
+        "reco-ddr-type-f"
+      ],
+      "panne": [
+        "differentiel-variateurs",
+        "neutre-partage-ddr"
+      ]
+    },
+    "texte": "**Types** selon les fuites à détecter :\n\n- **AC** : alternatives sinusoïdales seulement\n- **A** : + redressées\n- **F** : + fréquences mixtes (variateur **monophasé**)\n- **B** : + continues lisses (variateur **triphasé**, selon la notice)\n\nUn différentiel peut déclencher dès **50 % de IΔn** : des fuites cumulées (filtres CEM) le font sauter « sans raison ».\n\nChaque circuit a **son** neutre, sous **son** différentiel : un neutre partagé fait déclencher les deux.\n\n> On mesure les fuites à la pince de fuite. On ne remplace jamais un 30 mA par un 300 mA pour « faire tenir »."
+  },
+  {
+    "id": "loi-ohm-puissance",
+    "titre": "Loi d'Ohm, puissance, énergie",
+    "domaine": "tbt-cc",
+    "cibles": {
+      "calcul": [
+        "ohm",
+        "puissance",
+        "sortie-api"
+      ]
+    },
+    "texte": "```\nU = R × I        P = U × I = R × I² = U² / R        W = P × t\n```\n\nCache la grandeur cherchée dans le triangle U / (R × I) : il reste l'opération.\n\n- Convertis avant de calculer : **4,7 kΩ = 4 700 Ω**, **200 mA = 0,2 A**\n- Énergie en Wh si t est en heures ; **÷ 1 000** pour des kWh\n- Sortie d'automate : `I = P / 24 V`, à comparer au courant admissible de la sortie (souvent 0,5 A)"
+  },
+  {
+    "id": "triphase",
+    "titre": "Triphasé : tensions, puissances, couplages",
+    "domaine": "tri",
+    "cibles": {
+      "reco": [
+        "sym-moteur"
+      ],
+      "calcul": [
+        "tensions-reseau",
+        "triphase",
+        "couplage",
+        "boucherot",
+        "compensation",
+        "desequilibre",
+        "neutre-coupe"
+      ],
+      "panne": [
+        "neutre-tgbt"
+      ]
+    },
+    "texte": "`U = V × √3` : 400 V entre phases ↔ 230 V phase-neutre.\n\n```\nP = √3 U I cos φ    Q = √3 U I sin φ    S = √3 U I\n```\n\n- **Étoile** : chaque enroulement voit V ; `I = J`\n- **Triangle** : chaque enroulement voit U ; `J = I / √3`\n- **Boucherot** : on additionne les **P** et les **Q**, jamais les S\n- **Compensation** : `Qc = P × (tan φ1 − tan φ2)`\n\n**Neutre coupé** : les récepteurs monophasés se retrouvent en série sous 400 V ; le moins chargé prend la plus grosse tension."
+  },
+  {
+    "id": "chute-tension",
+    "titre": "Chute de tension",
+    "domaine": "mono-bt",
+    "cibles": {
+      "calcul": [
+        "tension-attendue",
+        "chute-mono",
+        "chute-tri",
+        "chute-24v"
+      ]
+    },
+    "texte": "Cuivre en service : **ρ = 0,0225 Ω·mm²/m** (cos φ ≈ 1, réactance négligée).\n\n```\nMonophasé / 24 V : ΔU = 2 × ρ × L × I / S     (aller + retour)\nTriphasé :         ΔU = √3 × ρ × L × I / S    (rapportée à 400 V)\n```\n\nLimites (installation alimentée par le réseau public) : **3 %** éclairage, **5 %** autres usages.\n\nEn 24 V, **1 V = 4 %** : une électrovanne peut ne plus coller sous 21,6 V.\n\n> Une chute se mesure **en charge** : à vide, on lit la même tension partout."
+  },
+  {
+    "id": "transformateur",
+    "titre": "Transformateur : rapport, In, Icc",
+    "domaine": "tri",
+    "cibles": {
+      "reco": [
+        "sym-transfo",
+        "reco-icc-transfo",
+        "reco-couplage-dyn11"
+      ],
+      "calcul": [
+        "rapport-transfo",
+        "prise-transfo",
+        "transfo",
+        "icc-aval"
+      ]
+    },
+    "texte": "```\nIn = S / (√3 × U)        Icc ≈ In × 100 / ucc\nU2 = U1 × U2n / U1n      (plaque : 410 V à vide)\n```\n\n- ucc = 5 % → Icc ≈ **20 × In** au secondaire\n- En aval d'un câble, l'Icc **baisse** : `Icc = U / (√3 × (Z amont + R câble))`\n- Prise **+2,5 %** : le primaire attend 20,5 kV → la BT **baisse**\n- **Dyn11** : primaire triangle, secondaire étoile, **neutre sorti**, déphasage 330°\n\nL'Icc fixe le **pouvoir de coupure** des disjoncteurs."
+  },
+  {
+    "id": "poste-hta",
+    "titre": "Poste HTA : manœuvres et protections",
+    "domaine": "hta",
+    "cibles": {
+      "reco": [
+        "sym-sectionneur-terre",
+        "reco-dgpt2",
+        "reco-fusible-percuteur"
+      ],
+      "calcul": [
+        "hta-courant"
+      ],
+      "panne": [
+        "hta-enclenchement",
+        "hta-dgpt2",
+        "hta-manoeuvre-serrures"
+      ]
+    },
+    "texte": "- En 20 kV, l'arc s'amorce **sans contact** : on ne s'approche pas, on ne force rien\n- **Serrures** : BT ouverte → interrupteur HTA ouvert → **sectionneur de terre** fermé → clé de porte\n- **DGPT2** : gaz, pression, température. Déclenchement sur gaz = **défaut interne** : pas de réenclenchement\n- Fusible à **percuteur** : ouvre les trois pôles de l'interrupteur\n- Enclenchement d'un transformateur : appel de **8 à 12 In**, d'où les réglages du plan de protection\n\nCourant HTA : `I = S / (√3 × 20 kV)` (630 kVA ≈ 18 A)."
+  },
+  {
+    "id": "moteur-asynchrone",
+    "titre": "Moteur asynchrone : sens, vitesse, plaque",
+    "domaine": "tri",
+    "cibles": {
+      "reco": [
+        "reco-sens-rotation",
+        "reco-plaque-poles"
+      ],
+      "calcul": [
+        "glissement"
+      ],
+      "panne": [
+        "moteur-sens-inverse"
+      ]
+    },
+    "texte": "**Sens de rotation** : permuter **deux** phases (hors tension). Permuter les trois ne change rien.\n\n```\nns = 60 × f / p        (p = paires de pôles)\n50 Hz : 2 pôles 3 000 · 4 pôles 1 500 · 6 pôles 1 000 tr/min\ng = (ns − n) / ns\n```\n\n1 450 tr/min → 4 pôles, g ≈ 3 %.\n\nPlaque : on lit l'In **à la tension du réseau**. Après tout remplacement : sens, courant, fonctionnement de la machine."
+  },
+  {
+    "id": "commande-24v",
+    "titre": "Circuit de commande TBT et alimentation 24 V",
+    "domaine": "tbt-cc",
+    "cibles": {
+      "reco": [
+        "sym-alim-dc"
+      ],
+      "calcul": [
+        "alim-24v"
+      ],
+      "panne": [
+        "commande-hs",
+        "demarrage-intempestif-24v"
+      ]
+    },
+    "texte": "Dimensionner l'alimentation : somme des courants (`I = P / U` pour les charges en W), **+ 20 à 30 %** de réserve.\n\nPlage d'un automate 24 V DC : **20,4 à 28,8 V**.\n\n**0 V relié à la terre** : un fil du +24 V qui touche la masse fait **fondre la protection** au premier défaut. Circuit flottant : le 1er défaut passe inaperçu, le 2e peut **shunter un bouton** et démarrer la machine.\n\n> Un fusible de commande fondu a une raison : on cherche le fil qui touche la masse avant de le remplacer."
+  },
+  {
+    "id": "capteurs-api",
+    "titre": "Détecteurs, entrées et sorties d'automate",
+    "domaine": "tbt-cc",
+    "cibles": {
+      "reco": [
+        "reco-capteur-3fils",
+        "sym-diode-roue-libre"
+      ],
+      "calcul": [
+        "boucle-4-20"
+      ],
+      "panne": [
+        "capteur-convoyeur",
+        "capteur-pnp-npn",
+        "sorties-grillees"
+      ]
+    },
+    "texte": "Détecteur 3 fils : **brun +24 V**, **bleu 0 V**, **noir sortie**.\n\n- **PNP** : la sortie met du **+24 V** (entrée automate en logique positive)\n- **NPN** : la sortie met du **0 V**\n\nOn suit le signal : LED du capteur → bornier → LED d'entrée → programme (en dernier).\n\n**4-20 mA** : `valeur = (I − 4) / 16 × pleine échelle` ; 0 mA = boucle ouverte.\n\nBobine continue pilotée par transistor : **diode de roue libre**, cathode au **+** (A1)."
+  },
+  {
+    "id": "arret-urgence",
+    "titre": "Arrêt d'urgence et voyants",
+    "domaine": "securite",
+    "cibles": {
+      "reco": [
+        "mat-arret-urgence",
+        "reco-au-categorie",
+        "reco-au-deux-canaux",
+        "sym-voyant",
+        "reco-voyant-couleur"
+      ]
+    },
+    "texte": "Arrêt d'urgence (ISO 13850, NF EN 60204-1) :\n\n- contact **NF à ouverture positive** (sépare même si soudé)\n- arrêt de **catégorie 0** (coupure immédiate) ou **1** (freinage puis coupure), **jamais 2**\n- module de sécurité à **deux canaux** : un seul défaut ne supprime pas l'arrêt\n- réarmement **volontaire**, testé périodiquement\n\nCouleurs des voyants : **rouge** urgence · **jaune** anormal · **vert** normal · **bleu** action obligatoire · **blanc** neutre."
+  },
+  {
+    "id": "lecture-schema",
+    "titre": "Lire un schéma : repères, renvois, bornier",
+    "domaine": "tbt-cc",
+    "cibles": {
+      "reco": [
+        "reco-renvoi-folio",
+        "reco-repere-bornier",
+        "reco-moteur-81346"
+      ]
+    },
+    "texte": "Repères IEC 81346-2 (1re lettre = fonction) :\n\n- **-QA** contacteur / disjoncteur · **-QB** sectionneur · **-KF** relais\n- **-MA** moteur · **-FA** fusible · **-PF** voyant · **-SF** bouton · **-X** bornier\n\n`-X1:12` = **bornier X1, borne 12**.\n\nRenvoi `/5.2` en bout de conducteur : le fil **continue au folio 5, colonne 2**.\n\n> Même repère sur le schéma, l'étiquette et le terrain : sinon, on consigne le mauvais départ."
+  },
+  {
+    "id": "eclairage",
+    "titre": "Éclairage : phase coupée, retour lampe, couleurs",
+    "domaine": "mono-bt",
+    "cibles": {
+      "reco": [
+        "reco-commande-lampe",
+        "reco-led-allumee",
+        "reco-couleur-neutre"
+      ],
+      "panne": [
+        "retour-lampe-neutre",
+        "telerupteur-couloir"
+      ]
+    },
+    "texte": "- L'interrupteur coupe **la phase**, jamais le neutre (sinon la douille reste sous 230 V)\n- **Retour lampe** : phase commutée, repérée, jamais bleue ni vert-jaune\n- Couleurs : **bleu clair** = neutre · **vert-jaune** = PE, et rien d'autre\n- LED qui luit interrupteur ouvert : **couplage capacitif** sur un long retour lampe\n- **Télérupteur** qui bourdonne : bobine alimentée en continu → un **poussoir bloqué**\n\n> Une erreur de câblage qui ne se voit pas à l'essai se vérifie **au VAT**, interrupteur ouvert."
+  },
+  {
+    "id": "isolement",
+    "titre": "Mesure d'isolement au mégohmmètre",
+    "domaine": "securite",
+    "cibles": {
+      "reco": [
+        "reco-megohmmetre-prep"
+      ],
+      "calcul": [
+        "isolement-attendu"
+      ],
+      "panne": [
+        "isolement-moteur-lavage"
+      ],
+      "isolement": [
+        "iso-prises-neuves",
+        "iso-eclairage-clou",
+        "iso-moteur-variateur",
+        "iso-commande-24v",
+        "iso-neutre-terre",
+        "iso-cable-vieillissant"
+      ]
+    },
+    "texte": "**Hors tension**, électronique **débranchée** (variateur, automate), puis entre chaque conducteur actif et le PE.\n\nTension d'essai et seuil (IEC 60364-6) :\n\n- TBT (≤ 50 V) : **250 V DC**, ≥ **0,5 MΩ**\n- jusqu'à 500 V : **500 V DC**, ≥ **1 MΩ**\n- au-delà : **1 000 V DC**, ≥ **1 MΩ**\n\nPlus le câble est long, plus R baisse : `R = R(km) / L(km)`. L'isolement chute avec la chaleur : on compare à **température égale**.\n\n> Une valeur ne dit rien seule : seuil, historique, et toutes les paires."
+  },
+  {
+    "id": "variateurs",
+    "titre": "Variateur : bus continu et énergie résiduelle",
+    "domaine": "securite",
+    "cibles": {
+      "calcul": [
+        "energie-condensateur"
+      ],
+      "panne": [
+        "variateur-surtension",
+        "energie-residuelle-variateur"
+      ]
+    },
+    "texte": "Variateur 400 V : bus continu vers **540 à 565 V**, derrière des milliers de µF.\n\n```\nW = ½ × C × U²       décharge quasi complète ≈ 5 × R × C\n```\n\n- **Afficheur éteint ≠ bus déchargé** : attendre le temps indiqué, puis **mesurer DC+ / DC−**\n- Défaut **surtension** à l'arrêt : le moteur freine **en générateur** → rampe plus longue ou résistance de freinage\n- Jamais de tournevis entre DC+ et DC− : arc et métal fondu"
+  }
+]

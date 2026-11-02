@@ -10,6 +10,7 @@ import { DOMAINES, puceDomaine } from './domaines.js';
 import * as stockage from './storage.js';
 import { prochaineSeance, ordreModes, conseilBanc } from './parcours.js';
 import { aReviser } from './leitner.js';
+import { recommandation } from './guidage.js';
 import { chargerPannes } from './panne.js';
 
 export const TAILLE_SESSION = 10;
@@ -54,16 +55,20 @@ const MODES = {
   isolement: { titre: 'Mesure d\'isolement', desc: 'Mégohmmètre 250 / 500 / 1 000 V DC · préparer, mesurer, conclure', record: () => mesuresReussies() }
 };
 
-// Carte « Ta prochaine séance » : l'action prioritaire de l'accueil.
-function carteProchaine(p) {
+// Encart « Prochaine étape » : l'action prioritaire de l'accueil, choisie par guidage.js d'après les réponses
+// enregistrées (lacune par domaine, niveau à franchir, ou suite du parcours). p : parcours ; r : recommandation.
+function carteProchaine(p, r) {
   const progression = Math.round(p.fait / p.total * 100);
+  const diagnostic = DOMAINES.filter(d => r.bilan[d.id].essais)
+    .map(d => { const b = r.bilan[d.id]; const ok = Math.round(100 * b.reussites / b.essais); return `<span class="diag-domaine${d.id === r.domaine ? ' faible' : ''}">${esc(d.code)} ${ok} %</span>`; });
   return `
-    <a class="prochaine" href="${p.href}">
-      <span class="prochaine-surtitre">Ta prochaine séance</span>
-      <span class="prochaine-titre">${esc(p.titre)}</span>
-      <span class="prochaine-desc">${esc(p.desc)}</span>
+    <a class="prochaine prochaine-${r.type}" href="${r.href}" data-type="${r.type}">
+      <span class="prochaine-surtitre">${esc(r.surtitre)}</span>
+      <span class="prochaine-titre">${esc(r.titre)}</span>
+      <span class="prochaine-desc">${esc(r.desc)}</span>
+      ${diagnostic.length ? `<span class="prochaine-diagnostic" aria-label="Réussite par domaine">${diagnostic.join('')}</span>` : ''}
       <span class="prochaine-etape"><span>${esc(p.etape)}</span><span class="prochaine-jauge" aria-hidden="true"><span style="width: ${progression}%"></span></span></span>
-      <span class="prochaine-go" aria-hidden="true">Commencer →</span>
+      <span class="prochaine-go" aria-hidden="true">${esc(r.action)} →</span>
     </a>`;
 }
 
@@ -74,6 +79,13 @@ export async function renderEntrainement({ vue, definirTitre }) {
   const etat = stockage.lire();
   const cas = await chargerPannes().catch(() => []);
   const prochaine = prochaineSeance(etat, cas);
+  // Catalogue du contenu (domaine et niveau de chaque élément) pour le diagnostic par domaine.
+  const [questions, generateurs] = await Promise.all([
+    import('./quiz.js').then(m => m.chargerQuestions()).catch(() => []),
+    import('./calcul.js').then(m => m.GENERATEURS).catch(() => [])
+  ]);
+  const reduire = l => l.map(e => ({ id: e.id, niveau: e.niveau, domaines: e.domaines }));
+  const reco = recommandation(etat, { reco: reduire(questions), calcul: reduire(generateurs), panne: reduire(cas) }, prochaine, cas);
   const conseilDuBanc = conseilBanc(etat, cas);
   vue.innerHTML = `
     <header class="salut">
@@ -83,7 +95,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
       <p class="devise-sous">Conçu et éprouvé selon la réalité des armoires industrielles et la rigueur des normes en vigueur.</p>
     </header>
 
-    ${carteProchaine(prochaine)}
+    ${carteProchaine(prochaine, reco)}
     ${(n => n ? `<a class="rappel-revision" href="#/entrainement/revision"><strong>À réviser :</strong> ${n} erreur${n > 1 ? 's' : ''} à revoir aujourd'hui →</a>` : '')(aReviser(etat).length)}
 
     ${carteNiveau()}
