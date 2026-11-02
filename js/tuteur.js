@@ -3,6 +3,7 @@
 
 import { esc } from './util.js';
 import { typo } from './mise-en-page.js';
+import { annoterNorme, notesNorme } from './normes.js';
 
 // Plafonds de l'essentiel affiché d'emblée (en mots) : ensemble, une soixantaine de mots.
 export const MOTS_POURQUOI = 22;
@@ -48,8 +49,13 @@ export function risqueComplet(risque) {
     : '';
 }
 
-export function ligneNorme(norme) {
-  return norme ? `<p class="norme"><span>Réf.</span> ${esc(typo(norme))}</p>` : '';
+// Référence normative, avec l'édition de chaque norme citée (js/normes.js). aRelire : contenu pas encore relu par un
+// formateur (les cas et les questions affichent déjà leur propre mention).
+export function ligneNorme(norme, { aRelire = false } = {}) {
+  if (!norme) return '';
+  const notes = [...notesNorme(norme), ...(aRelire ? ['Contenu pas encore validé par un formateur.'] : [])];
+  return `<p class="norme"><span>Réf.</span> ${esc(typo(annoterNorme(norme)))}</p>`
+    + notes.map(n => `<p class="note-marge">${esc(typo(n))}</p>`).join('');
 }
 
 // Accordéon « En savoir plus » : tout ce qui n'est pas indispensable sur le moment.

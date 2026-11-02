@@ -1136,7 +1136,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const calculPose = `<p class="surtitre">Le calcul posé</p><p class="solution">${esc(typo(ex.solution))}</p>`;
     const rappel = `<div class="lecon"><p class="lecon-titre">Rappel</p><p>${esc(typo(ex.explication))}</p></div>`;
     const piege = `<div class="piege-terrain"><p class="lecon-titre">Piège en armoire</p><p>${esc(typo(ex.piege))}</p></div>`;
-    const norme = ligneNorme(ex.generateur.norme);
+    const norme = ligneNorme(ex.generateur.norme, { aRelire: !ex.generateur.verifie });
 
     // Correction en deux temps : l'essentiel (valeur attendue, une phrase de pourquoi, le risque), puis « En savoir plus ».
     const pourquoi = resume(diagnostic ?? ex.explication, MOTS_POURQUOI);

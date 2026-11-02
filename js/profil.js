@@ -36,6 +36,14 @@ function estInstallee() {
   return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
 }
 
+// « Positionnement : 9/12 · reconnaissance II, calculs I, cas de panne I. » (ancien test : reconnaissance seule, sur 10).
+function resumePositionnement(p) {
+  const R = ['', 'I', 'II', 'III'];
+  if (!p.niveaux) return `Positionnement : ${p.score}/10 (ancien test, reconnaissance seule)${p.niveau ? `, reconnaissance niveau ${R[p.niveau]} validée` : ''}. Refais-le pour valider aussi calculs et cas.`;
+  const modes = [['reco', 'reconnaissance'], ['calcul', 'calculs'], ['panne', 'cas de panne']].map(([m, nom]) => `${nom} ${p.niveaux[m] ? R[p.niveaux[m]] : '—'}`);
+  return `Positionnement : ${p.score}/12 · ${modes.join(', ')}.`;
+}
+
 export async function renderProfil({ vue, definirTitre }) {
   definirTitre('Carnet');
   const etat = stockage.lire();
@@ -69,7 +77,7 @@ export async function renderProfil({ vue, definirTitre }) {
         </div>
         <p class="discret petit espace">Le profil règle l'ordre de ton parcours et de l'accueil. Rien n'est jamais verrouillé.</p>
         ${etat.positionnement
-          ? ligneEtat('ok', `Positionnement : ${etat.positionnement.score}/10, ${etat.positionnement.niveau ? `niveau ${['', 'I', 'II', 'III'][etat.positionnement.niveau]} validé` : 'aucun niveau validé d’office'}.`)
+          ? ligneEtat('ok', resumePositionnement(etat.positionnement))
           : ligneEtat('neutre', 'Test de positionnement pas encore passé.')}
         <div class="actions"><a class="btn" href="#/entrainement/positionnement">${etat.positionnement ? 'Refaire le test de positionnement' : 'Passer le test de positionnement'}</a></div>
       </div>

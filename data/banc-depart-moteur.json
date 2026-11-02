@@ -92,6 +92,7 @@
   "pannes": [
     {
       "id": "fu1-fondu",
+      "niveau": 1,
       "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche. Le voyant « sous tension » H1 est éteint.",
       "ouvre": ["fu1"],
@@ -105,6 +106,7 @@
     },
     {
       "id": "contact-95-96",
+      "niveau": 2,
       "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche. Le voyant H1 est allumé. Le relais thermique ne semble pas déclenché.",
       "ouvre": ["f2-95"],
@@ -118,6 +120,7 @@
     },
     {
       "id": "bobine-coupee",
+      "niveau": 1,
       "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1 est allumé.",
       "ouvre": ["bobine"],
@@ -131,6 +134,7 @@
     },
     {
       "id": "cable-pupitre",
+      "niveau": 3,
       "domaines": ["mono-bt", "tri"],
       "symptome": "Rien ne se passe à l'appui sur Marche, pas même le claquement du contacteur. Le voyant H1 est allumé.",
       "ouvre": ["cable-1"],
@@ -144,6 +148,7 @@
     },
     {
       "id": "fusible-l2",
+      "niveau": 2,
       "domaines": ["tri"],
       "symptome": "Au démarrage, le moteur grogne, puis tout s'arrête au bout de quelques secondes. L'opérateur a réessayé deux fois.",
       "ouvre": ["fu-l2"],

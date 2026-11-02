@@ -106,6 +106,11 @@ export default async function ({ t, url: U, navigateur }) {
     }
     const resultat = await etat();
     const rapport = (await p.textContent('main')).replace(/\s+/g, ' ');
+    if (id === 'fu1-fondu') {
+      t.ok((await p.textContent('.objectif-suivant')).includes('Intervention validée') && /sans indice/.test(await p.textContent('.objectif-suivant'))
+        && await p.evaluate(() => JSON.parse(localStorage.getItem('elec-learning:v1')).stats.banc.elements['fu1-fondu'].reussites >= 1),
+        'réparée avec indices, sans alerte : intervention validée (étape du parcours), objectif suivant « sans indice »');
+    }
     t.ok(await p.isVisible('.bilan') && resultat.resolu && resultat.dangers === 0 && /Indices utilisés\s*[1-9]/.test(rapport),
       `${id} : réparée en ${gestes} gestes guidés par les indices, sans alerte de sécurité ; indices comptés au rapport`);
   }
@@ -115,6 +120,18 @@ export default async function ({ t, url: U, navigateur }) {
   await p.click('[data-fonction="loz"]'); await p.click('#mesurer');
   t.ok((await p.textContent('.note-mesure')).includes('0 V : pas de tension'), 'lecture à 0 V : « pas de tension entre ces deux points »');
   t.ok(await p.isVisible('.mission') && (await p.textContent('.mission')).includes('Ta mission'), 'la mission est écrite en clair en haut du banc');
+
+  t.section('I. Banc · pannes graduées');
+  {
+    const { contexte: c, page: q } = await nouvellePage(navigateur);
+    const niveaux = [];
+    for (let i = 0; i < 4; i++) {
+      await q.goto(U + '#/entrainement'); await q.goto(U + '#/entrainement/banc'); await q.waitForSelector('.tableau-bord');
+      niveaux.push((await q.textContent('.frontispice-banc .surtitre')).match(/Niv\. (I+)/)?.[1]);
+    }
+    t.ok(niveaux.every(n => n === 'I'), `nouvel apprenti, 4 arrivées au banc : toujours une panne de niveau I (${niveaux.join(', ')})`);
+    await c.close();
+  }
 
   t.section('I. Banc · appareil de mesure repliable');
   await ouvrir('fu1-fondu');

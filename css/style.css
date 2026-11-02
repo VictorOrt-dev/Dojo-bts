@@ -969,3 +969,8 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .console-banc.s-ouvre .corps-console { animation: deplier-console .2s ease-out; }
 @keyframes deplier-console { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .console-banc.s-ouvre .corps-console { animation: none; } }
+
+/* ---------- Positionnement : mode de la question ---------- */
+.mode-test { margin-left: 8px; font: 600 13px/1 var(--mono); letter-spacing: .02em; color: var(--texte-2); text-transform: uppercase; vertical-align: middle; }
+.titre-cas-test { margin: 0 0 6px; font: 600 15px/1.4 var(--texte); color: var(--texte-2); }
+.objectif-suivant { margin-top: 14px; }

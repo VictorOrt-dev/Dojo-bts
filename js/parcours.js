@@ -34,10 +34,20 @@ export function premierLancement(etat) {
 const MODE_DE = { R: 'reco', C: 'calcul', P: 'panne' };
 const casNonHta = cas => cas.filter(c => !c.domaines?.includes('hta'));
 
+// Niveau validé d'office par le test de positionnement pour un mode. Le test pose des questions de reconnaissance,
+// de calcul et de cas de panne : chaque mode n'est validé que par ses propres questions. Un ancien résultat
+// (questions de reconnaissance seulement, sans `niveaux`) ne valide plus que la reconnaissance.
+export function niveauPositionnement(etat, mode) {
+  const p = etat.positionnement;
+  if (!p) return 0;
+  if (p.niveaux) return p.niveaux[mode] ?? 0;
+  return mode === 'reco' ? p.niveau ?? 0 : 0;
+}
+
 // Un niveau est acquis par la pratique (80 % en séance, ou un cas sans faute) ou par le test de positionnement.
 export function niveauAcquis(etat, mode, n, tousLesCas = []) {
   if (n <= 0) return true;
-  if ((etat.positionnement?.niveau ?? 0) >= n) return true;
+  if (niveauPositionnement(etat, mode) >= n) return true;
   const stats = etat.stats?.[mode];
   if (!stats) return false;
   if (mode === 'panne') return tousLesCas.some(c => c.niveau === n && stats.elements?.[c.id]?.reussites > 0);
@@ -46,6 +56,7 @@ export function niveauAcquis(etat, mode, n, tousLesCas = []) {
 
 function etapeAcquise(etat, code, tousLesCas) {
   if (code === 'T') return !!etat.positionnement;
+  // Banc : une panne réparée sans alerte de sécurité valide l'étape, indices compris (l'aide s'efface ensuite d'elle-même).
   if (code === 'B') return Object.values(etat.stats?.banc?.elements ?? {}).some(e => e.reussites > 0);
   return niveauAcquis(etat, MODE_DE[code[0]], Number(code[1]), tousLesCas);
 }
@@ -53,7 +64,7 @@ function etapeAcquise(etat, code, tousLesCas) {
 const NOMS_NIVEAU = ['', 'I', 'II', 'III'];
 
 function decrire(code, etat, tousLesCas) {
-  if (code === 'T') return { href: '#/entrainement/positionnement', titre: 'Test de positionnement', desc: '10 questions, environ 5 minutes. Il valide d\'office les niveaux que tu maîtrises déjà.' };
+  if (code === 'T') return { href: '#/entrainement/positionnement', titre: 'Test de positionnement', desc: '12 questions (reconnaissance, calculs, cas de panne), environ 6 minutes. Il valide d\'office ce que tu maîtrises déjà.' };
   if (code === 'B') return { href: '#/entrainement/banc', titre: 'Banc de mesure', desc: 'Une panne cachée sur un départ moteur : mesure, consigne, répare.' };
   const n = Number(code[1]);
   if (code[0] === 'R') return { href: `#/entrainement/reco?n=${n}`, titre: `Reconnaissance · niveau\u00A0${NOMS_NIVEAU[n]}`, desc: n === 1 ? 'Les symboles et les appareils que tu croiseras dans toutes les armoires.' : 'Repérages, réglages, symboles moins courants.' };
@@ -105,10 +116,34 @@ export function conseilBanc(etat, tousLesCas) {
   return 'Conseillé après un premier cas de panne réussi';
 }
 
+// ---------- Banc : pannes graduées ----------
+
+// Niveau de la prochaine panne cachée : le premier niveau (I, II, III) dont aucune panne n'est encore réparée
+// sans alerte de sécurité. 0 = tous franchis : tirage libre parmi toutes les pannes.
+export function niveauBanc(etat, pannes) {
+  const reussie = p => etat.stats?.banc?.elements?.[p.id]?.reussites > 0;
+  for (const n of [1, 2, 3]) {
+    const duNiveau = pannes.filter(p => p.niveau === n);
+    if (duNiveau.length && !duNiveau.some(reussie)) return n;
+  }
+  return 0;
+}
+
+// Pannes candidates au prochain tirage (jamais deux fois de suite la même, quand c'est possible).
+export function pannesCandidates(etat, pannes, derniere = null) {
+  const n = niveauBanc(etat, pannes);
+  const pool = n ? pannes.filter(p => p.niveau === n) : pannes;
+  const autres = pool.filter(p => p.id !== derniere);
+  return autres.length ? autres : pool;
+}
+
 // ---------- Test de positionnement ----------
 
-export const COMPOSITION = { 1: 3, 2: 4, 3: 3 };  // 10 questions : 3 de niveau I, 4 de niveau II, 3 de niveau III
-export const REQUIS = { 1: 2, 2: 3, 3: 2 };       // bonnes réponses nécessaires pour valider chaque niveau
+// 12 questions, 4 par niveau : 2 de reconnaissance, 1 calcul, 1 situation de cas de panne.
+export const COMPOSITION = { reco: 2, calcul: 1, panne: 1 };
+export const PAR_NIVEAU = Object.values(COMPOSITION).reduce((a, b) => a + b);   // 4
+export const TOTAL_POSITIONNEMENT = PAR_NIVEAU * 3;                              // 12
+export const REQUIS = { 1: 3, 2: 3, 3: 3 };   // bonnes réponses sur 4 nécessaires pour valider chaque niveau
 
 // Niveau validé (0 à 3) : chaque niveau exige les précédents.
 export function niveauValide(scores) {
@@ -117,4 +152,24 @@ export function niveauValide(scores) {
     if ((scores[n] ?? 0) >= REQUIS[n]) v = n; else break;
   }
   return v;
+}
+
+// Résultat du test : niveau global et niveau validé pour chaque mode.
+// resultats : [{ niveau, mode: 'reco' | 'calcul' | 'panne', juste }]
+// Un mode est validé jusqu'au niveau n si le niveau global atteint n ET si, à chaque niveau ≤ n, ses propres
+// questions sont réussies (au moins la moitié). La reconnaissance ne valide jamais seule les calculs ou les cas.
+export function resultatPositionnement(resultats) {
+  const scores = { 1: 0, 2: 0, 3: 0 };
+  resultats.forEach(r => { if (r.juste) scores[r.niveau]++; });
+  const niveau = niveauValide(scores);
+  const niveaux = {};
+  for (const mode of Object.keys(COMPOSITION)) {
+    let v = 0;
+    for (let n = 1; n <= niveau; n++) {
+      const siens = resultats.filter(r => r.mode === mode && r.niveau === n);
+      if (siens.length && siens.filter(r => r.juste).length * 2 >= siens.length) v = n; else break;
+    }
+    niveaux[mode] = v;
+  }
+  return { niveau, scores, niveaux, score: resultats.filter(r => r.juste).length };
 }

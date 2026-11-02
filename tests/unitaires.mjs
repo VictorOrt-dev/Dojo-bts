@@ -82,7 +82,7 @@ function controleDesSauvegardes(t) {
     derniereSauvegarde: 1761900000000,
     preferences: { matiere: 'porcelaine', visiteBanc: true },
     profil: 'formation',
-    positionnement: { niveau: 2, score: 8, date: 1761900000000 }
+    positionnement: { niveau: 2, score: 8, date: 1761900000000, niveaux: { reco: 2, calcul: 1, panne: 0 } }
   };
   const r = controler(valide);
   t.ok(r.anomalies.length === 0 && isDeepStrictEqual(r.etat, valide), 'sauvegarde conforme : acceptée telle quelle');
@@ -111,6 +111,10 @@ function controleDesSauvegardes(t) {
   refuse({ version: 1, profil: 'expert' }, 'profil', 'profil inconnu');
   refuse({ version: 1, positionnement: { niveau: 5, score: 8, date: 1 } }, 'positionnement', 'niveau de positionnement hors de 0 à 3');
   refuse({ version: 1, positionnement: { niveau: 2, score: '8', date: 1 } }, 'positionnement', 'score de positionnement en texte');
+  refuse({ version: 1, positionnement: { niveau: 1, score: 6, date: 1, niveaux: { calcul: 3 } } }, 'positionnement', 'niveau d\'un mode au-dessus du niveau atteint');
+  refuse({ version: 1, positionnement: { niveau: 2, score: 8, date: 1, niveaux: { banc: 2 } } }, 'positionnement', 'mode inconnu dans le positionnement');
+  t.ok(isDeepStrictEqual(controler({ version: 1, positionnement: { niveau: 2, score: 8, date: 1 } }).etat.positionnement, { niveau: 2, score: 8, date: 1 }),
+    'ancien positionnement (sans niveaux par mode) : toujours accepté');
   refuse({ version: 1, stats: { reco: { elements: { ['x'.repeat(500)]: { essais: 1, reussites: 1 } } } } }, 'clé', 'identifiant démesuré');
 
   // Pollution de prototype : JSON.parse crée une vraie clé « __proto__ ».
@@ -176,12 +180,35 @@ function parcoursGuide(t) {
   t.ok(/HTA/.test(P.conseilCas(d, hta, cas)) && P.conseilCas(d, cas.find(c => c.niveau === 1 && !c.domaines.includes('hta')), cas) === null, 'cas de panne : HTA mentionné, niveau I hors HTA libre');
   t.ok(P.conseilBanc(d, cas) && P.conseilBanc(etat({ profil: 'confirme' }), cas) === null, 'banc : conseillé après un premier cas réussi (sauf profil confirmé)');
 
-  t.ok(P.niveauValide({ 1: 3, 2: 4, 3: 3 }) === 3 && P.niveauValide({ 1: 2, 2: 3, 3: 0 }) === 2 && P.niveauValide({ 1: 1, 2: 4, 3: 3 }) === 0 && P.niveauValide({ 1: 3, 2: 2, 3: 3 }) === 1,
-    'positionnement : un niveau n\'est validé que si les précédents le sont (3/3·4/4·3/3 → III ; 1/3 → aucun)');
-  const pos = etat({ profil: 'confirme', positionnement: { niveau: 2, score: 8, date: 1 } });
+  t.ok(P.niveauValide({ 1: 4, 2: 3, 3: 3 }) === 3 && P.niveauValide({ 1: 3, 2: 3, 3: 0 }) === 2 && P.niveauValide({ 1: 2, 2: 4, 3: 4 }) === 0 && P.niveauValide({ 1: 3, 2: 2, 3: 4 }) === 1,
+    'positionnement : 3 bonnes réponses sur 4 par niveau, et un niveau n\'est validé que si les précédents le sont');
+  const pos = etat({ profil: 'confirme', positionnement: { niveau: 2, score: 8, date: 1, niveaux: { reco: 2, calcul: 2, panne: 2 } } });
   t.ok(P.conseilNiveau(pos, 'reco', 3) === null && P.conseilCas(pos, hta, cas) === null && P.prochaineSeance(pos, cas).code === 'B',
-    'positionnement niveau II : mentions levées jusqu\'au niveau III et HTA, parcours repris au banc');
-  t.ok(Object.values(P.COMPOSITION).reduce((a, b) => a + b) === 10, 'test de positionnement : 10 questions');
+    'positionnement niveau II dans les trois modes : mentions levées jusqu\'au niveau III et HTA, parcours repris au banc');
+  t.ok(P.TOTAL_POSITIONNEMENT === 12 && P.PAR_NIVEAU === 4 && P.COMPOSITION.reco === 2 && P.COMPOSITION.calcul === 1 && P.COMPOSITION.panne === 1,
+    'test de positionnement : 12 questions, 4 par niveau (2 reconnaissances, 1 calcul, 1 cas de panne)');
+
+  // Le positionnement ne valide un mode que par ses propres questions.
+  const rep = (n, reco, calcul, panne) => [{ niveau: n, mode: 'reco', juste: reco >= 1 }, { niveau: n, mode: 'reco', juste: reco >= 2 }, { niveau: n, mode: 'calcul', juste: calcul }, { niveau: n, mode: 'panne', juste: panne }];
+  const tout = P.resultatPositionnement([...rep(1, 2, true, true), ...rep(2, 2, true, true), ...rep(3, 2, true, true)]);
+  t.ok(tout.score === 12 && tout.niveau === 3 && tout.niveaux.reco === 3 && tout.niveaux.calcul === 3 && tout.niveaux.panne === 3, 'positionnement 12/12 : niveau III validé dans les trois modes');
+  const symboles = P.resultatPositionnement([...rep(1, 2, true, false), ...rep(2, 2, false, true), ...rep(3, 2, true, true)]);
+  t.ok(symboles.niveau === 3 && symboles.niveaux.reco === 3 && symboles.niveaux.calcul === 1 && symboles.niveaux.panne === 0,
+    'calcul raté au niveau II, cas raté au niveau I : reconnaissance III, calculs I seulement, cas de panne rien');
+  const ancien = etat({ positionnement: { niveau: 3, score: 10, date: 1 } });
+  t.ok(P.niveauAcquis(ancien, 'reco', 3) && !P.niveauAcquis(ancien, 'calcul', 1) && !P.niveauAcquis(ancien, 'panne', 1),
+    'ancien test (reconnaissance seule) : ne valide plus que la reconnaissance, ni les calculs ni les cas');
+
+  // Banc : pannes graduées et étape validée avec indices.
+  const banc = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/banc-depart-moteur.json'), 'utf8')).pannes;
+  const bancReussi = ids => etat({ stats: { banc: { sessions: 1, meilleurScore: 1, derniereSession: 1, elements: Object.fromEntries(ids.map(id => [id, { essais: 1, reussites: 1 }])) } } });
+  t.ok(banc.every(p => [1, 2, 3].includes(p.niveau)) && [1, 2, 3].every(n => banc.some(p => p.niveau === n)), 'banc : chaque panne porte un niveau, les trois niveaux sont représentés');
+  t.ok(P.pannesCandidates(etat(), banc).every(p => p.niveau === 1) && Math.max(...banc.filter(p => p.niveau === 1).map(p => p.reference)) < 60,
+    'débutant au banc : seules des pannes de niveau I (référence < 1 h) peuvent tomber');
+  t.ok(P.niveauBanc(bancReussi(['fu1-fondu']), banc) === 2 && P.niveauBanc(bancReussi(['fu1-fondu', 'fusible-l2']), banc) === 3
+    && P.niveauBanc(bancReussi(banc.map(p => p.id)), banc) === 0 && P.pannesCandidates(bancReussi(banc.map(p => p.id)), banc).length === banc.length - 0,
+    'banc : niveau II après une panne de niveau I réparée, III après le II, puis tirage libre');
+  t.ok(P.pannesCandidates(etat(), banc, 'fu1-fondu').every(p => p.id !== 'fu1-fondu'), 'banc : jamais deux fois de suite la même panne');
 }
 
 // ---------- Correction en deux temps : l'essentiel tient en une soixantaine de mots, partout ----------

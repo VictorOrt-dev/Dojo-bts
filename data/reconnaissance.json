@@ -547,7 +547,7 @@
   },
   {
     "id": "reco-no-bornes",
-    "niveau": 3,
+    "niveau": 2,
     "type": "symbole",
     "image": "img/reco/sym-contact-no.svg",
     "question": "Ce symbole est le premier contact auxiliaire d'un contacteur. Quelles bornes porte-t-il ?",
@@ -574,7 +574,7 @@
   },
   {
     "id": "reco-nf-bornes",
-    "niveau": 3,
+    "niveau": 2,
     "type": "symbole",
     "image": "img/reco/sym-contact-nf.svg",
     "question": "Ce contact est le deuxième contact auxiliaire d'un appareil. Quelles bornes porte-t-il ?",
@@ -601,7 +601,7 @@
   },
   {
     "id": "reco-reglage-molette",
-    "niveau": 3,
+    "niveau": 2,
     "type": "materiel",
     "image": "img/reco/mat-disjoncteur-moteur.svg",
     "question": "Sur quelle valeur règles-tu la molette de ce disjoncteur moteur ?",
@@ -685,27 +685,27 @@
     "niveau": 3,
     "type": "materiel",
     "image": "img/reco/mat-contacteur.svg",
-    "question": "Ce contacteur pilote un moteur, alimenté par des fusibles. Que faut-il ajouter pour protéger le moteur contre les surcharges ?",
-    "nom": "Un relais thermique réglé sur l'In",
+    "question": "Départ moteur : fusibles aM 16 A, contacteur, relais thermique réglé à 11 A. Une cartouche fond : le moteur continue de tourner sur deux phases et absorbe 17 A. Qui coupe ?",
+    "nom": "Le relais thermique, en une à deux minutes au plus",
     "faux": [
-      "Des fusibles gG calibrés sur l'In",
-      "Un différentiel 30 mA en amont",
-      "Un relais temporisé sur la bobine"
+      "Les deux autres fusibles aM, à leur tour",
+      "Personne : 17 A reste proche du calibre des fusibles",
+      "Le différentiel de tête, qui voit le déséquilibre"
     ],
     "pourquoiPas": {
-      "Des fusibles gG calibrés sur l'In": "Au démarrage, le moteur appelle 6 à 8 In : des gG au calibre In fondraient. On utilise des fusibles aM (courts-circuits) + relais thermique (surcharges).",
-      "Un différentiel 30 mA en amont": "Un différentiel détecte les fuites à la terre : il protège les personnes, pas le moteur contre une surcharge.",
-      "Un relais temporisé sur la bobine": "Une temporisation ne mesure pas le courant : elle ne détecte aucune surcharge."
+      "Les deux autres fusibles aM, à leur tour": "Un aM est fait pour laisser passer le démarrage : il ne fond qu'au-delà de plusieurs fois son calibre. À 17 A sur 16 A, il tient des heures.",
+      "Personne : 17 A reste proche du calibre des fusibles": "C'est vrai pour les fusibles, et c'est tout le piège : la surcharge et le manque de phase sont confiés au relais thermique, pas aux aM.",
+      "Le différentiel de tête, qui voit le déséquilibre": "Un différentiel compare l'aller et le retour de tous les conducteurs actifs : sans fuite vers la terre, la somme reste nulle, même sur deux phases."
     },
-    "explication": "Un départ moteur assure trois fonctions : sectionnement, protection et commande. Avec des fusibles aM (courts-circuits uniquement), la surcharge doit être confiée à un relais thermique dont le contact 95-96 coupe la bobine du contacteur.",
-    "reperage": "Départ moteur classique : Q1 (sectionneur porte-fusibles aM) + KM1 (contacteur) + F2 (relais thermique).",
-    "role": "Sans protection thermique, une surcharge mécanique ou un manque de phase détruit le bobinage en quelques minutes.",
+    "explication": "Les fusibles aM ne protègent que du court-circuit. Sur deux phases, le moteur tire environ 1,5 fois son réglage : le relais thermique (classe 10) déclenche en une à deux minutes, plus vite s'il est sensible à la perte de phase. Son contact 95-96 coupe la bobine du contacteur.",
+    "reperage": "Coordination d'un départ moteur : Q1 (aM, court-circuit) + KM1 (commande) + F2 (relais thermique : surcharge et perte de phase).",
+    "role": "Chaque appareil a sa part : le fusible coupe le court-circuit, le relais thermique la surcharge, le contacteur exécute l'ordre.",
     "verifie": false,
     "domaines": [
       "tri"
     ],
-    "norme": "NF C 15-100 · IEC 60947-4-1",
-    "risque": "Avec des fusibles aM seuls, une surcharge ou un manque de phase ne coupe rien : le moteur chauffe jusqu'à la destruction de son bobinage. Les aM ne protègent que contre le court-circuit."
+    "norme": "IEC 60947-4-1 (classes de déclenchement) · IEC 60269 (fusibles aM)",
+    "risque": "Si le relais est shunté ou réglé trop haut, le moteur tourne sur deux phases jusqu'à griller son bobinage, et le prochain démarrage sur deux phases fait fondre les autres cartouches."
   },
   {
     "id": "reco-sectionneur-charge",
@@ -792,7 +792,7 @@
   },
   {
     "id": "reco-voyant-couleur",
-    "niveau": 3,
+    "niveau": 2,
     "type": "symbole",
     "image": "img/reco/sym-voyant.svg",
     "question": "Ce voyant signale une condition anormale (surchauffe imminente, niveau bas…). Quelle couleur impose l'IEC 60204-1 ?",

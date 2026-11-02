@@ -57,26 +57,28 @@ export default async function ({ t, url: U, navigateur }) {
   const xpAvant = (await etat()).xp ?? 0;
   await p.click('.prochaine');
   let vues = 0;
-  for (let i = 0; i < 10; i++) {
+  const modesVus = new Set();
+  for (let i = 0; i < 12; i++) {
     await p.waitForSelector('.choix-btn:not([disabled])');
-    const src = await p.getAttribute('.reco-visuel img', 'src');
-    const question = (await p.textContent('.question')).replace(/\s/g, '');
-    const q = qs.find(x => x.image === src && x.question.replace(/\s/g, '') === question);
-    const textes = (await p.locator('.choix-btn').allTextContents()).map(x => x.replace(/\s/g, '').slice(1));
-    await p.locator('.choix-btn').nth(textes.findIndex(x => x === q.nom.replace(/\s/g, ''))).click();
+    // La bonne réponse est lue dans l'état du test (exposé pour les tests), jamais dans le DOM.
+    const q = await p.evaluate(async () => { const m = await import('/js/positionnement.js'); const x = m.positionnementEnCours(); const q = x.questions[x.index]; return { bonne: q.choix.indexOf(q.bonne), mode: q.mode, n: q.choix.length }; });
+    modesVus.add(q.mode);
+    if (q.mode === 'calcul' && (q.bonne < 0 || q.n < 3)) throw new Error('calcul du positionnement sans bonne réponse ou avec moins de 3 choix');
+    await p.locator('.choix-btn').nth(q.bonne).click();
     vues++;
     await p.click('#suivant');
   }
   await p.waitForSelector('.bilan');
   const pos = (await etat()).positionnement;
-  t.ok(vues === 10 && pos?.score === 10 && pos.niveau === 3 && (await p.textContent('.bilan')).includes('Tout est validé'), 'test de positionnement : 10 questions, 10/10 → niveaux I à III validés');
+  t.ok(vues === 12 && modesVus.size === 3 && pos?.score === 12 && pos.niveau === 3 && pos.niveaux.calcul === 3 && pos.niveaux.panne === 3 && (await p.textContent('.bilan')).includes('Tout est validé'),
+    'test de positionnement : 12 questions (reconnaissance, calcul, cas de panne), 12/12 → niveau III validé dans les trois modes');
   t.ok(((await etat()).xp ?? 0) === xpAvant, 'le test ne rapporte pas d\'XP (pas de farm d\'XP)');
   await p.goto(U + '#/entrainement/panne'); await p.waitForSelector('.ligne-panne');
   t.ok(await p.locator('.ligne-panne .conseil').count() === 0, 'après positionnement : plus aucune mention « Conseillé après… » sur les cas');
   await p.goto(U + '#/entrainement'); await p.waitForSelector('.prochaine');
   t.ok((await p.getAttribute('.prochaine', 'href')) === '#/entrainement/banc', 'parcours confirmé repris au banc de mesure');
   await p.goto(U + '#/profil'); await p.waitForSelector('.selecteur-profil');
-  t.ok((await p.textContent('main')).includes('Positionnement : 10/10'), 'Carnet : résultat du positionnement affiché');
+  t.ok((await p.textContent('main')).includes('Positionnement : 12/12'), 'Carnet : résultat du positionnement affiché, mode par mode');
   t.ok(p.erreurs.length === 0, 'parcours guidé : aucune erreur dans la console' + (p.erreurs.length ? ' — ' + p.erreurs.join(' | ') : ''));
   await contexte.close();
 

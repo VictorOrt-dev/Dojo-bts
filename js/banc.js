@@ -8,6 +8,8 @@ import { gagnerXP, noterReponse, noterSession } from './xp.js';
 import { annoncerMontee } from './entrainement.js';
 import { frontispice, typo as typoBase } from './mise-en-page.js';
 import { parmi } from './hasard.js';
+import { pannesCandidates } from './parcours.js';
+import { etiquetteNiveau } from './difficulte.js';
 import { esc } from './util.js';
 import { pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
@@ -49,7 +51,8 @@ export async function renderBanc({ vue, definirTitre, params }) {
   definirTitre('Banc de mesure');
   const banc = await chargerBanc();
   // ?panne=<id> force une panne précise (utilisé par les tests automatisés) ; sinon tirage au sort.
-  const panne = banc.pannes.find(p => p.id === params?.get('panne')) ?? parmi(banc.pannes.filter(p => p.id !== derniereCasse));
+  // Pannes graduées : un débutant commence par une panne de niveau I, jamais par la plus difficile.
+  const panne = banc.pannes.find(p => p.id === params?.get('panne')) ?? parmi(pannesCandidates(stockage.lire(), banc.pannes, derniereCasse));
   derniereCasse = panne.id;
   demarrer(vue, banc, panne);
 }
@@ -247,7 +250,7 @@ function demarrer(vue, banc, panne) {
 
     vue.innerHTML = `
       <header class="frontispice frontispice-banc">
-        <p class="surtitre">Banc de mesure · panne cachée</p>
+        <p class="surtitre">Banc de mesure · panne cachée ${etiquetteNiveau(panne.niveau, { long: true })}</p>
         <h2 class="titre-chapitre">Départ moteur <em>direct</em></h2>
       </header>
       <p class="reco-domaines">${pucesDomaines(banc.domaines)}</p>
@@ -486,7 +489,10 @@ function demarrer(vue, banc, panne) {
       xp = Math.max(10, 50 - 10 * inutiles.length - 15 * etat.dangers.length - 5 * etat.indices) + (parfait ? 20 : 0);
       annoncerMontee(gagnerXP(xp));
     }
-    noterReponse('banc', panne.id, parfait);
+    // Réussite = panne réparée sans alerte de sécurité, indices compris : c'est elle qui valide l'étape du parcours
+    // et fait passer au niveau de panne suivant. Le « sans faute » (sans indice, dans les temps) reste le bonus XP.
+    const reussie = etat.resolu && !etat.dangers.length;
+    noterReponse('banc', panne.id, reussie);
     noterSession('banc', etat.resolu ? 1 : 0);
     const message = !etat.resolu ? 'Intervention abandonnée.' : parfait ? 'Diagnostic de pro.' : etat.dangers.length ? 'Réparé, mais pas en sécurité.' : 'Panne réparée.';
     vue.innerHTML = `
@@ -502,6 +508,10 @@ function demarrer(vue, banc, panne) {
         <li><span>Mesures et actions</span><span class="mono">${etat.journal.length}</span></li>
         <li><span>Indices utilisés</span><span class="mono">${etat.indices}</span></li>
       </ul>
+      ${reussie && !parfait ? `<div class="lecon objectif-suivant"><p class="lecon-titre">Intervention validée</p><p>${etat.indices
+        ? `Réparée sans alerte de sécurité, avec ${etat.indices} indice${etat.indices > 1 ? 's' : ''} : c'est validé. Objectif suivant : la même panne sans indice, pour le bonus « sans faute » (+20 XP).`
+        : 'Réparée sans alerte de sécurité : c\'est validé. Pour le « sans faute » (+20 XP) : aucune pièce changée pour rien, dans les temps du technicien confirmé.'}</p></div>` : ''}
+      ${etat.resolu && etat.dangers.length ? `<div class="diagnostic"><p class="lecon-titre">Pas encore validée</p><p>La panne est réparée, mais avec une alerte de sécurité : refais une intervention sans geste dangereux pour la valider.</p></div>` : ''}
       ${etat.dangers.length ? `<div class="alerte-securite"><p class="lecon-titre">Gestes dangereux</p><p>${etat.dangers.map(d => esc(d)).join(' · ')}</p></div>` : ''}
       ${inutiles.length ? `<div class="diagnostic"><p class="lecon-titre">Fausses pistes payées en pièces</p><p>${inutiles.map(r => esc(r.libelle)).join(' · ')}</p></div>` : ''}
       <p class="reco-domaines">${pucesDomaines(panne.domaines)}</p>
@@ -514,7 +524,7 @@ function demarrer(vue, banc, panne) {
         <div class="lecon"><p class="lecon-titre">La démarche d'un pro</p><p>${esc(typo(panne.methode))}</p></div>
         <div class="piege-terrain"><p class="lecon-titre">Le piège de ce cas</p><p>${esc(typo(panne.piege))}</p></div>
         ${risqueComplet(panne.risque)}
-        ${ligneNorme(panne.norme)}`, 'En savoir plus : la démarche d\'un pro, le piège, la norme')}
+        ${ligneNorme(panne.norme, { aRelire: !panne.verifie })}`, 'En savoir plus : la démarche d\'un pro, le piège, la norme')}
       <details class="approfondir journal"><summary>Ton journal d'intervention (${etat.journal.length})</summary>
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('')}</ol>
       </details>
@@ -523,7 +533,7 @@ function demarrer(vue, banc, panne) {
         <a class="btn" href="#/entrainement">Retour aux exercices</a>
       </div>`;
     vue.querySelector('#autre').addEventListener('click', () => {
-      const suivante = parmi(banc.pannes.filter(p => p.id !== derniereCasse));
+      const suivante = parmi(pannesCandidates(stockage.lire(), banc.pannes, derniereCasse));
       derniereCasse = suivante.id;
       demarrer(vue, banc, suivante);
     });

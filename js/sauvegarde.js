@@ -24,7 +24,7 @@ export function etatParDefaut() {
     derniereSauvegarde: null, // horodatage du dernier export
     preferences: { matiere: 'auto', visiteBanc: false },
     profil: null,            // 'debutant' | 'formation' | 'confirme' ; null = premier lancement pas encore fait
-    positionnement: null     // { niveau: 0 à 3, score: 0 à 10, date } : résultat du test de positionnement
+    positionnement: null     // { niveau: 0 à 3, score: 0 à 12, date, niveaux?: { reco, calcul, panne } } : test de positionnement
   };
 }
 
@@ -133,10 +133,14 @@ export function controler(donnees) {
 
   if (donnees.positionnement !== undefined && donnees.positionnement !== null) {
     const p = donnees.positionnement;
+    const niveauMode = v => Number.isSafeInteger(v) && v >= 0 && v <= p.niveau;
+    const niveauxOk = p.niveaux === undefined
+      || (estObjet(p.niveaux) && Object.keys(p.niveaux).every(k => ['reco', 'calcul', 'panne'].includes(k)) && Object.values(p.niveaux).every(niveauMode));
     if (estObjet(p) && Number.isSafeInteger(p.niveau) && p.niveau >= 0 && p.niveau <= 3
-      && Number.isSafeInteger(p.score) && p.score >= 0 && p.score <= 10 && estHorodatage(p.date)) {
+      && Number.isSafeInteger(p.score) && p.score >= 0 && p.score <= 12 && estHorodatage(p.date) && niveauxOk) {
       etat.positionnement = { niveau: p.niveau, score: p.score, date: p.date };
-    } else anomalies.push('positionnement : attendu { niveau 0 à 3, score 0 à 10, date }');
+      if (p.niveaux) etat.positionnement.niveaux = { reco: p.niveaux.reco ?? 0, calcul: p.niveaux.calcul ?? 0, panne: p.niveaux.panne ?? 0 };
+    } else anomalies.push('positionnement : attendu { niveau 0 à 3, score 0 à 12, date, niveaux { reco, calcul, panne } ≤ niveau }');
   }
 
   return { etat, anomalies };

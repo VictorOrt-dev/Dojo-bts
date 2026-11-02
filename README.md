@@ -49,7 +49,8 @@ js/profil.js            progression, export/import, remise à zéro
 js/entrainement.js      accueil : « Ta prochaine séance », modes dans l'ordre du profil, carte de l'opérateur ; en-tête de séance, rapport, toast
 js/parcours.js          parcours guidé, logique pure : profils, prochaine séance, mentions « Conseillé après… », règle du positionnement
 js/bienvenue.js         premier lancement : « Où en es-tu ? » (3 profils)
-js/positionnement.js    test de positionnement (10 questions, sans XP)
+js/positionnement.js    test de positionnement (12 questions : reconnaissance, calculs, cas de panne ; sans XP)
+js/normes.js            éditions des normes citées, ajoutées d'elles-mêmes à la ligne « Réf. »
 js/mise-a-jour.js       enregistrement du service worker, bandeau « Nouvelle version prête »
 js/domaines.js          les 5 domaines techniques, repères couleur, filtre (barreDomaines), puces
 js/tuteur.js            correction en deux temps : resume() (essentiel ≤ ~60 mots), « le risque, en vrai », norme, « En savoir plus »
@@ -179,11 +180,21 @@ Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphi
   | Confirmé | T → B → P2 → C2 → P3 → C3 → R3 → … | Banc, Cas, Calculs, Reconnaissance |
 
   Une étape est acquise à 80 % sur une séance « tous domaines » (Reconnaissance, Calculs), par un cas réussi sans faute
-  (Cas de panne), par une panne réussie sans faute (Banc), ou par le test de positionnement.
+  (Cas de panne), par une panne réparée sans alerte de sécurité, indices compris (Banc), ou par le test de positionnement.
 - **Déblocage souple, jamais de verrou.** Niveaux II et III, domaine HTA, et le Banc pour un débutant portent une mention
   « Conseillé après… » tant que le niveau précédent n'est pas acquis ; ils restent ouvrables d'un toucher.
-- **Test de positionnement** (10 questions : 3 de niveau I, 4 de niveau II, 3 de niveau III ; sans XP) : valide d'office
-  les niveaux maîtrisés (2/3, 3/4, 2/3 requis, chaque niveau exigeant les précédents). Proposé en premier aux confirmés.
+- **Test de positionnement** (12 questions, 4 par niveau : 2 reconnaissances, 1 calcul en QCM, 1 situation de cas de panne ;
+  sans XP). Un niveau est atteint à 3/4, chaque niveau exigeant les précédents. **Chaque mode n'est validé que par ses
+  propres questions** (`resultatPositionnement`) : réussir les symboles ne valide ni les calculs ni les cas. Un ancien
+  résultat (reconnaissance seule) ne valide plus que la reconnaissance. Proposé en premier aux confirmés.
+
+## Normes et relecture formateur (`js/normes.js`, `outils/relecture.mjs`)
+
+- Chaque référence est complétée de l'édition de la norme (« NF C 18-510:2012+A1:2020 ») ; la NF C 15-100 porte une note :
+  paragraphes de l'édition 2002, à recaler sur l'édition 2024. Ajouter une norme = une ligne dans `EDITIONS`.
+- Tout contenu non relu (`"verifie": false`, ou calcul sans `verifie: true`) affiche « Contenu pas encore validé par un formateur ».
+- `node outils/relecture.mjs` régénère `docs/relecture-formateur.md` : la liste à faire valider (mode, niveau, domaines,
+  référence avec édition, case « relu ») et les normes citées sans édition connue. À relancer après chaque ajout de contenu.
 
 ## Domaines techniques (`js/domaines.js`)
 
@@ -338,6 +349,10 @@ la cause, la démarche d'un pro et le piège du cas.
   est sautée ; un indice n'est compté qu'une fois par étape.
 - **Lectures en clair** sous l'afficheur : « ≈ 230 V : la tension arrive bien entre ces deux points », « 0 V : pas de
   tension », « OL : circuit ouvert », « l'afficheur hésite : refais en LoZ », « l'amont reste sous tension, même consigné ».
+- **Pannes graduées** (`niveau` 1 à 3 dans le JSON) : la panne cachée est tirée au niveau du premier palier pas encore
+  franchi (`pannesCandidates` dans `js/parcours.js`) : niveau I (FU1, bobine) puis II (95-96, fusible L2) puis III (câble
+  du pupitre), puis tirage libre. Un palier est franchi par une panne **réparée sans alerte de sécurité, indices compris** ;
+  c'est aussi ce qui valide l'étape Banc du parcours. Le « sans faute » reste un bonus XP.
 - **XP** : 50 si réparé, − 10 par pièce inutile, − 15 par alerte sécurité, − 5 par indice (minimum 10), + 20 si sans faute
   (aucune alerte, aucune pièce inutile, aucun indice, temps ≤ 1,3 × la référence). Le rapport affiche les indices utilisés.
 - **Ajouter une panne** : un objet dans `pannes` : `{ id, symptome, ouvre: [éléments coupés], relaisDeclenche?,
@@ -383,6 +398,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Audit UX, chantier 1 : premier lancement, « Ta prochaine séance », déblocage souple, test de positionnement
 - [x] Audit UX, chantiers 2 et 3 : banc sous le pouce et visite guidée, correction en deux temps, textes ≥ 12 px, thème Auto
 - [x] Banc plus simple : mission, « Comment ça marche ? », indices pas à pas, lectures en clair
+- [x] Audit pédagogique, P0 : banc validé avec indices et gradué, positionnement mode par mode, 5 questions reclassées, éditions des normes
 - [ ] Relecture de tout le contenu par un formateur (`"verifie": true`)
 - [ ] Répétition espacée (boîtes de Leitner) à partir de `stats.*.elements`
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, éclairage, différentiel)

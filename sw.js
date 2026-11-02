@@ -44,6 +44,7 @@ const FICHIERS = [
   'js/storage.js',
   'js/theme.js',
   'js/tuteur.js',
+  'js/normes.js',
   'js/util.js',
   'js/xp.js',
   'data/banc-depart-moteur.json',
