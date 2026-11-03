@@ -887,7 +887,7 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .console-banc .selecteur { padding: 3px; }
 .console-banc .selecteur button { min-height: 44px; }
 .console-banc .pointe { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: center; gap: 8px; font: 700 13px/1 var(--texte); }
-.console-banc select { min-height: 44px; font-size: 16px; }      /* 16 px : iOS ne zoome pas au toucher */
+.console-banc select { min-height: 46px; font-size: 16px; }      /* 16 px : iOS ne zoome pas au toucher */
 .lecture-ligne { display: grid; grid-template-columns: minmax(0, 1fr) 128px; gap: 8px; }
 .console-banc .nixie { min-height: 52px; padding: 6px 14px; border-radius: 14px; }
 .console-banc .nixie-valeur { font-size: 32px; }

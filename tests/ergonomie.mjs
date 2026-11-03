@@ -25,7 +25,8 @@ export default async function ({ t, url: U, navigateur }) {
   const haut = Math.min(...Object.values(positions).map(b => b.y));
   t.ok(dansLePouce(positions.Mesurer) && haut >= H * 0.4,
     `« Mesurer » dans la moitié basse (${Math.round(positions.Mesurer.y)} px) ; toutes les commandes dans les 60 % bas de l'écran (la plus haute à ${Math.round(haut)} px)`);
-  t.ok(Object.values(positions).every(b => b.height >= 44), 'commandes de la console : toutes ≥ 44 px de haut');
+  const basses = Object.entries(positions).filter(([, b]) => b.height < 44).map(([n, b]) => `${n} ${b.height.toFixed(1)} px`);
+  t.ok(!basses.length, 'commandes de la console : toutes ≥ 44 px de haut' + (basses.length ? ' — ' + basses.join(', ') : ''));
   await p.evaluate(() => scrollTo(0, document.body.scrollHeight));
   t.ok(dansLePouce(await boite('#mesurer')), 'console toujours au même endroit après défilement du contenu');
 
