@@ -61,7 +61,8 @@ export function remplirMemo(zone) {
   if (!zone) return;
   chargerMemos().then(memos => {
     if (!zone.isConnected) return;
-    zone.innerHTML = blocMemo(memoPour(memos, zone.dataset.memoMode, zone.dataset.memoId));
+    const ouvert = zone.dataset.memoOuvert === '1';   // « Je ne sais pas encore » : la fiche arrive dépliée
+    zone.innerHTML = blocMemo(memoPour(memos, zone.dataset.memoMode, zone.dataset.memoId), ouvert ? { ouvert, etiquette: 'La notion, en 30 secondes' } : {});
     // Une fiche ouverte après une erreur compte pour l'insigne « Rigueur normative » (une fois par correction).
     zone.querySelector('.memo')?.addEventListener('toggle', ev => {
       if (!ev.target.open || zone.dataset.compte) return;
@@ -71,7 +72,7 @@ export function remplirMemo(zone) {
   }).catch(() => {});
 }
 
-export const zoneMemo = (mode, id) => `<div class="zone-memo" data-memo-mode="${esc(mode)}" data-memo-id="${esc(id)}"></div>`;
+export const zoneMemo = (mode, id, { ouvert = false } = {}) => `<div class="zone-memo" data-memo-mode="${esc(mode)}" data-memo-id="${esc(id)}"${ouvert ? ' data-memo-ouvert="1"' : ''}></div>`;
 
 // ---------- Écran « Fiches mémo » (depuis le Carnet) ----------
 export async function renderMemos({ vue, definirTitre, params }) {

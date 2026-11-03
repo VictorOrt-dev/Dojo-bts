@@ -4,6 +4,7 @@ import * as stockage from './storage.js';
 import { carteNiveau, TAILLE_SESSION } from './entrainement.js';
 import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
+import { LEXIQUE } from './lexique.js';
 import { frontispice, titreSection, ligneEtat, deuxChiffres, typo } from './mise-en-page.js';
 import { enRevision } from './leitner.js';
 import { vitrine, verifierBadges } from './insignes.js';
@@ -100,8 +101,16 @@ export async function renderProfil({ vue, definirTitre }) {
       </div>
     </section>
 
+    <section class="section-lexique">
+      ${titreSection('04', 'Lexique')}
+      <div class="corps">
+        <p class="discret">${LEXIQUE.length} mots du métier expliqués en une phrase : LoZ, VAT, consignation, contacteur, HTA… Partout dans l'app, un mot souligné en pointillé se touche pour voir sa définition.</p>
+        <div class="actions"><a class="btn" href="#/entrainement/lexique">Ouvrir le lexique</a></div>
+      </div>
+    </section>
+
     <section>
-      ${titreSection('04', 'Ton profil')}
+      ${titreSection('05', 'Ton profil')}
       <div class="corps">
         <div class="selecteur selecteur-profil" role="group" aria-label="Profil">
           ${PROFILS.map(p => `<button type="button" data-profil="${p.id}" aria-pressed="${etat.profil === p.id}">${esc(p.court)}</button>`).join('')}
@@ -115,7 +124,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('05', 'Affichage')}
+      ${titreSection('06', 'Affichage')}
       <div class="corps">
         <div class="selecteur selecteur-theme" role="group" aria-label="Thème d'affichage">
           <button type="button" data-theme="auto" aria-pressed="${theme === 'auto'}">Auto</button>
@@ -127,7 +136,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section class="sauvegarde">
-      ${titreSection('06', 'Sauvegarde')}
+      ${titreSection('07', 'Sauvegarde')}
       <div class="corps">
         <p class="donnees-locales"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes données de progression restent <strong>100 % locales</strong> sur ton appareil. Zéro compte requis, zéro serveur externe.</span></p>
         ${ligneEtat(sauvegarde.etat, sauvegarde.texte)}
@@ -143,7 +152,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('07', 'Appareil')}
+      ${titreSection('08', 'Appareil')}
       <div class="corps">
         ${estInstallee()
           ? ligneEtat('ok', 'App installée sur l’écran d’accueil.')
@@ -158,7 +167,7 @@ export async function renderProfil({ vue, definirTitre }) {
     </section>
 
     <section>
-      ${titreSection('08', 'Remise à zéro')}
+      ${titreSection('09', 'Remise à zéro')}
       <div class="corps">
         <button id="btn-effacer" class="btn danger" type="button">Tout effacer</button>
       </div>

@@ -49,6 +49,8 @@ export default async function ({ t, url: U, navigateur }) {
         case 'contact-tt': return d.type === 'uc' ? d.Ra * 230 / (d.Ra + d.Rb) : 50 / (d.IdnMA / 1000);
         case 'hta-courant': return d.type === 'in' ? d.S / (r3 * 20) : d.Ibt * 0.4 / 20;
         case 'tensions-reseau': return d.demande === 'V' ? d.U / r3 : d.U;
+        case 'tensions-industrie': return d.demande === 'V' ? d.U / r3 : d.U;
+        case 'kilovolts': return d.sens === 'kV→V' ? d.valeur * 1000 : d.valeur / 1000;
         case 'courant-corps': return d.U / d.R * 1000;
         case 'rapport-transfo': return d.U1 * 410 / 20;
         case 'prise-transfo': return d.U1 * 410 / (20 * (1 + d.p / 100));

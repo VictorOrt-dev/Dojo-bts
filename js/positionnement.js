@@ -81,7 +81,7 @@ export async function renderPositionnement({ vue, definirTitre }) {
         ? `<p class="titre-cas-test">${esc(typo(q.titre))}</p><p class="situation">${esc(typo(q.contexte))}</p><p class="situation">${esc(typo(q.situation))}</p>`
         : `<p class="titre-cas-test">${esc(typo(q.titre))}</p>`;
     vue.innerHTML = `
-      <p class="niveau-seance">${etiquetteNiveau(q.niveau, { long: true })} <span class="mode-test">${MODES[q.mode]}</span></p>
+      <p class="niveau-seance" data-sans-lexique>${etiquetteNiveau(q.niveau, { long: true })} <span class="mode-test">${MODES[q.mode]}</span></p>
       ${enteteSession(partie.index + 1, partie.resultats.filter(r => r.juste).length, partie.resultats.map(r => r.juste), liste.length)}
       ${visuel}
       <h2 class="question">${esc(typo(q.question))}</h2>

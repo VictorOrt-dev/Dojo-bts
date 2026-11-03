@@ -10,7 +10,7 @@ const net = x => String(x).replace(/[\s  ]+/g, ' ').trim();
 const ECRANS = ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=1', '#/entrainement/calcul?n=2', '#/entrainement/panne',
   '#/entrainement/panne?c=moteur-grogne', '#/entrainement/banc?panne=fu1-fondu', '#/entrainement/banc?circuit=eclairage', '#/entrainement/isolement',
   '#/entrainement/isolement?s=iso-moteur-variateur', '#/entrainement/revision', '#/entrainement/memos', '#/entrainement/positionnement', '#/profil',
-  '#/entrainement/banc?circuit=etoile-triangle', '#/entrainement/isolement?s=iso-moteur-vernis', '#/entrainement/examen', '#/entrainement/banc?tuto=1'];
+  '#/entrainement/banc?circuit=etoile-triangle', '#/entrainement/isolement?s=iso-moteur-vernis', '#/entrainement/examen', '#/entrainement/banc?tuto=1', '#/entrainement/lexique'];
 
 export default async function ({ t, url: U, navigateur }) {
   t.section('P. Lancement : première prise en main, 3 blocs, données locales, ergonomie iPhone');
@@ -101,7 +101,8 @@ export default async function ({ t, url: U, navigateur }) {
       const r = await p.evaluate(() => {
         const touches = [], textes = [];
         const visible = e => { const st = getComputedStyle(e); return st.display !== 'none' && st.visibility !== 'hidden' && e.getClientRects().length && !e.closest('[hidden]'); };
-        for (const e of document.querySelectorAll('a[href], button, summary, select, [role="button"]')) {
+        // Les mots du lexique sont des cibles intégrées au texte : exception de taille du WCAG 2.5.8 (vérifiés à part).
+        for (const e of document.querySelectorAll('a[href], button:not(.terme), summary, select, [role="button"]')) {
           if (!visible(e)) continue;
           const st = getComputedStyle(e);
           if (st.display === 'inline' && e.closest('p, li, dd, td')) continue;   // lien dans une phrase

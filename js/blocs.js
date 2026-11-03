@@ -2,27 +2,27 @@
 
 export const BLOCS = [
   {
-    id: 'bases', titre: 'Bases & monophasé', desc: 'Symboles, appareils, loi d\'Ohm, circuits terminaux, consignation.',
+    id: 'bases', titre: 'Bases & monophasé', desc: 'Tension et courant, symboles, appareils, loi d\'Ohm, et la consignation : couper et cadenasser avant d\'intervenir.',
     liens: [
       { libelle: 'Reconnaissance I', href: '#/entrainement/reco?n=1' },
-      { libelle: 'Calculs monophasé', href: '#/entrainement/calcul?n=1&d=mono-bt' },
+      { libelle: 'Calculs en monophasé (230 V)', href: '#/entrainement/calcul?n=1&d=mono-bt' },
       { libelle: 'Cas sécurité', href: '#/entrainement/panne?d=securite' }
     ]
   },
   {
-    id: 'armoire', titre: 'Armoire & banc', desc: 'Circuits de commande, départs moteurs, diagnostic au banc de mesure.',
+    id: 'armoire', titre: 'Armoire & banc', desc: 'Commande des moteurs dans l\'armoire, puis dépannage au banc de mesure, multimètre en main.',
     liens: [
       { libelle: 'Banc · départ moteur', href: '#/entrainement/banc?circuit=depart-moteur' },
       { libelle: 'Banc · éclairage', href: '#/entrainement/banc?circuit=eclairage' },
-      { libelle: 'Cas TBT & commande', href: '#/entrainement/panne?d=tbt-cc' }
+      { libelle: 'Cas en très basse tension (TBT, 24 V)', href: '#/entrainement/panne?d=tbt-cc' }
     ]
   },
   {
-    id: 'puissance', titre: 'Triphasé, mégohmmètre & HTA', desc: 'Puissances et protections, mesure d\'isolement, poste de transformation.',
+    id: 'puissance', titre: 'Triphasé, isolement & haute tension', desc: 'Triphasé 400 V, mesure d\'isolement au mégohmmètre, haute tension HTA (20 000 V) des postes de transformation.',
     liens: [
       { libelle: 'Calculs triphasé', href: '#/entrainement/calcul?n=2&d=tri' },
       { libelle: 'Mesure d\'isolement', href: '#/entrainement/isolement' },
-      { libelle: 'Cas HTA', href: '#/entrainement/panne?d=hta' }
+      { libelle: 'Cas haute tension (HTA)', href: '#/entrainement/panne?d=hta' }
     ]
   }
 ];

@@ -14,6 +14,7 @@ import { renderPositionnement } from './positionnement.js';
 import { renderRevision } from './revision.js';
 import { renderIsolement } from './isolement.js';
 import { renderExamen } from './examen.js';
+import { brancherLexique, renderLexique } from './lexique.js';
 import { renderMemos } from './memos.js';
 import { premierLancement } from './parcours.js';
 import { appliquerTheme } from './theme.js';
@@ -88,6 +89,7 @@ async function router() {
         else if (id === 'revision') await renderRevision(ctx);
         else if (id === 'isolement') await renderIsolement(ctx);
         else if (id === 'examen') await renderExamen(ctx);
+        else if (id === 'lexique') renderLexique(ctx);
         else if (id === 'memos') await renderMemos(ctx);
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
@@ -123,6 +125,7 @@ window.addEventListener('hashchange', () => {
 
 appliquerTheme();
 stockage.demanderPersistance();
+brancherLexique();
 router();
 
 // Mode hors ligne et mises à jour (voir sw.js et mise-a-jour.js).

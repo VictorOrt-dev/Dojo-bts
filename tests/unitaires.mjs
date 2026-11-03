@@ -29,6 +29,7 @@ export default async function ({ t }) {
   rappelsDansLesSeances(t);
   await examenBlanc(t);
   await guideDuBanc(t);
+  await ouvertureAuxDebutants(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -577,7 +578,11 @@ async function guideDuBanc(t) {
   e.consigne = true;
   t.ok(T.cible(e).selecteur === '[data-action="consigner"]' && /déconsigne/.test(T.cible(e).remarque), 'écart rattrapé : départ consigné alors qu\'il faut une tension → déconsigner d\'abord');
   e.consigne = false; e.faits.add('m:loz:s11:n0');
-  t.ok(T.GESTES[T.gesteCourant(e)].etape === 4 && T.cible(e).onglet === 'actions', 'LoZ fait : étape 4, onglet Actions pour consigner');
+  t.ok(T.GESTES[T.gesteCourant(e)].prediction && T.cible(e).selecteur === '.tuto-choix', 'LoZ fait : étape 4, d\'abord la question « Où est le défaut ? »');
+  const faux = T.predire(e, 0);
+  t.ok(!faux.juste && /230 V/.test(faux.retour) && T.GESTES[T.gesteCourant(e)].prediction, 'mauvaise prédiction : explication, la question reste posée');
+  t.ok(T.predire(e, 1).juste && e.tuto.essaisPrediction === 2 && !e.tuto.retour, 'bonne prédiction (le câble) : on passe à la suite');
+  t.ok(T.GESTES[T.gesteCourant(e)].etape === 4 && T.cible(e).onglet === 'actions', 'puis onglet Actions pour consigner');
   e.faits.add('consigne'); e.consigne = false;
   t.ok(T.cible(e).selecteur === '[data-action="consigner"]' && /consigne d'abord/.test(T.cible(e).remarque), 'Ω demandé départ non consigné : le guide fait consigner');
   e.consigne = true; e.mesure = { fonction: 'ohm', rouge: 'x1', noir: 's11' };
@@ -588,4 +593,50 @@ async function guideDuBanc(t) {
   t.ok(T.gesteCourant(e) === T.GESTES.length && T.cible(e) === null, 'essai réussi : guide terminé');
   t.ok(controler({ version: 1, preferences: { tutoBanc: true, consoleBanc: true } }).anomalies.length === 0 && controler({ version: 1, preferences: { tutoBanc: 'oui' } }).anomalies.length > 0,
     'sauvegarde : guide fait et appareil ouvert gardés (vrai / faux), autre valeur refusée');
+}
+
+// ---------- Ouverture aux grands débutants (audit débutant, R1 à R4) ----------
+
+async function ouvertureAuxDebutants(t) {
+  t.section('U14. Débutants : lexique, niveau socle, examen calibré');
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const X = await import('../js/lexique.js');
+  const mots = d => d.split(/\s+/).filter(Boolean).length;
+  t.ok(X.LEXIQUE.length >= 30 && X.LEXIQUE.every(e => mots(e.def) <= 20) && new Set(X.LEXIQUE.map(e => e.id)).size === X.LEXIQUE.length,
+    `lexique : ${X.LEXIQUE.length} termes, définitions de ${Math.max(...X.LEXIQUE.map(e => mots(e.def)))} mots au plus (20)`);
+  t.ok(['LoZ', 'VAT', 'TBT', 'HTA', 'consignation', 'contacteur', 'relais thermique', 'sélectivité'].every(m => X.termePour(m)),
+    'les termes demandés sont définis : LoZ, VAT, TBT, HTA, consignation, contacteur, relais thermique, sélectivité');
+  t.ok(X.trouver('la basse tension').id === 'bt' && X.trouver('commande TBT 24 V').id === 'tbt' && X.termePour('consigner') === 'consignation' && X.termePour('Consigné') === 'consignation',
+    'recherche : le terme le plus long l\'emporte (« basse tension » avant « tension »), formes conjuguées reconnues');
+  t.ok(!X.trouver('selon la NF C 15-100') && !X.trouver('NF EN 61243-3') && X.trouver('contact NF').id === 'nf' && !X.trouver('SÉCURITÉ') && !X.trouver('PEN'),
+    'pas de faux repérage : « NF C 15-100 » n\'est pas un contact NF, « PEN » n\'est pas « PE »');
+  t.ok(X.trouver('LoZ, puis VAT', new Set(['loz'])).id === 'vat', 'un terme déjà rendu touchable sur l\'écran n\'est pas repris');
+  const audit = (await auditer()).lignes.find(l => l.id === 'couverture-niveau-I');
+  t.ok(audit && audit.controles > 100 && !audit.anomalies.length, `audit : ${audit?.controles} occurrences de termes techniques au niveau I, toutes définies`);
+
+  // Niveau socle
+  const reco = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/reconnaissance.json'), 'utf8'));
+  const { GENERATEURS } = await import('../js/calcul.js');
+  const niv = id => reco.find(q => q.id === id)?.niveau ?? GENERATEURS.find(g => g.id === id)?.niveau;
+  t.ok(['reco-cat-marquage', 'reco-habilitation-b1v', 'energie-condensateur', 'rapport-transfo', 'tensions-industrie'].every(id => niv(id) === 2),
+    'notions expertes passées au niveau II : CAT III, habilitation B1V, décharge de condensateurs, 20,4 kV, réseau 690 V');
+  const tr = GENERATEURS.find(g => g.id === 'tensions-reseau'), ti = GENERATEURS.find(g => g.id === 'tensions-industrie');
+  const enonces = Array.from({ length: 200 }, () => tr.creer().enonce).join(' ');
+  t.ok(tr.niveau === 1 && !/690|133/.test(enonces) && Array.from({ length: 100 }, () => ti.creer().donnees.U).includes(690), 'niveau I : réseau 400 V seulement ; le 690 V est au niveau II');
+  const decouverte = reco.filter(q => q.niveau === 1 && q.id.startsWith('reco-decouverte-'));
+  t.ok(decouverte.length >= 5 && ['tension', 'courant', 'phase', 'terre', 'multimetre'].every(x => decouverte.some(q => q.id.endsWith(x))) && GENERATEURS.find(g => g.id === 'kilovolts')?.niveau === 1,
+    `niveau I enrichi : ${decouverte.length} questions de découverte (tension, courant, phase, terre, multimètre) et un calcul volts / kilovolts`);
+
+  // Examen calibré
+  const E = await import('../js/examen.js');
+  t.ok(isDeepStrictEqual(E.compositionExamen({ profil: 'debutant' }).quotas, { 1: 10, 2: 5 }) && E.compositionExamen({ profil: 'confirme' }).niveau === 2
+    && E.compositionExamen({ stats: { reco: { niveaux: { 1: 9 } }, calcul: { niveaux: { 1: 8 } } } }).niveau === 1 && E.compositionExamen({}, { complet: true }).quotas[3] === 5,
+    'composition : débutant 10 de niveau I et 5 de niveau II ; niveau I validé → un cran au-dessus ; confirmé ≥ II ; examen complet au choix');
+  let ok = true;
+  for (let i = 0; i < 60; i++) {
+    const l = E.composerExamen(reco, GENERATEURS, { quotas: E.QUOTAS[0] });
+    ok &&= l.length === 15 && !l.some(e => e.niveau === 3) && l.filter(e => e.niveau === 1).length === 10
+      && ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'].every(d => l.filter(e => e.domaine === d).length === 3);
+  }
+  t.ok(ok, 'débutant, 60 examens : aucun niveau III, 10 de niveau I, 3 par domaine');
 }

@@ -55,10 +55,10 @@ function record(mode) {
 
 // Les 6 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
 const MODES = {
-  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur 3 circuits : départ moteur direct, étoile-triangle, éclairage par télérupteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
-  panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la VAT au poste HTA · par domaine', record: () => casSansFaute() },
+  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur 3 circuits : départ moteur direct, étoile-triangle, éclairage · multimètre, pince, consignation · guide pas à pas', record: () => bancsReussis() },
+  panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la vérification d\'absence de tension (VAT) au poste haute tension · par domaine', record: () => casSansFaute() },
   calcul: { titre: 'Calculs flash', desc: 'La valeur à lire avant de mesurer · par domaine et par niveau', record: () => record('calcul') },
-  reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') },
+  reco: { titre: 'Reconnaissance', desc: 'Symboles normalisés, matériel, repérages · par domaine et par niveau', record: () => record('reco') },
   isolement: { titre: 'Mesure d\'isolement', desc: 'Mégohmmètre 250 / 500 / 1 000 V DC · lecture à 1 min, indice de polarisation', record: () => mesuresReussies() },
   examen: { titre: 'Bilan · Examen blanc', desc: '15 questions et calculs tirés au sort, 15 minutes, sans aide ni correction avant la fin · bilan par compétence', record: () => recordExamen() }
 };

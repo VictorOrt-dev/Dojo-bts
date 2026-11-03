@@ -40,6 +40,22 @@ export function chargerBanc(id = 'depart-moteur') {
   return promesses.get(c.id);
 }
 
+// Le schéma de l'armoire en grand, par-dessus le banc (guide : consultable sans replier l'appareil).
+function ouvrirSchema(banc) {
+  let d = document.querySelector('.bulle-schema');
+  if (!d) {
+    d = document.createElement('dialog');
+    d.className = 'bulle-schema';
+    d.setAttribute('aria-label', 'Schéma de l\'armoire');
+    document.body.append(d);
+    d.addEventListener('click', ev => { if (ev.target === d || ev.target.closest('[data-fermer]')) d.close(); });
+  }
+  d.innerHTML = `<div class="schema"><img src="${esc(banc.schema)}" alt="Schéma : ${esc(banc.titre)}"></div>
+    <p class="discret petit">Les points de mesure portent les repères du schéma : X1 = bornier de sortie de l'armoire, S1 = bouton Arrêt du pupitre.</p>
+    <button type="button" class="btn principal" data-fermer>Fermer le schéma</button>`;
+  d.showModal();
+}
+
 let derniereCasse = null;          // évite de retomber deux fois de suite sur la même panne
 let interventionCourante = null;   // utilisée par les tests automatisés
 export const interventionEnCours = () => interventionCourante;
@@ -249,6 +265,7 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
       const c = T.cible(etat, g);
       if (c?.onglet) etat.onglet = c.onglet;
       if (gi > 0) { if (!etat.consoleOuverte) animerOuverture = true; etat.consoleOuverte = true; }
+      if (g?.prediction) etat.consoleOuverte = false;   // la question prend la place de l'appareil
       if (g?.piece) etat.selPiece = g.piece;
       etat.bonOuvert = gi === 0 ? true : etat.bonOuvert;
     }
@@ -262,6 +279,9 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
         <ol class="tuto-progression" aria-hidden="true">${T.TITRES.map((_, i) => `<li class="${i + 1 < g.etape ? 'fait' : i + 1 === g.etape ? 'en-cours' : ''}"></li>`).join('')}</ol>
         <p class="tuto-texte"><strong>${esc(typo(g.titre))}${/[?!]$/.test(g.titre) ? '' : '.'}</strong> ${esc(typo(g.texte))}</p>
         ${ciblage?.remarque ? `<p class="tuto-remarque">${esc(typo(ciblage.remarque))}</p>` : ''}
+        ${g.prediction ? `<div class="tuto-choix" role="group" aria-label="Où est le défaut ?">${g.prediction.choix.map((c, i) => `<button type="button" class="btn" data-prediction="${i}">${esc(typo(c))}</button>`).join('')}</div>` : ''}
+        ${etat.tuto.retour ? `<p class="tuto-remarque" role="status">${esc(typo(etat.tuto.retour))}</p>` : ''}
+        ${g.schema ? '<button type="button" id="tuto-schema" class="tuto-lien">Voir le schéma de l\'armoire</button>' : ''}
         ${g.lu ? '<button type="button" id="tuto-suivant" class="btn principal">J\'ai lu le bon : étape 2</button>' : ''}
       </div>` : '';
     const fonctionActive = FONCTIONS.find(f => f.id === fonction);
@@ -407,6 +427,8 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
       if (gi === 0) requestAnimationFrame(() => { const b = vue.querySelector('.bloc-symptome'); if (b) scrollTo(0, Math.max(0, b.getBoundingClientRect().top + scrollY - 64)); });
     }
     vue.querySelector('#tuto-suivant')?.addEventListener('click', () => { etat.tuto.lu = true; etat.bonOuvert = false; afficher(); });
+    vue.querySelectorAll('[data-prediction]').forEach(b => b.addEventListener('click', () => { T.predire(etat, Number(b.dataset.prediction)); afficher(); }));
+    vue.querySelector('#tuto-schema')?.addEventListener('click', () => ouvrirSchema(banc));
     vue.querySelector('#tuto-quitter')?.addEventListener('click', () => {
       stockage.modifier(e => { e.preferences = { ...e.preferences, tutoBanc: true }; });
       location.hash = `#/entrainement/banc?circuit=${T.CIRCUIT_TUTO}&r=${Date.now()}`;

@@ -233,9 +233,9 @@ export const GENERATEURS = [
     norme: 'IEC 60038 (tensions normales)',
     risque: "Brancher un récepteur 230 V entre deux phases d'un réseau 400 V le détruit instantanément (alimentation électronique, bobine de contacteur), parfois avec un départ de feu. Et lire une plaque « 230/400 V » de travers mène au mauvais couplage du moteur.",
     creer() {
-      const U = parmi([400, 690, 230]);
+      const U = 400;   // le réseau de tous les jours ; 690 V et 230 V triphasé au niveau II
       const V = U / RACINE3;
-      const explication = 'En triphasé équilibré, la tension composée (entre deux phases) vaut √3 fois la tension simple (entre une phase et le neutre) : U = V × √3. Réseau 400 V → 230 V phase-neutre ; réseau 690 V (gros moteurs, éolien) → 400 V ; ancien réseau 230 V triphasé → 133 V.';
+      const explication = 'En triphasé équilibré, la tension composée (entre deux phases) vaut √3 fois la tension simple (entre une phase et le neutre) : U = V × √3. Réseau 400 V entre phases → 230 V entre une phase et le neutre : c\'est la tension des prises.';
       const piege = 'Sur un réseau trois fils, sans neutre distribué, il n\'y a pas de tension simple à lire : une mesure phase-terre y dépend du schéma de liaison à la terre (en IT, une phase peut se retrouver presque au potentiel de la terre).';
       return parmi([
         () => ({
@@ -260,7 +260,45 @@ export const GENERATEURS = [
         })
       ])();
     }
+  },  {
+    id: 'kilovolts',
+    niveau: 1,
+    titre: 'Volts et kilovolts',
+    domaines: ['hta'],
+    norme: 'IEC 60038 (tensions normales)',
+    risque: "Confondre 20 kV et 20 V, c'est sous-estimer une tension mille fois plus forte. En HTA, l'arc s'amorce dans l'air avant même le contact : on ne s'approche d'une cellule qu'habilité et à distance.",
+    creer() {
+      if (parmi([true, false])) {
+        const kV = parmi([15, 20, 30]);
+        return {
+          enonce: `Un poste de transformation est alimenté en ${kV} kV. Combien de volts cela fait-il ?`,
+          aide: '1 kV = 1 000 V',
+          unite: 'V', reponse: kV * 1000, donnees: { sens: 'kV→V', valeur: kV },
+          solution: `${kV} kV × 1 000 = ${nb(kV * 1000, 0)} V`,
+          explication: 'Le préfixe « kilo » (k) veut dire mille : 1 kV = 1 000 V. La HTA des postes (15 à 30 kV) est donc cent fois plus forte que la tension d\'une prise.',
+          piege: 'Sur une plaque, « 20 kV / 410 V » mélange deux unités : convertis avant de comparer les tensions.',
+          erreurs: [
+            { valeur: kV * 100, message: 'Un kilo vaut mille, pas cent : 1 kV = 1 000 V.' },
+            { valeur: kV * 10000, message: 'Un zéro de trop : 1 kV = 1 000 V, pas 10 000.' }
+          ]
+        };
+      }
+      const V = parmi([400, 230, 690]);
+      return {
+        enonce: `Une tension de ${V} V, combien de kilovolts cela fait-il ?`,
+        aide: '1 kV = 1 000 V : on divise par 1 000',
+        unite: 'kV', reponse: V / 1000, donnees: { sens: 'V→kV', valeur: V },
+        solution: `${V} V ÷ 1 000 = ${nb(V / 1000, 3)} kV`,
+        explication: 'Pour passer des volts aux kilovolts, on divise par 1 000 : la virgule recule de trois rangs. 400 V = 0,4 kV.',
+        piege: 'La virgule recule de trois rangs, pas de deux : 400 V = 0,4 kV, pas 4 kV.',
+        erreurs: [
+          { valeur: V / 100, message: 'Tu as divisé par 100 : 1 kV = 1 000 V, on divise par 1 000.' },
+          { valeur: V / 10000, message: 'Un zéro de trop : on divise par 1 000, pas par 10 000.' }
+        ]
+      };
+    }
   },
+
 
   {
     id: 'courant-corps',
@@ -289,7 +327,7 @@ export const GENERATEURS = [
 
   {
     id: 'rapport-transfo',
-    niveau: 1,
+    niveau: 2,
     titre: 'Rapport d\'un transformateur de poste',
     domaines: ['hta', 'tri'],
     norme: 'IEC 60076-1',
@@ -314,6 +352,41 @@ export const GENERATEURS = [
 
   // ---------------------------------------------------------------- Niveau II · Pratique courante
   {
+    id: 'tensions-industrie',
+    niveau: 2,
+    titre: 'Réseaux industriels : 690 V et 230 V triphasé',
+    domaines: ['tri'],
+    norme: 'IEC 60038 (tensions normales)',
+    risque: "Brancher un récepteur 230 V entre deux phases d'un réseau 400 V le détruit instantanément (alimentation électronique, bobine de contacteur), parfois avec un départ de feu. Et lire une plaque « 230/400 V » de travers mène au mauvais couplage du moteur.",
+    creer() {
+      const U = parmi([690, 230]);
+      const V = U / RACINE3;
+      const explication = 'En triphasé équilibré, la tension composée (entre deux phases) vaut √3 fois la tension simple (entre une phase et le neutre) : U = V × √3. Réseau 400 V → 230 V phase-neutre ; réseau 690 V (gros moteurs, éolien) → 400 V ; ancien réseau 230 V triphasé → 133 V.';
+      const piege = 'Sur un réseau trois fils, sans neutre distribué, il n\'y a pas de tension simple à lire : une mesure phase-terre y dépend du schéma de liaison à la terre (en IT, une phase peut se retrouver presque au potentiel de la terre).';
+      return parmi([
+        () => ({
+          enonce: `Réseau triphasé ${U} V entre phases, neutre distribué. Quelle tension dois-tu lire entre une phase et le neutre ?`,
+          unite: 'V', reponse: V, donnees: { U, demande: 'V' },
+          solution: `V = U / √3 = ${U} / 1,732 = ${nb(V, 1)} V`,
+          explication, piege,
+          erreurs: [
+            { valeur: U * RACINE3, message: 'Tu as multiplié par √3 : la tension simple est la plus petite des deux, V = U / √3.' },
+            { valeur: U / 2, message: 'Ce n\'est pas une moitié : en triphasé, le rapport entre U et V vaut √3 (1,732), pas 2.' }
+          ]
+        }),
+        () => ({
+          enonce: `Entre une phase et le neutre d'un réseau triphasé, tu lis ${nb(V, 0)} V. Quelle tension dois-tu lire entre deux phases ?`,
+          unite: 'V', reponse: U, donnees: { U, demande: 'U' },
+          solution: `U = V × √3 = ${nb(V, 0)} × 1,732 = ${nb(U, 0)} V`,
+          explication, piege,
+          erreurs: [
+            { valeur: V / RACINE3, message: 'Tu as divisé par √3 : entre deux phases, la tension est plus grande, U = V × √3.' },
+            { valeur: V * 2, message: 'Les deux tensions simples ne s\'additionnent pas : elles sont décalées de 120°. U = V × √3, pas 2 × V.' }
+          ]
+        })
+      ])();
+    }
+  },  {
     id: 'triphase',
     niveau: 2,
     titre: 'Puissances en triphasé',
@@ -999,7 +1072,7 @@ export const GENERATEURS = [
 
   {
     id: 'energie-condensateur',
-    niveau: 1,
+    niveau: 2,
     titre: 'Énergie restée dans un variateur',
     domaines: ['securite', 'tri'],
     norme: 'NF C 18-510 (énergies résiduelles) · IEC 61800-5-1',
@@ -1355,6 +1428,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
                <button class="btn valider" type="button">Valider</button>
              </div>`}
         <p id="erreur-saisie" class="erreur-saisie" role="alert"></p>
+        <button type="button" id="je-ne-sais-pas" class="je-ne-sais-pas">Je ne sais pas encore</button>
       </div>
       <div id="correction"></div>`;
 
@@ -1365,19 +1439,23 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       vue.querySelectorAll('[data-touche]').forEach(b => b.addEventListener('click', () => taper(b.dataset.touche)));
       vue.querySelector('.clavier .valider').addEventListener('click', valider);
     }
+    vue.querySelector('#je-ne-sais-pas').addEventListener('click', () => terminer(ex, null));
     window.scrollTo(0, 0);
   };
 
-  // valeur : nombre saisi ou choix touché.
+  // valeur : nombre saisi ou choix touché ; null : « Je ne sais pas encore » (réponse et fiche dépliée, sans verdict
+  // ni pénalité ; le calcul part en révision comme une erreur).
   const terminer = (ex, valeur) => {
     if (ex.termine) return;
     ex.termine = true;
-    const juste = ex.choix ? valeur === ex.reponse : estJuste(valeur, ex.reponse, ex.tolerance);
+    const decouverte = valeur === null;
+    const juste = !decouverte && (ex.choix ? valeur === ex.reponse : estJuste(valeur, ex.reponse, ex.tolerance));
+    vue.querySelector('#je-ne-sais-pas')?.remove();
 
     session.resultats.push(juste);
-    vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : 'faux'}`;
+    vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : decouverte ? 'faux decouverte' : 'faux'}`;
     vue.querySelector('.clavier')?.remove(); // le clavier laisse la place à la correction
-    vue.querySelector('.nixie')?.classList.add(juste ? 'juste' : 'faux');
+    if (!decouverte) vue.querySelector('.nixie')?.classList.add(juste ? 'juste' : 'faux');
     vue.querySelector('#erreur-saisie').textContent = '';
     if (ex.choix) {
       vue.querySelectorAll('.choix-btn').forEach(b => {
@@ -1398,7 +1476,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     }
 
     const attendu = ex.choix ? ex.reponse : `${nb(ex.reponse)} ${ex.unite}`;
-    const diagnostic = !juste && !ex.choix ? diagnostiquer(ex, valeur) : null;
+    const diagnostic = !juste && !decouverte && !ex.choix ? diagnostiquer(ex, valeur) : null;
     const calculPose = `<p class="surtitre">Le calcul posé</p><p class="solution">${esc(typo(ex.solution))}</p>`;
     const rappel = `<div class="lecon"><p class="lecon-titre">Rappel</p><p>${esc(typo(ex.explication))}</p></div>`;
     const piege = `<div class="piege-terrain"><p class="lecon-titre">Piège en armoire</p><p>${esc(typo(ex.piege))}</p></div>`;
@@ -1411,8 +1489,18 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const derniere = session.index === session.exercices.length - 1;
     const zone = vue.querySelector('#correction');
     zone.innerHTML = `
-      <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
-        ${juste
+      <section class="explication ${decouverte ? 'est-decouverte' : juste ? 'est-juste' : 'est-faux'}">
+        ${decouverte
+          ? `<p class="verdict"><span class="tampon tampon-decouverte">On le découvre ensemble.</span></p>
+             <div class="essentiel">
+               <p class="attendu">La réponse : <strong class="mono">${esc(typo(attendu))}</strong>.</p>
+               ${calculPose}
+               ${rappel}
+             </div>
+             ${zoneMemo('calcul', ex.generateur.id, { ouvert: true })}
+             <p class="note-decouverte">Pas de point perdu : ce calcul reviendra avec d'autres valeurs, dans ta révision puis dans une séance.</p>
+             ${enSavoirPlus(`${piege}${risqueComplet(ex.generateur.risque)}${norme}`, 'Le piège, le risque, la norme')}`
+          : juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
              ${enSavoirPlus(`${calculPose}${rappel}${piege}${blocRisque(ex.generateur.risque)}${norme}`, 'Le calcul posé, la méthode et le risque')}`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>

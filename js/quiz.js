@@ -91,16 +91,22 @@ export async function renderReco({ vue, definirTitre, params }) {
       <div class="choix">
         ${choix.map((c, i) => `<button class="choix-btn" type="button"><span class="choix-touche">${TOUCHES[i]}</span><span>${esc(typo(c))}</span></button>`).join('')}
       </div>
+      <button type="button" id="je-ne-sais-pas" class="je-ne-sais-pas">Je ne sais pas encore</button>
       <div id="explication"></div>`;
 
     vue.querySelectorAll('.choix-btn').forEach((bouton, i) =>
       bouton.addEventListener('click', () => repondre(q, choix, i)));
+    vue.querySelector('#je-ne-sais-pas').addEventListener('click', () => repondre(q, choix, null));
     window.scrollTo(0, 0);
   };
 
+  // iChoisi = null : « Je ne sais pas encore ». Pas de verdict ni de pénalité : la réponse et la fiche dépliée,
+  // et l'élément part en révision comme une erreur.
   const repondre = (q, choix, iChoisi) => {
-    const choisi = choix[iChoisi];
+    const decouverte = iChoisi === null;
+    const choisi = decouverte ? null : choix[iChoisi];
     const juste = choisi === q.nom;
+    vue.querySelector('#je-ne-sais-pas')?.remove();
     vue.querySelectorAll('.choix-btn').forEach((b, i) => {
       b.disabled = true;
       if (choix[i] === q.nom) b.classList.add('juste');
@@ -109,7 +115,7 @@ export async function renderReco({ vue, definirTitre, params }) {
 
     session.resultats.push(juste);
     if (q.rappel) session.rappelsReussis = (session.rappelsReussis ?? 0) + (juste ? 1 : 0);
-    vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : 'faux'}`;
+    vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : decouverte ? 'faux decouverte' : 'faux'}`;
     noterReponse('reco', q.id, juste);
     let gain = 0;
     if (juste) {
@@ -126,7 +132,7 @@ export async function renderReco({ vue, definirTitre, params }) {
         <dt>Sur le terrain</dt><dd>${esc(typo(q.role))}</dd>
       </dl>
       ${ligneNorme(q.norme)}`;
-    const pourquoiPas = q.pourquoiPas?.[choisi];
+    const pourquoiPas = decouverte ? null : q.pourquoiPas?.[choisi];
 
     // Correction en deux temps : l'essentiel d'abord, le reste sous « En savoir plus ».
     const pourquoi = resume(pourquoiPas ?? q.explication, MOTS_POURQUOI);
@@ -135,8 +141,17 @@ export async function renderReco({ vue, definirTitre, params }) {
     const derniere = session.index === session.questions.length - 1;
     const zone = vue.querySelector('#explication');
     zone.innerHTML = `
-      <section class="explication ${juste ? 'est-juste' : 'est-faux'}">
-        ${juste
+      <section class="explication ${decouverte ? 'est-decouverte' : juste ? 'est-juste' : 'est-faux'}">
+        ${decouverte
+          ? `<p class="verdict"><span class="tampon tampon-decouverte">On le découvre ensemble.</span></p>
+             <div class="essentiel">
+               <p class="attendu">La réponse : <strong>${esc(typo(q.nom))}</strong>.</p>
+               ${lecon}
+             </div>
+             ${zoneMemo('reco', q.id, { ouvert: true })}
+             <p class="note-decouverte">Pas de point perdu : cette question reviendra dans ta révision, puis dans une séance, pour l'ancrer.</p>
+             ${enSavoirPlus(`${risqueComplet(q.risque)}${ficheTechnique}`, 'Le risque, en vrai, et la fiche technique')}`
+          : juste
           ? `<p class="verdict"><span class="tampon">Juste.</span><span class="gain">+${gain} XP</span></p>
              ${enSavoirPlus(`${lecon}${blocRisque(q.risque)}${ficheTechnique}`, 'Pourquoi c\'est ça, et le risque')}`
           : `<p class="verdict"><span class="tampon">Pas encore.</span></p>

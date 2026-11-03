@@ -2,17 +2,18 @@
 
 *Généré par `node outils/audit.mjs` (aussi exécuté par la CI à chaque envoi) : ne pas modifier à la main.*
 
-**142 éléments, 1736 contrôles automatiques, 0 anomalie.**
+**185 éléments, 2896 contrôles automatiques, 0 anomalie.**
 
 | Famille | Éléments | Contrôles | Anomalies |
 |---|---|---|---|
-| Reconnaissance | 60 | 580 | 0 |
-| Calcul | 32 | 300 | 0 |
+| Reconnaissance | 65 | 628 | 0 |
+| Calcul | 34 | 318 | 0 |
 | Cas de panne | 28 | 472 | 0 |
 | Banc · Départ moteur direct | 5 | 101 | 0 |
 | Banc · Éclairage de couloir par télérupteur | 5 | 101 | 0 |
 | Banc · Démarrage étoile-triangle | 4 | 79 | 0 |
 | Mesure d'isolement | 8 | 103 | 0 |
+| Lexique | 36 | 1094 | 0 |
 
 ## Ce qui est contrôlé
 
@@ -26,6 +27,8 @@
 4. **Sécurité** : « Le risque, en vrai » sur chaque élément, « Le piège en armoire » sur chaque cas, panne, mesure et calcul.
 5. **Structure** : une seule bonne démarche par étape, embranchements valides, pannes du banc réparables, démarches de
    référence cohérentes avec le circuit.
+6. **Lexique** : chaque définition tient en 20 mots ; chaque terme technique du contenu de niveau I (questions, calculs,
+   cas, pannes du banc, guide du banc) a sa définition dans `js/lexique.js`.
 
 
 ## Détail
@@ -71,17 +74,22 @@
 | Reconnaissance | `reco-tn-c-ddr` | III | IEC 60364-4-41:2005 (§ 411.4.5, schéma TN-C) | 9 | ✔ |
 | Reconnaissance | `reco-led-allumee` | III | NF C 15-100:2002 · NF EN 61243-3:2014 (VAT) | 10 | ✔ |
 | Reconnaissance | `reco-domaine-hta` | I | NF C 18-510:2012+A1:2020 (domaines de tension) | 9 | ✔ |
-| Reconnaissance | `reco-habilitation-b1v` | I | NF C 18-510:2012+A1:2020 (symboles d'habilitation) | 9 | ✔ |
+| Reconnaissance | `reco-habilitation-b1v` | II | NF C 18-510:2012+A1:2020 (symboles d'habilitation) | 9 | ✔ |
 | Reconnaissance | `reco-dgpt2` | II | NF C 13-100:2015 · NF EN 50216 (série) | 10 | ✔ |
 | Reconnaissance | `reco-fusible-percuteur` | II | IEC 62271-105:2021 (combinés interrupteur-fusibles) | 9 | ✔ |
 | Reconnaissance | `sym-terre-protection` | I | IEC 60417-5019 · NF EN 60204-1:2018 (§ 8.2) | 10 | ✔ |
 | Reconnaissance | `reco-epi-vat` | II | NF C 18-510:2012+A1:2020 · NF EN 60903:2003 (gants isolants) | 10 | ✔ |
 | Reconnaissance | `reco-prises-25` | II | NF C 15-100:2002 (partie 7-771, circuits de prises) | 9 | ✔ |
 | Reconnaissance | `reco-sens-rotation` | I | IEC 60034-8:2007 (repérage des bornes et sens de rotation) | 9 | ✔ |
-| Reconnaissance | `reco-cat-marquage` | I | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
+| Reconnaissance | `reco-cat-marquage` | II | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
 | Reconnaissance | `reco-vat-appareil` | I | NF C 18-510:2012+A1:2020 · NF EN 61243-3:2014 | 10 | ✔ |
 | Reconnaissance | `reco-cadenas-pancarte` | I | NF C 18-510:2012+A1:2020 (consignation) | 9 | ✔ |
 | Reconnaissance | `reco-couleur-neutre` | I | IEC 60445:2021 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-decouverte-tension` | I | IEC 61010-1:2010 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-decouverte-courant` | I | IEC 80000-6:2022 (grandeurs électriques) | 9 | ✔ |
+| Reconnaissance | `reco-decouverte-phase` | I | IEC 60445:2021 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-decouverte-terre` | I | NF C 15-100:2002 · IEC 60445:2021 | 10 | ✔ |
+| Reconnaissance | `reco-decouverte-multimetre` | I | IEC 61010-1:2010 | 9 | ✔ |
 | Reconnaissance | `reco-cat-tgbt` | II | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
 | Reconnaissance | `reco-capteur-3fils` | II | IEC 60947-5-2:2019 | 9 | ✔ |
 | Reconnaissance | `reco-renvoi-folio` | II | IEC 61082-1:2014 (documents électrotechniques) | 9 | ✔ |
@@ -97,8 +105,10 @@
 | Calcul | `tension-attendue` | I | NF C 15-100:2002 (§ 525) | 9 | ✔ |
 | Calcul | `alim-24v` | I | IEC 61131-2:2017 (24 V DC : plage 20,4 à 28,8 V) | 9 | ✔ |
 | Calcul | `tensions-reseau` | I | IEC 60038:2009 (tensions normales) | 9 | ✔ |
+| Calcul | `kilovolts` | I | IEC 60038:2009 (tensions normales) | 9 | ✔ |
 | Calcul | `courant-corps` | I | IEC 60479-1:2018 · IEC 60364-4-41:2005 (§ 411) | 10 | ✔ |
-| Calcul | `rapport-transfo` | I | IEC 60076-1:2011 | 9 | ✔ |
+| Calcul | `rapport-transfo` | II | IEC 60076-1:2011 | 9 | ✔ |
+| Calcul | `tensions-industrie` | II | IEC 60038:2009 (tensions normales) | 9 | ✔ |
 | Calcul | `triphase` | II | IEC 80000-6:2022 (puissances active, réactive, apparente) | 9 | ✔ |
 | Calcul | `intensite` | II | IEC 60947-4-1:2018 | 9 | ✔ |
 | Calcul | `couplage` | II | IEC 60034-1:2022 (plaque moteur) | 9 | ✔ |
@@ -117,7 +127,7 @@
 | Calcul | `boucle-4-20` | III | IEC 60381-1:1982 · NAMUR NE 43 | 9 | ✔ |
 | Calcul | `neutre-coupe` | III | NF C 15-100:2002 (le neutre ne doit jamais être coupé seul, sans les phases) | 9 | ✔ |
 | Calcul | `magnetique-courbe` | I | IEC 60898-1:2015 | 9 | ✔ |
-| Calcul | `energie-condensateur` | I | NF C 18-510:2012+A1:2020 (énergies résiduelles) · IEC 61800-5-1:2022 | 10 | ✔ |
+| Calcul | `energie-condensateur` | II | NF C 18-510:2012+A1:2020 (énergies résiduelles) · IEC 61800-5-1:2022 | 10 | ✔ |
 | Calcul | `sortie-api` | I | IEC 61131-2:2017 | 9 | ✔ |
 | Calcul | `iz-correction` | II | NF C 15-100:2002 (§ 523) · IEC 60364-5-52:2009 | 10 | ✔ |
 | Calcul | `isolement-attendu` | II | IEC 60364-6:2016 · IEC 61557-2:2019 | 10 | ✔ |
@@ -174,3 +184,39 @@
 | Mesure d'isolement | `iso-cable-vieillissant` | III | IEC 60364-6:2016 · IEC 61557-2:2019 | 12 | ✔ |
 | Mesure d'isolement | `iso-alternateur-humide` | II | IEC 60034-27-4:2018 · IEC 60364-6:2016 | 14 | ✔ |
 | Mesure d'isolement | `iso-moteur-vernis` | III | IEC 60034-27-4:2018 · IEC 60364-6:2016 | 14 | ✔ |
+| Lexique | `tension` | — |  | 3 | ✔ |
+| Lexique | `courant` | — |  | 3 | ✔ |
+| Lexique | `phase` | — |  | 3 | ✔ |
+| Lexique | `neutre` | — |  | 3 | ✔ |
+| Lexique | `pe` | — |  | 3 | ✔ |
+| Lexique | `multimetre` | — |  | 3 | ✔ |
+| Lexique | `loz` | — |  | 3 | ✔ |
+| Lexique | `fantome` | — |  | 3 | ✔ |
+| Lexique | `vat` | — |  | 3 | ✔ |
+| Lexique | `consignation` | — |  | 3 | ✔ |
+| Lexique | `habilitation` | — |  | 3 | ✔ |
+| Lexique | `tbt` | — |  | 3 | ✔ |
+| Lexique | `bt` | — |  | 3 | ✔ |
+| Lexique | `hta` | — |  | 3 | ✔ |
+| Lexique | `contacteur` | — |  | 3 | ✔ |
+| Lexique | `bobine` | — |  | 3 | ✔ |
+| Lexique | `relais-thermique` | — |  | 3 | ✔ |
+| Lexique | `sectionneur` | — |  | 3 | ✔ |
+| Lexique | `disjoncteur` | — |  | 3 | ✔ |
+| Lexique | `differentiel` | — |  | 3 | ✔ |
+| Lexique | `fusible` | — |  | 3 | ✔ |
+| Lexique | `am-gg` | — |  | 3 | ✔ |
+| Lexique | `no` | — |  | 3 | ✔ |
+| Lexique | `nf` | — |  | 3 | ✔ |
+| Lexique | `com` | — |  | 3 | ✔ |
+| Lexique | `ol` | — |  | 3 | ✔ |
+| Lexique | `slt` | — |  | 3 | ✔ |
+| Lexique | `selectivite` | — |  | 3 | ✔ |
+| Lexique | `cat` | — |  | 3 | ✔ |
+| Lexique | `megohmmetre` | — |  | 3 | ✔ |
+| Lexique | `pince` | — |  | 3 | ✔ |
+| Lexique | `bornier` | — |  | 3 | ✔ |
+| Lexique | `variateur` | — |  | 3 | ✔ |
+| Lexique | `court-circuit` | — |  | 3 | ✔ |
+| Lexique | `surcharge` | — |  | 3 | ✔ |
+| Lexique | `couverture-niveau-I` | I |  | 989 | ✔ |

@@ -69,6 +69,10 @@ export default async function ({ t, url: U, navigateur }) {
     await q.click('#tuto-suivant');
     t.ok((await carte()).includes('Étape 2/4 · Pose les pointes') && await cible('.pointe.rouge') === 1 && await q.isVisible('#mesurer'),
       'étape 2 : l\'appareil s\'ouvre, la pointe rouge est mise en surbrillance');
+    await q.click('#tuto-schema'); await q.waitForSelector('.bulle-schema[open]');
+    t.ok(await q.evaluate(() => { const i = document.querySelector('.bulle-schema img'); return i.complete && i.naturalWidth > 0; }) && await q.isVisible('.bulle-schema [data-fermer]'),
+      'étape 2 : « Voir le schéma de l\'armoire » ouvre le schéma en grand, sans quitter l\'appareil');
+    await q.click('.bulle-schema [data-fermer]');
     await q.selectOption('#rouge', 'x1');
     t.ok(await cible('#mesurer') === 1, 'pointe posée : la surbrillance passe sur « Mesurer »');
     const m = await q.locator('#mesurer').boundingBox();
@@ -79,9 +83,14 @@ export default async function ({ t, url: U, navigateur }) {
     t.ok((await carte()).includes('Étape 3/4 · V~ ou LoZ') && await cible('[data-fonction="loz"]') === 1 && (await q.textContent('.note-mesure')).includes('hésite'),
       'étape 3 : 91 V qui hésitent au pupitre, le guide désigne V~ LoZ');
     await q.click('[data-fonction="loz"]'); await q.click('#mesurer');
+    t.ok((await carte()).includes('Où est le défaut') && await q.locator('.tuto-choix [data-prediction]').count() === 3 && !(await q.isVisible('#mesurer')),
+      'étape 4 : avant d\'agir, « Où est le défaut ? » en 3 choix (l\'appareil se replie pour lui laisser la place)');
+    await q.click('[data-prediction="0"]');
+    t.ok((await carte()).includes('Où est le défaut') && (await q.textContent('.tuto-carte .tuto-remarque')).includes('230'), 'mauvaise prédiction : explication en clair, la question reste posée');
+    await q.click('[data-prediction="1"]');
     const lecture = () => q.evaluate(async () => (await import('/js/banc.js')).interventionEnCours().mesure.lecture?.valeur);
     t.ok((await carte()).includes('Étape 4/4 · Trouve et valide') && await lecture() === '0' && await cible('[data-action="consigner"]') === 1,
-      'étape 4 : 0 V en LoZ (tension fantôme démasquée), le câble est localisé ; le guide ouvre Actions et désigne « Consigner »');
+      'bonne prédiction (le câble) : 0 V en LoZ confirmé, le guide ouvre Actions et désigne « Consigner »');
     await q.click('[data-action="consigner"]');
     t.ok(await cible('[data-fonction="ohm"]') === 1, 'consigné : le guide revient au multimètre et désigne Ω');
     await q.click('[data-fonction="ohm"]'); await q.selectOption('#rouge', 'x1'); await q.selectOption('#noir', 's11'); await q.click('#mesurer');

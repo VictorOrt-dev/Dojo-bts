@@ -50,6 +50,7 @@ const FICHIERS = [
   'js/revision.js',
   'js/isolement.js',
   'js/examen.js',
+  'js/lexique.js',
   'js/banc-profils.js',
   'js/memos.js',
   'js/guidage.js',

@@ -1190,3 +1190,46 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .console-banc.en-tuto .poignee-ligne, .console-banc.en-tuto .aide-fonction { display: none; }
 .selecteur.fonctions .fonction-legende { white-space: nowrap; }
 .bloc-symptome.tuto-cible { padding: 2px 8px 8px; }
+
+/* ---------- Lexique tactile ---------- */
+.terme {
+  display: inline; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; letter-spacing: inherit;
+  text-align: inherit; cursor: help; text-decoration: underline dotted var(--lien); text-decoration-thickness: 1.5px; text-underline-offset: 3px;
+  -webkit-tap-highlight-color: rgb(110 149 255 / .2);
+}
+.terme:focus-visible { outline: 2px solid var(--lien); outline-offset: 2px; border-radius: 3px; }
+.bulle-lexique {
+  width: min(92vw, 420px); margin: auto auto 96px; padding: 18px 18px 14px; border: 0; border-radius: 18px;
+  background: var(--surface-2); color: var(--texte-1); box-shadow: 0 18px 48px rgb(0 0 0 / .35), inset 0 0 0 1px var(--filet-fort);
+}
+.bulle-lexique::backdrop { background: rgb(0 0 0 / .45); }
+.bulle-surtitre { margin: 0; font: 700 12px/1.2 var(--mono); color: var(--lien); text-transform: uppercase; letter-spacing: .06em; }
+.bulle-terme { margin: 4px 0 8px; font: 800 22px/1.15 var(--texte); letter-spacing: -.02em; }
+.bulle-def { margin: 0 0 14px; font-size: 16px; line-height: 1.45; color: var(--texte-2); }
+.bulle-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bulle-actions .btn { min-height: 46px; padding: 0 10px; font-size: 15px; white-space: nowrap; }
+.liste-lexique { margin: 12px 0 0; }
+.entree-lexique { padding: 12px 0; border-top: 1px solid var(--filet); scroll-margin-top: 80px; }
+.entree-lexique dt { font-weight: 800; }
+.entree-lexique dd { margin: 4px 0 0; color: var(--texte-2); line-height: 1.45; }
+.entree-lexique.choisi { box-shadow: inset 3px 0 0 var(--lien); padding-left: 10px; }
+
+/* ---------- « Je ne sais pas encore » ---------- */
+.je-ne-sais-pas {
+  display: block; width: 100%; min-height: 44px; margin: 10px 0 0; padding: 0 12px; border: 0; border-radius: 12px;
+  background: none; color: var(--texte-2); font: 600 15px/1.2 var(--texte); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.je-ne-sais-pas:active { background: var(--surface-2); }
+.borne.decouverte { background: var(--lien); }
+.tampon-decouverte { color: var(--lien); }
+.note-decouverte { margin: 10px 0 0; font-size: 14px; color: var(--texte-2); }
+.tuto-choix { display: grid; gap: 6px; }
+.tuto-choix .btn { min-height: 44px; justify-content: flex-start; text-align: left; font-size: 15px; }
+.tuto-lien { justify-self: start; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--lien); font: 700 14px/1.2 var(--texte); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.bulle-schema { width: min(96vw, 520px); max-height: 92vh; overflow: auto; margin: auto; padding: 12px; border: 0; border-radius: 18px; background: var(--surface-2); color: var(--texte-1); display: grid; gap: 10px; }
+.bulle-schema:not([open]) { display: none; }
+.bulle-schema::backdrop { background: rgb(0 0 0 / .5); }
+.bulle-schema .schema img { width: 100%; height: auto; max-height: 56vh; object-fit: contain; }
+.composition-examen { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet); }
+.composition-examen p { margin: 0 0 6px; }
+.lien-composition { display: inline-flex; align-items: center; min-height: 44px; color: var(--lien); font-weight: 700; }

@@ -1,7 +1,9 @@
 // Bilan · examen blanc : 15 questions et calculs tirés au sort dans les 5 domaines, en temps limité, sans fiche mémo
 // ni correction avant la fin. Le rapport donne la note, la mention et un bilan par compétence (domaine, type, niveau),
 // puis le corrigé. Les réponses alimentent la révision espacée comme en séance.
-// composerExamen() et bilanExamen() sont pures : tests/unitaires.mjs les vérifie sans navigateur.
+// La difficulté suit le niveau réel (compositionExamen) : un débutant tire surtout du niveau I, un peu de II, jamais de
+// III ; « Examen complet » reste au choix pour tous.
+// composerExamen(), compositionExamen() et bilanExamen() sont pures : tests/unitaires.mjs les vérifie sans navigateur.
 
 import { chargerQuestions } from './quiz.js';
 import { GENERATEURS } from './calcul.js';
@@ -13,6 +15,8 @@ import { DIFFICULTES, difficulte, etiquetteNiveau } from './difficulte.js';
 import { deuxChiffres, frontispice, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
+import * as stockage from './storage.js';
+import { niveauAcquis } from './parcours.js';
 
 export const TAILLE_EXAMEN = 15;
 export const DUREE_EXAMEN = 15 * 60;          // secondes : une minute par question en moyenne
@@ -22,23 +26,52 @@ const NOMS_TYPE = { reco: 'Reconnaissance', calcul: 'Calculs' };
 
 // ---------- Logique pure ----------
 
+// Répartition des niveaux selon le niveau atteint (0 : rien de validé … 3 : tout validé).
+export const QUOTAS = {
+  0: { 1: 10, 2: 5 },
+  1: { 1: 5, 2: 7, 3: 3 },
+  2: { 1: 3, 2: 6, 3: 6 },
+  3: { 1: 5, 2: 5, 3: 5 }
+};
+
+// Niveau atteint : le plus haut niveau validé à la fois en reconnaissance et en calculs (séance ou positionnement).
+// Un profil « confirmé » commence au moins au niveau II.
+export function compositionExamen(etat, { complet = false } = {}) {
+  let niveau = 0;
+  for (const n of [1, 2, 3]) { if (['reco', 'calcul'].every(m => niveauAcquis(etat, m, n))) niveau = n; else break; }
+  niveau = Math.max(niveau, etat.positionnement?.niveau ?? 0, etat.profil === 'confirme' ? 2 : 0);
+  return { niveau, complet, quotas: QUOTAS[complet ? 3 : niveau] };
+}
+
 // Tire 15 éléments : 3 par domaine (questions et calculs alternés), complétés au hasard si un domaine en manque,
-// puis mélangés. questions : [{ id, niveau, domaines }] ; generateurs : idem.
-export function composerExamen(questions, generateurs, taille = TAILLE_EXAMEN) {
+// puis mélangés. quotas ({ niveau: nombre }) : seuls ces niveaux sont tirés, au plus près de la répartition voulue.
+// questions : [{ id, niveau, domaines }] ; generateurs : idem.
+export function composerExamen(questions, generateurs, { taille = TAILLE_EXAMEN, quotas = null } = {}) {
+  const reste = quotas ? { ...quotas } : null;
   const pool = [
     ...questions.map(q => ({ mode: 'reco', id: q.id, niveau: q.niveau, domaine: q.domaines?.[0] })),
     ...generateurs.map(g => ({ mode: 'calcul', id: g.id, niveau: g.niveau, domaine: g.domaines?.[0] }))
-  ];
+  ].filter(e => !reste || reste[e.niveau] !== undefined);
+  const besoin = e => (reste ? reste[e.niveau] : 1);
+  // Parmi des candidats, celui dont le niveau manque le plus (au hasard à égalité).
+  const meilleur = liste => melanger(liste).sort((x, y) => besoin(y) - besoin(x))[0];
+  const prendre = e => { choisis.push(e); if (reste) reste[e.niveau]--; };
   const choisis = [];
-  for (const d of DOMAINES) {
+  for (const d of melanger(DOMAINES)) {
     // Questions et calculs alternés, en commençant au hasard par l'un ou l'autre.
-    const [a, b] = melanger(['reco', 'calcul']).map(m => melanger(pool.filter(e => e.domaine === d.id && e.mode === m)));
-    const alternes = [];
-    for (let i = 0; i < Math.max(a.length, b.length); i++) alternes.push(...[a[i], b[i]].filter(Boolean));
-    choisis.push(...alternes.slice(0, PAR_DOMAINE));
+    const ordre = melanger(['reco', 'calcul']);
+    for (let k = 0; k < PAR_DOMAINE; k++) {
+      const libres = pool.filter(e => e.domaine === d.id && !choisis.includes(e) && besoin(e) > 0);
+      const duMode = libres.filter(e => e.mode === ordre[k % 2]);
+      const e = meilleur(duMode.length ? duMode : libres);
+      if (e) prendre(e);
+    }
   }
-  const reste = melanger(pool.filter(e => !choisis.includes(e)));
-  while (choisis.length < taille && reste.length) choisis.push(reste.shift());
+  while (choisis.length < taille) {
+    const libres = pool.filter(e => !choisis.includes(e));
+    if (!libres.length) break;
+    prendre(meilleur(libres.filter(e => besoin(e) > 0).length ? libres.filter(e => besoin(e) > 0) : libres));
+  }
   return melanger(choisis).slice(0, taille);
 }
 
@@ -82,9 +115,16 @@ export async function renderExamen({ vue, definirTitre, params, auNettoyage }) {
   definirTitre('Examen blanc');
   const questions = await chargerQuestions();
   const duree = Number(params?.get('duree')) > 0 ? Number(params.get('duree')) : DUREE_EXAMEN;   // ?duree= : tests
+  const compo = compositionExamen(stockage.lire(), { complet: params?.get('complet') === '1' });
+  const repartition = Object.entries(compo.quotas).filter(([, n]) => n).map(([niv, n]) => `${n} de niveau ${DIFFICULTES.find(d => d.n === Number(niv)).romain}`).join(', ');
 
   vue.innerHTML = `
-    ${frontispice({ surtitre: 'Bilan', titre: 'Examen', italique: 'blanc', chapo: 'Quinze questions et calculs tirés au sort dans les cinq domaines, tous niveaux confondus. Comme le jour J : pas de fiche mémo, pas de correction avant la fin.' })}
+    ${frontispice({ surtitre: 'Bilan', titre: 'Examen', italique: 'blanc', chapo: 'Quinze questions et calculs tirés au sort dans les cinq domaines. Comme le jour J : pas de fiche mémo, pas de correction avant la fin.' })}
+    <div class="composition-examen">
+      <p><strong>${compo.complet ? 'Examen complet, tous niveaux' : 'Calibré sur ton niveau'}</strong> : ${repartition}.</p>
+      <p class="discret">${compo.complet ? 'Le niveau III compte pour un tiers : c\'est l\'épreuve des confirmés.' : compo.niveau === 0 ? 'Rien de validé pour l\'instant : surtout des bases, un peu de pratique courante, aucun cas complexe.' : `Niveau ${DIFFICULTES.find(d => d.n === compo.niveau).romain} validé : la difficulté monte d'un cran.`}</p>
+      <a class="lien-composition" href="#/entrainement/examen${compo.complet ? '' : '?complet=1'}">${compo.complet ? 'Revenir à l\'examen calibré' : 'Passer à l\'examen complet (tous niveaux)'}</a>
+    </div>
     <ul class="stats regles-examen">
       <li><span>Questions</span><span class="mono">${TAILLE_EXAMEN} · ${PAR_DOMAINE} par domaine</span></li>
       <li><span>Temps</span><span class="mono">${minutes(duree)}</span></li>
@@ -96,7 +136,7 @@ export async function renderExamen({ vue, definirTitre, params, auNettoyage }) {
       <button id="commencer-examen" class="btn principal" type="button">Commencer l'examen</button>
       <a class="btn" href="#/entrainement">Pas maintenant</a>
     </div>`;
-  vue.querySelector('#commencer-examen').addEventListener('click', () => commencer({ vue, questions, duree, auNettoyage }));
+  vue.querySelector('#commencer-examen').addEventListener('click', () => commencer({ vue, questions, duree, auNettoyage, quotas: compo.quotas }));
 }
 
 function materialiser(e, questions) {
@@ -109,8 +149,8 @@ function materialiser(e, questions) {
   return { ...e, titre: g.titre, question: qcm.enonce, choix: melanger(qcm.choix), bonne: qcm.bonne, domaines: g.domaines };
 }
 
-function commencer({ vue, questions, duree, auNettoyage }) {
-  const liste = composerExamen(questions, GENERATEURS).map(e => materialiser(e, questions));
+function commencer({ vue, questions, duree, auNettoyage, quotas }) {
+  const liste = composerExamen(questions, GENERATEURS, { quotas }).map(e => materialiser(e, questions));
   const examen = examenCourant = { liste, index: 0, reponses: [], debut: Date.now(), duree, fini: false };
   const restant = () => Math.max(0, duree - Math.floor((Date.now() - examen.debut) / 1000));
 
@@ -128,7 +168,7 @@ function commencer({ vue, questions, duree, auNettoyage }) {
       ? `<figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}"><div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div></figure>`
       : `<p class="titre-cas-test">${esc(typo(q.titre))}</p>`;
     vue.innerHTML = `
-      <div class="examen-entete">
+      <div class="examen-entete" data-sans-lexique>
         <p class="niveau-seance"><span class="pastille-examen">Examen blanc</span> ${etiquetteNiveau(q.niveau)} ${pucesDomaines(q.domaines)}</p>
         <p class="chrono" role="timer" aria-label="Temps restant"><span id="chrono">${minutes(restant())}</span></p>
       </div>

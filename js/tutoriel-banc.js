@@ -14,17 +14,19 @@ const mesuree = (e, [f, a, b]) => e.faits.has(`m:${f}:${a}:${b}`) || e.faits.has
 
 // Chaque geste : l'étape (1 à 4) à laquelle il appartient, son titre court, son explication, et ce qu'il attend.
 //   mesure : [fonction, rouge, noir]   action : bouton de l'onglet Actions   lu : bouton « Suivant » de la fiche
+//   prediction : question « Où est le défaut ? » posée avant d'agir (raisonner, pas seulement suivre)
+//   schema : la fiche propose d'ouvrir le schéma de l'armoire
 export const GESTES = [
   {
     etape: 1, titre: 'Lis le symptôme', lu: true,
     texte: 'Rien ne démarre, mais le voyant H1 est allumé : la commande a ses 230 V dans l\'armoire. Ta question : où se perdent-ils avant la bobine de KM1 ?'
   },
   {
-    etape: 2, titre: 'Pose les pointes', mesure: ['hz', 'x1', 'n0'],
-    texte: 'Rouge sur le point à tester, COM sur la référence (le 0 V, déjà en place). Commence en armoire : rouge sur « F2 : 96 / X1 : 1 », puis « Mesurer ».'
+    etape: 2, titre: 'Pose les pointes', mesure: ['hz', 'x1', 'n0'], schema: true,
+    texte: 'Rouge sur le point à tester, COM sur la référence (le 0 V, déjà en place). Commence en armoire : rouge sur « F2 : 96 / X1 : 1 » (groupe « Commande »), puis « Mesurer ».'
   },
   {
-    etape: 2, titre: 'Suis le courant', mesure: ['hz', 's11', 'n0'],
+    etape: 2, titre: 'Suis le courant', mesure: ['hz', 's11', 'n0'], schema: true,
     texte: '230 V au bornier X1 : la commande sort bien de l\'armoire. Suis-la jusqu\'au pupitre, 40 m plus loin : rouge sur « Pupitre S1 : 11 », puis « Mesurer ».'
   },
   {
@@ -32,8 +34,21 @@ export const GESTES = [
     texte: 'Environ 90 V qui hésitent, ni 0 ni 230 : signature d\'une tension fantôme, captée par un fil coupé. Passe en V~ LoZ et mesure au même endroit.'
   },
   {
+    etape: 4, titre: 'Où est le défaut ?',
+    texte: '0 V en LoZ : il n\'y a pas de vraie tension au pupitre. Avant de toucher à quoi que ce soit, d\'après tes deux mesures, où est le défaut ?',
+    prediction: {
+      choix: ['Dans l\'armoire, avant X1 : 1', 'Dans le câble, entre X1 : 1 et S1', 'Dans le bouton Arrêt S1'],
+      bonne: 1,
+      retours: [
+        'Pas là : tu as lu 230 V en X1 : 1, la sortie de l\'armoire. Jusque-là, tout va bien.',
+        '',
+        'Pas encore : la borne 11 de S1 ne reçoit déjà plus de vraie tension. Le défaut est avant le bouton.'
+      ]
+    }
+  },
+  {
     etape: 4, titre: 'Localise, puis consigne', action: 'consigner', fait: e => e.faits.has('consigne'),
-    texte: '0 V en LoZ : pas de vraie tension au pupitre. 230 V en X1 : 1, rien en S1 : 11 : le défaut est entre les deux, dans le câble. Avant l\'ohmmètre, consigne.'
+    texte: 'Bien vu : 230 V en X1 : 1, rien en S1 : 11, et entre les deux il n\'y a que le câble. Pour le prouver à l\'ohmmètre, consigne d\'abord.'
   },
   {
     etape: 4, titre: 'Confirme à l\'ohmmètre', mesure: ['ohm', 'x1', 's11'],
@@ -53,7 +68,17 @@ export const GESTES = [
   }
 ];
 
-export const gesteFait = (g, e) => g.lu ? !!e.tuto?.lu : g.mesure ? mesuree(e, g.mesure) : g.fait(e);
+export const gesteFait = (g, e) => g.lu ? !!e.tuto?.lu : g.prediction ? !!e.tuto?.prediction : g.mesure ? mesuree(e, g.mesure) : g.fait(e);
+
+// Réponse à la question « Où est le défaut ? » : { juste, retour }. Une mauvaise réponse explique et laisse rejouer.
+export function predire(e, i) {
+  const g = GESTES.find(x => x.prediction);
+  const juste = i === g.prediction.bonne;
+  e.tuto.essaisPrediction = (e.tuto.essaisPrediction ?? 0) + 1;
+  if (juste) e.tuto.prediction = true;
+  e.tuto.retour = juste ? null : g.prediction.retours[i];
+  return { juste, retour: e.tuto.retour };
+}
 
 // Index du geste en cours (le premier pas encore fait), ou GESTES.length quand tout est fait.
 export function gesteCourant(e) {
@@ -66,6 +91,7 @@ export function gesteCourant(e) {
 export function cible(e, g = GESTES[gesteCourant(e)]) {
   if (!g) return null;
   if (g.lu) return { selecteur: '.bloc-symptome' };
+  if (g.prediction) return { selecteur: '.tuto-choix' };
   if (g.mesure) {
     const [f, rouge, noir] = g.mesure;
     if (f !== 'ohm' && e.consigne) return { onglet: 'actions', selecteur: '[data-action="consigner"]', remarque: 'Le départ est consigné : pour mesurer une tension, déconsigne d\'abord.' };

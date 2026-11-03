@@ -1030,7 +1030,7 @@
   },
   {
     "id": "reco-habilitation-b1v",
-    "niveau": 1,
+    "niveau": 2,
     "type": "symbole",
     "image": "img/reco/sym-sectionneur.svg",
     "question": "Ton titre d'habilitation porte « B1V ». Peux-tu manœuvrer l'interrupteur-sectionneur d'une cellule HTA ?",
@@ -1215,7 +1215,7 @@
   },
   {
     "id": "reco-cat-marquage",
-    "niveau": 1,
+    "niveau": 2,
     "type": "materiel",
     "image": "img/reco/mat-multimetre.svg",
     "question": "Ce multimètre porte le marquage « CAT III 1000 V ». Que garantit la catégorie de mesure ?",
@@ -1316,6 +1316,137 @@
     ],
     "norme": "IEC 60445 · NF C 15-100",
     "risque": "Un bleu utilisé comme phase est pris pour un neutre « inoffensif » : on le déconnecte sous tension, on se fait électriser."
+  },
+  {
+    "id": "reco-decouverte-tension",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-multimetre.svg",
+    "question": "Tu veux savoir si une prise est bien alimentée. Quelle grandeur mesures-tu au multimètre ?",
+    "nom": "La tension, en volts (V~)",
+    "faux": [
+      "Le courant, en ampères (A)",
+      "La résistance, en ohms (Ω)",
+      "La puissance, en watts (W)"
+    ],
+    "pourquoiPas": {
+      "Le courant, en ampères (A)": "Le courant ne circule que si un appareil fonctionne. Une prise à vide n'en débite pas, même alimentée.",
+      "La résistance, en ohms (Ω)": "L'ohmmètre se pose hors tension : sur une prise alimentée, la mesure est fausse et l'appareil peut griller.",
+      "La puissance, en watts (W)": "Un multimètre ne mesure pas la puissance : elle se calcule (P = U × I) ou se lit au compteur."
+    },
+    "explication": "La tension est la « pression » électrique entre deux points : elle existe même quand rien ne fonctionne. Entre phase et neutre d'une prise, on doit lire environ 230 V en V~ (alternatif).",
+    "reperage": "Sélecteur sur V~, pointe rouge dans la borne V, noire dans COM ; une pointe dans chaque alvéole de la prise.",
+    "role": "Premier réflexe de dépannage : savoir si la tension arrive, avant de chercher plus loin.",
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "IEC 61010-1 · NF C 15-100",
+    "risque": "Mesurer avec un appareil mal réglé (calibre A ou Ω sur une prise) crée un court-circuit dans le multimètre : flash, brûlure aux mains et aux yeux."
+  },
+  {
+    "id": "reco-decouverte-courant",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-voyant.svg",
+    "question": "Pour que ce voyant s'allume, il faut une tension et un courant. Quelle phrase est juste ?",
+    "nom": "La tension pousse, le courant circule",
+    "faux": [
+      "Le courant pousse, la tension circule",
+      "Tension et courant sont la même chose",
+      "Le courant passe même circuit ouvert"
+    ],
+    "pourquoiPas": {
+      "Le courant pousse, la tension circule": "C'est l'inverse : la tension (en volts) est la cause, le courant (en ampères) est l'électricité qui se déplace.",
+      "Tension et courant sont la même chose": "Ce sont deux grandeurs différentes : une prise a 230 V de tension, mais aucun courant tant que rien n'est branché.",
+      "Le courant passe même circuit ouvert": "Sans boucle fermée, pas de courant : c'est pour ça qu'un interrupteur ouvert éteint la lampe."
+    },
+    "explication": "La tension (V) est la différence de « pression » électrique ; le courant (A) est l'électricité qui circule quand le circuit est fermé. Pas de tension, pas de courant ; pas de circuit fermé, pas de courant non plus.",
+    "reperage": "Image utile : la tension est la pression dans un tuyau, le courant est le débit d'eau quand on ouvre le robinet.",
+    "role": "Comprendre pourquoi on trouve de la tension sur un circuit arrêté : la tension attend, le courant ne passe qu'en fonctionnement.",
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "IEC 80000-6 (grandeurs électriques)",
+    "risque": "Croire qu'un appareil arrêté n'a « pas de courant », donc pas de danger : la tension reste présente, et c'est ton corps qui fermera le circuit."
+  },
+  {
+    "id": "reco-decouverte-phase",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-conducteurs.svg",
+    "question": "Dans ce câble alimenté, quel conducteur est dangereux au toucher en temps normal ?",
+    "nom": "La phase : marron, noir, gris",
+    "faux": [
+      "Le neutre, toujours bleu clair",
+      "La terre, toujours vert-jaune",
+      "Aucun, tant que la gaine tient"
+    ],
+    "pourquoiPas": {
+      "Le neutre, toujours bleu clair": "Le neutre est proche de 0 V en temps normal, mais un neutre coupé peut monter à 230 V : on ne le touche jamais sans VAT.",
+      "La terre, toujours vert-jaune": "Le conducteur de protection est relié à la terre : il ne porte pas de tension en temps normal.",
+      "Aucun, tant que la gaine tient": "La gaine protège tant qu'elle est intacte. Dès qu'on dénude ou qu'on démonte, la phase est à nu."
+    },
+    "explication": "La phase porte la tension par rapport à la terre : 230 V sur une installation domestique. Le neutre ramène le courant, le vert-jaune protège. On repère à la couleur, on confirme toujours par une VAT.",
+    "reperage": "Marron, noir ou gris : phase. Bleu clair : neutre. Vert-jaune : terre de protection (PE).",
+    "role": "Savoir quoi isoler en premier et où poser la pointe rouge du multimètre.",
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "IEC 60445 · NF C 15-100",
+    "risque": "Toucher une phase alors qu'on a les pieds à la terre : le courant traverse le corps. À partir de 30 mA, les muscles se bloquent et le cœur peut s'arrêter."
+  },
+  {
+    "id": "reco-decouverte-terre",
+    "niveau": 1,
+    "type": "symbole",
+    "image": "img/reco/sym-terre-protection.svg",
+    "question": "Le conducteur vert-jaune, relié aux carcasses métalliques des appareils, sert à quoi ?",
+    "nom": "Évacuer un courant de défaut",
+    "faux": [
+      "Ramener le courant de retour",
+      "Alimenter les appareils fixes",
+      "Mesurer la consommation"
+    ],
+    "pourquoiPas": {
+      "Ramener le courant de retour": "Le retour du courant normal passe par le neutre (bleu clair), jamais par le vert-jaune.",
+      "Alimenter les appareils fixes": "La phase alimente les appareils. Le vert-jaune ne transporte du courant qu'en cas de défaut.",
+      "Mesurer la consommation": "La consommation se lit au compteur. Le vert-jaune est un conducteur de sécurité, pas de mesure."
+    },
+    "explication": "Si une phase touche une carcasse métallique, le vert-jaune (PE) emmène le courant de défaut vers la terre : le différentiel le voit et coupe avant que quelqu'un ne touche l'appareil.",
+    "reperage": "Toujours vert-jaune, jamais utilisé pour autre chose ; symbole de terre de protection sur la borne.",
+    "role": "Vérifier sa continuité jusqu'aux masses : c'est lui qui rend un défaut sans danger.",
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "norme": "NF C 15-100 · IEC 60445",
+    "risque": "Un PE coupé ne se voit pas en fonctionnement normal. Au premier défaut, la carcasse reste sous tension et c'est la main de l'utilisateur qui fait la liaison."
+  },
+  {
+    "id": "reco-decouverte-multimetre",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-multimetre.svg",
+    "question": "À quoi sert d'abord cet appareil pour un électricien ?",
+    "nom": "Mesurer tension, courant, résistance",
+    "faux": [
+      "Protéger le circuit des surcharges",
+      "Couper le courant d'un circuit",
+      "Vérifier seul l'absence de tension"
+    ],
+    "pourquoiPas": {
+      "Protéger le circuit des surcharges": "La protection contre les surcharges est le rôle du disjoncteur ou du fusible, pas d'un appareil de mesure.",
+      "Couper le courant d'un circuit": "On coupe avec un interrupteur, un sectionneur ou un disjoncteur. Le multimètre ne fait que mesurer.",
+      "Vérifier seul l'absence de tension": "La VAT se fait au détecteur de tension bipolaire normalisé : un multimètre mal réglé peut afficher 0 V à tort."
+    },
+    "explication": "Le multimètre mesure la tension (V), le courant (A) et la résistance (Ω). On choisit la fonction au sélecteur, on branche la pointe rouge sur le point testé et la noire (COM) sur la référence.",
+    "reperage": "Sélecteur rotatif au centre, afficheur en haut, bornes COM, V/Ω et A en bas.",
+    "role": "L'outil de tous les diagnostics : on suit la tension depuis la source jusqu'à l'endroit où elle disparaît.",
+    "domaines": [
+      "mono-bt"
+    ],
+    "norme": "IEC 61010-1",
+    "risque": "Pointe dans la borne A en voulant mesurer une tension : court-circuit franc dans l'appareil, arc et projection de métal au visage."
   },
   {
     "id": "reco-cat-tgbt",

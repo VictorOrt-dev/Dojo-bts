@@ -266,3 +266,20 @@ de décourager.*
 - **Valider les recommandations sur le terrain.** Deux ou trois élèves de CAP en tests utilisateurs de 20 minutes (en
   pensant à voix haute) diront plus que toute mesure automatique. Le premier écran du banc et la première séance de
   reconnaissance sont les deux moments à observer en priorité.
+
+---
+
+## Suivi des recommandations (3 novembre 2026)
+
+Les quatre recommandations sont appliquées et couvertes par les tests : U13 et U14 dans la suite unitaire, S dans la
+suite navigateur, L pour l'ergonomie. L'audit automatique les contrôle aussi.
+
+| # | Appliqué | Vérifié par |
+|---|---|---|
+| R1 | Lexique de 35 termes (20 mots au plus), mots touchables sur tous les écrans, bulle, page « Lexique », section du Carnet ; audit : 999 occurrences de termes techniques au niveau I, toutes définies | U14, S, audit (famille « Lexique ») |
+| R2 | « Je ne sais pas encore » en reconnaissance et en calculs : réponse, explication et fiche dépliée, sans XP perdu, élément en révision | S |
+| R3 | CAT III, B1V / HTA, décharge 5·R·C, 20,4 kV et 690 V au niveau II ; 5 questions de découverte et un calcul volts / kilovolts au niveau I ; schéma consultable et question « Où est le défaut ? » dans le guide du banc | U13, U14, S, L |
+| R4 | Examen blanc calibré (débutant : 10 de niveau I, 5 de niveau II, aucun de niveau III), examen complet au choix ; sigles des blocs et des modes de l'accueil écrits en clair | U14, S |
+
+Restent à faire, sans urgence : replier les sections du Carnet, et observer deux ou trois élèves de CAP en conditions
+réelles.

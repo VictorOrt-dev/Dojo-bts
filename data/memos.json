@@ -1,5 +1,23 @@
 [
   {
+    "id": "bases-electricite",
+    "titre": "Tension, courant, phase, neutre, terre",
+    "domaine": "mono-bt",
+    "cibles": {
+      "reco": [
+        "reco-decouverte-tension",
+        "reco-decouverte-courant",
+        "reco-decouverte-phase",
+        "reco-decouverte-terre",
+        "reco-decouverte-multimetre"
+      ],
+      "calcul": [
+        "kilovolts"
+      ]
+    },
+    "texte": "**Tension (V)** : la « pression » électrique entre deux points. Elle existe même quand rien ne fonctionne.\n\n**Courant (A)** : l'électricité qui circule, seulement si le circuit est fermé.\n\n- **Phase** (marron, noir, gris) : sous tension, dangereuse\n- **Neutre** (bleu clair) : ramène le courant\n- **Terre PE** (vert-jaune) : évacue un défaut\n\nMultimètre : **V~** pour une tension, **A** pour un courant, **Ω** hors tension. Rouge sur le point testé, noir sur **COM**.\n\n`1 kV = 1 000 V`\n\n> On repère à la couleur, on confirme toujours par une VAT."
+  },
+  {
     "id": "contacts-no-nf",
     "titre": "Contacts NO / NF et repérage des bornes",
     "domaine": "tbt-cc",
@@ -204,7 +222,8 @@
         "boucherot",
         "compensation",
         "desequilibre",
-        "neutre-coupe"
+        "neutre-coupe",
+        "tensions-industrie"
       ],
       "panne": [
         "neutre-tgbt"

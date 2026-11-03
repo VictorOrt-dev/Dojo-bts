@@ -11,11 +11,15 @@
 //   4. Sécurité   : « Le risque, en vrai » sur chaque élément ; « Le piège en armoire » sur chaque cas, panne, mesure, calcul.
 //   5. Structure  : une seule bonne démarche par étape, embranchements valides, pannes du banc réparables,
 //                   démarches de référence (pistes) qui citent des points et des pièces existants.
+//   6. Lexique    : définitions de 20 mots au plus ; chaque terme technique du contenu de niveau I (questions, calculs,
+//                   cas, pannes du banc, guide du banc) a sa définition dans js/lexique.js.
 // La fonction auditer() est aussi appelée par tests/unitaires.mjs : la CI échoue si le contenu dérive.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { EDITIONS, annoterNorme } from '../js/normes.js';
+import { LEXIQUE, termePour } from '../js/lexique.js';
+import { GESTES } from '../js/tutoriel-banc.js';
 
 const lire = f => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'));
 const RISQUE_MIN = 60;
@@ -141,6 +145,37 @@ export async function auditer() {
     verifier(l, !s.ipRequis || (s.absorption && s.cles.length > 0), 'IP exigé sans absorption ni mesure clé');
   }
 
+  // ---------- Lexique ----------
+  const motsDe = t => t.split(/\s+/).filter(Boolean).length;
+  for (const t of LEXIQUE) {
+    const l = ligne('Lexique', t.id, null, '');
+    verifier(l, t.terme && t.def && motsDe(t.def) <= 20, `définition de ${motsDe(t.def ?? '')} mots (20 au plus)`);
+    verifier(l, LEXIQUE.filter(x => x.id === t.id).length === 1, 'identifiant unique');
+    verifier(l, t.motifs.length > 0 && t.motifs.every(m => m.re), 'au moins un motif de recherche');
+  }
+  // Termes techniques surveillés, cherchés indépendamment du lexique : chacun, s'il apparaît au niveau I, doit y être défini.
+  const SURVEILLES = [
+    ['LoZ'], ['VAT'], ['TBTS?'], ['BT'], ['HTA'], ['PE'], ['NO'], ['NF(?! ?(?:C|EN|X)\\b)'], ['COM'], ['OL'], ['DDR'], ['aM'], ['gG'],
+    ['CAT (?:IV|III|II)'], ['SLT'], ['TT'], ['TN'], ['IT'],
+    ['consign\\p{L}*', 'i'], ['contacteurs?', 'i'], ['relais thermiques?', 'i'], ['sectionneurs?', 'i'], ['disjoncteurs?', 'i'],
+    ['différentiels?', 'i'], ['sélectivités?', 'i'], ['habilitations?', 'i'], ['bobines?', 'i'], ['fusibles?', 'i'], ['multimètres?', 'i'],
+    ['mégohmmètres?', 'i'], ['borniers?', 'i'], ['variateurs?', 'i'], ['fantômes?', 'i'], ['courts?-circuits?', 'i'], ['surcharges?', 'i'],
+    ['neutres?', 'i'], ['phases?', 'i']
+  ].map(([re, f = '']) => new RegExp(`(?<![\\p{L}\\p{N}])(?:${re})(?![\\p{L}\\p{N}])`, `gu${f}`));
+  const corpus = [
+    ...reco.filter(q => q.niveau === 1).map(q => [q.id, [q.question, q.nom, ...q.faux, q.explication, q.risque, q.reperage, q.role, ...Object.values(q.pourquoiPas ?? {})]]),
+    ...GENERATEURS.filter(g => g.niveau === 1).map(g => [g.id, [g.titre, g.risque, ...Array.from({ length: 30 }, () => { const e = g.creer(); return [e.enonce, e.explication, e.piege, e.solution].join(' '); })]]),
+    ...cas.filter(c => c.niveau === 1).map(c => [c.id, [c.titre, c.contexte, ...c.etapes.flatMap(e => [e.situation, e.question, ...e.choix.flatMap(x => [x.texte, x.explication])])]]),
+    ...bancs.flatMap(b => b.pannes.filter(p => p.niveau === 1).map(p => [p.id, [p.symptome]])),
+    ['guide-du-banc', GESTES.map(g => g.texte)]
+  ];
+  const lc = ligne('Lexique', 'couverture-niveau-I', 1, '');
+  const manquants = new Set();
+  for (const [, textes] of corpus) for (const t of textes.filter(Boolean)) for (const re of SURVEILLES) {
+    for (const m of String(t).matchAll(re)) { lc.controles++; if (!termePour(m[0])) manquants.add(m[0]); }
+  }
+  verifier(lc, manquants.size === 0, `termes de niveau I sans définition : ${[...manquants].join(', ')}`);
+
   const anomalies = lignes.flatMap(l => l.anomalies.map(a => `${l.famille} · ${l.id} : ${a}`));
   return { lignes, anomalies, controles: lignes.reduce((t, l) => t + l.controles, 0) };
 }
@@ -171,6 +206,8 @@ ${familles.map(f => { const L = lignes.filter(l => l.famille === f); return `| $
 4. **Sécurité** : « Le risque, en vrai » sur chaque élément, « Le piège en armoire » sur chaque cas, panne, mesure et calcul.
 5. **Structure** : une seule bonne démarche par étape, embranchements valides, pannes du banc réparables, démarches de
    référence cohérentes avec le circuit.
+6. **Lexique** : chaque définition tient en 20 mots ; chaque terme technique du contenu de niveau I (questions, calculs,
+   cas, pannes du banc, guide du banc) a sa définition dans \`js/lexique.js\`.
 
 ${anomalies.length ? `## Anomalies\n\n${anomalies.map(a => `- ${a}`).join('\n')}\n` : ''}
 ## Détail
