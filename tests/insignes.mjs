@@ -69,21 +69,21 @@ export default async function ({ t, url: U, navigateur }) {
     await contexte.close();
   }
 
-  // ---------- Mégohmmètre : 6 mesures sans dégât ----------
+  // ---------- Mégohmmètre : toutes les mesures sans dégât ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur);
     await p.addInitScript(() => {
       if (sessionStorage.getItem('prepare')) return;
       sessionStorage.setItem('prepare', '1');
       const e = JSON.parse(localStorage.getItem('elec-learning:v1'));
-      e.jalons = { memosApresErreur: 0, isolementPropre: ['iso-prises-neuves', 'iso-eclairage-clou', 'iso-moteur-variateur', 'iso-commande-24v', 'iso-cable-vieillissant'] };
+      e.jalons = { memosApresErreur: 0, isolementPropre: ['iso-prises-neuves', 'iso-eclairage-clou', 'iso-moteur-variateur', 'iso-commande-24v', 'iso-cable-vieillissant', 'iso-alternateur-humide', 'iso-moteur-vernis'] };
       localStorage.setItem('elec-learning:v1', JSON.stringify(e));
     });
     await p.goto(U + '#/entrainement/isolement?s=iso-neutre-terre'); await p.waitForSelector('#tester');
     await p.click('[data-prep="consigne"]'); await p.selectOption('#iso-a', 'N'); await p.selectOption('#iso-b', 'PE'); await p.click('#tester');
     await p.click('.choix-btn:has-text("chercher le point")'); await p.waitForSelector('.insigne-obtenu');
-    t.ok(net(await p.textContent('.insigne-obtenu')).includes('Maître du mégohmmètre') && (await etat(p)).jalons.isolementPropre.length === 6,
-      'sixième mesure d\'isolement réussie sans dégât : « Maître du mégohmmètre »');
+    t.ok(net(await p.textContent('.insigne-obtenu')).includes('Maître du mégohmmètre') && (await etat(p)).jalons.isolementPropre.length === 8,
+      'dernière mesure d\'isolement réussie sans dégât : « Maître du mégohmmètre »');
     await contexte.close();
   }
 

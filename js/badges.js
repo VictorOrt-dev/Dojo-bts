@@ -7,7 +7,7 @@
 
 // Cas de niveau III à embranchements et scénarios d'isolement (le test U8 vérifie qu'ils suivent les données).
 export const CAS_EMBRANCHEMENTS = ['pompe-thermique-rearme', 'tgbt-reenclenchement'];
-export const SCENARIOS_ISOLEMENT = ['iso-prises-neuves', 'iso-eclairage-clou', 'iso-moteur-variateur', 'iso-commande-24v', 'iso-neutre-terre', 'iso-cable-vieillissant'];
+export const SCENARIOS_ISOLEMENT = ['iso-prises-neuves', 'iso-eclairage-clou', 'iso-moteur-variateur', 'iso-commande-24v', 'iso-neutre-terre', 'iso-cable-vieillissant', 'iso-alternateur-humide', 'iso-moteur-vernis'];
 export const CAS_CONSIGNATION = ['consignation-contacteur', 'vat-procedure'];
 const JOURS_GARDES = 400;
 
@@ -69,7 +69,7 @@ export const BADGES = [
     progression: e => ({ valeur: elements(e, 'banc').some(([, s]) => s.reussites > 0) ? 1 : 0, cible: 1 })
   },
   {
-    id: 'megohmmetre', nom: 'Maître du mégohmmètre', critere: 'Réussir les 6 mesures d\'isolement sans endommager de matériel.',
+    id: 'megohmmetre', nom: 'Maître du mégohmmètre', critere: `Réussir les ${SCENARIOS_ISOLEMENT.length} mesures d'isolement sans endommager de matériel.`,
     icone: svg('<rect x="6" y="10" width="36" height="28" rx="4"/><path d="M13 28a11 11 0 0 1 22 0"/><path d="M24 28l6-8"/><path d="M10 38v4M38 38v4"/>'),
     progression: e => ({ valeur: SCENARIOS_ISOLEMENT.filter(id => e.jalons?.isolementPropre?.includes(id)).length, cible: SCENARIOS_ISOLEMENT.length })
   },

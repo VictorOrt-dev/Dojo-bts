@@ -1006,6 +1006,11 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .megohmmetre .note-mesure.alerte { color: var(--attention); }
 .megohmmetre .nixie-valeur { font-size: 32px; }
 .megohmmetre #tester { min-height: 56px; }
+.iso-ip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin: 0; }
+.iso-ip div { padding: 6px 4px; border-radius: 8px; background: var(--surface-2); text-align: center; }
+.iso-ip dt { font: 600 12px/1.2 var(--mono); color: var(--texte-2); }
+.iso-ip dd { margin: 2px 0 0; font: 700 13px/1.2 var(--mono); color: var(--texte-1); }
+.iso-ip .indice-douteux dd, .iso-ip .indice-dangereux dd { color: var(--attention); }
 
 /* ---------- Banc : choix du circuit ---------- */
 .choix-circuit { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 12px 0 4px; }

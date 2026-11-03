@@ -387,10 +387,12 @@
         "iso-moteur-variateur",
         "iso-commande-24v",
         "iso-neutre-terre",
-        "iso-cable-vieillissant"
+        "iso-cable-vieillissant",
+        "iso-alternateur-humide",
+        "iso-moteur-vernis"
       ]
     },
-    "texte": "**Hors tension**, électronique **débranchée** (variateur, automate), puis entre chaque conducteur actif et le PE.\n\nTension d'essai et seuil (IEC 60364-6) :\n\n- TBT (≤ 50 V) : **250 V DC**, ≥ **0,5 MΩ**\n- jusqu'à 500 V : **500 V DC**, ≥ **1 MΩ**\n- au-delà : **1 000 V DC**, ≥ **1 MΩ**\n\nPlus le câble est long, plus R baisse : `R = R(km) / L(km)`. L'isolement chute avec la chaleur : on compare à **température égale**.\n\n> Une valeur ne dit rien seule : seuil, historique, et toutes les paires."
+    "texte": "**Hors tension**, électronique **débranchée**, puis chaque conducteur actif contre le PE. Lecture à **1 minute**.\n\nTension d'essai et seuil (IEC 60364-6) :\n\n- TBT (≤ 50 V) : **250 V DC**, ≥ **0,5 MΩ**\n- jusqu'à 500 V : **500 V DC**, ≥ **1 MΩ**\n- au-delà : **1 000 V DC**, ≥ **1 MΩ**\n\nEnroulement de machine : essai de **10 min**. `IP = R10 min / R1 min` : < 2 douteux (humidité, vernis vieilli), ≥ 2 bon.\n\nCâble long : R baisse, `R = R(km) / L(km)`.\n\n> Une valeur ne dit rien seule : seuil, durée, **température**, historique."
   },
   {
     "id": "variateurs",

@@ -68,6 +68,31 @@ export default async function ({ t, url: U, navigateur }) {
   r = await mesurer('+24 V', 'PE', 1000);
   t.ok(/250\s?V/.test(r.note) && (await etat()).methode === 1, 'circuit 24 V essayé sous 1 000 V : erreur de méthode (250 V conseillé)');
 
+  // Machine tournante : lecture à 1 minute, DAR et indice de polarisation
+  const duree = async d => { await p.click(`[data-duree="${d}"]`); };
+  await ouvrir('iso-moteur-vernis');
+  t.ok(await p.getAttribute('[data-duree="60"]', 'aria-pressed') === 'true' && await p.locator('[data-duree]').count() === 3,
+    'mégohmmètre : durée d\'essai 15 s / 1 min / 10 min · IP, 1 minute par défaut');
+  await p.click('[data-prep="consigne"]');
+  for (const ph of ['U1', 'V1', 'W1']) r = await mesurer(ph, 'PE');
+  t.ok(r.v === '80' && r.note.includes('au-dessus'), 'moteur de 22 ans : 80 MΩ à 1 minute, au-dessus du seuil');
+  await p.click('.choix-btn:has-text("réimprégnation")'); await p.waitForSelector('.bilan');
+  let txt = (await p.textContent('main')).replace(/\s+/g, ' ');
+  t.ok(!txt.includes('Bonne conclusion') && txt.includes('Pas d\'indice de polarisation'), 'bonne réponse sans essai de 10 minutes : non validée, « Pas d\'indice de polarisation »');
+  await ouvrir('iso-moteur-vernis');
+  await p.click('[data-prep="consigne"]');
+  await duree(15); r = await mesurer('U1', 'PE');
+  t.ok(r.v === '68,8' && /on lit à 1\s?minute/.test(r.note) && (await etat()).methode === 1, 'lecture à 15 s : 68,8 MΩ, l\'aiguille monte encore, erreur de méthode');
+  await duree(600); r = await mesurer('U1', 'PE');
+  const ip = (await p.textContent('.iso-ip')).replace(/\s+/g, ' ');
+  t.ok(r.v === '104' && /DAR\s?1,09/.test(ip) && /IP\s?1,30/.test(ip) && await p.locator('.iso-ip .indice-douteux').count() === 2,
+    `essai de 10 minutes : R10 min 104 MΩ, tableau R30 s / R1 min / R10 min, DAR 1,09 et IP 1,30 signalés douteux`);
+  await duree(60); await mesurer('V1', 'PE'); await mesurer('W1', 'PE');
+  await p.click('.choix-btn:has-text("réimprégnation")'); await p.waitForSelector('.bilan');
+  txt = (await p.textContent('main')).replace(/\s+/g, ' ');
+  t.ok(txt.includes('Bonne conclusion') && /Erreurs de méthode\s*1/.test(txt) && (await p.textContent('#journal, .journal')).includes('IP 1,30'),
+    'IP mesuré, bonne conclusion : validée, la lecture à 15 s comptée en erreur de méthode, IP dans le journal');
+
   const revision = await p.evaluate(() => JSON.parse(localStorage.getItem('elec-learning:v1')).stats.isolement.elements['iso-moteur-variateur']);
   t.ok(revision.boite === 1, 'mesure avec alerte de sécurité : envoyée en révision (boîte 1)');
   t.ok(p.erreurs.length === 0, 'isolement : aucune erreur dans la console' + (p.erreurs.length ? ' — ' + p.erreurs.join(' | ') : ''));

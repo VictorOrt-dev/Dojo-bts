@@ -2,7 +2,7 @@
 
 *Généré par `node outils/audit.mjs` (aussi exécuté par la CI à chaque envoi) : ne pas modifier à la main.*
 
-**140 éléments, 1702 contrôles automatiques, 0 anomalie.**
+**142 éléments, 1736 contrôles automatiques, 0 anomalie.**
 
 | Famille | Éléments | Contrôles | Anomalies |
 |---|---|---|---|
@@ -12,7 +12,7 @@
 | Banc · Départ moteur direct | 5 | 101 | 0 |
 | Banc · Éclairage de couloir par télérupteur | 5 | 101 | 0 |
 | Banc · Démarrage étoile-triangle | 4 | 79 | 0 |
-| Mesure d'isolement | 6 | 69 | 0 |
+| Mesure d'isolement | 8 | 103 | 0 |
 
 ## Ce qui est contrôlé
 
@@ -166,9 +166,11 @@
 | Banc · Démarrage étoile-triangle | `tempo-hs` | II | IEC 60947-4-1:2018 (démarreurs étoile-triangle) · IEC 60947-5-1:2016 | 20 | ✔ |
 | Banc · Démarrage étoile-triangle | `enroulement-desequilibre` | II | IEC 60034-1:2022 · IEC 60034-26:2006 (déséquilibre) | 21 | ✔ |
 | Banc · Démarrage étoile-triangle | `basculement-colle` | III | IEC 60947-4-1:2018 (contacts miroirs, annexe F) · NF EN 60204-1:2018 (§ 9.3.4, verrouillages) | 22 | ✔ |
-| Mesure d'isolement | `iso-prises-neuves` | I | IEC 60364-6:2016 (vérification initiale) · NF C 15-100:2002 · IEC 61557-2:2019 | 12 | ✔ |
-| Mesure d'isolement | `iso-eclairage-clou` | I | IEC 60364-6:2016 · NF C 15-100:2002 · IEC 61557-2:2019 | 12 | ✔ |
-| Mesure d'isolement | `iso-moteur-variateur` | II | IEC 60364-6:2016 · IEC 61557-2:2019 · NF C 18-510:2012+A1:2020 | 12 | ✔ |
-| Mesure d'isolement | `iso-commande-24v` | II | IEC 60364-6:2016 (TBTS : 250 V, 0,5 MΩ) · NF EN 60204-1:2018 (§ 9.4.3) | 11 | ✔ |
-| Mesure d'isolement | `iso-neutre-terre` | III | IEC 60364-6:2016 · IEC 60364-4-41:2005 (§ 411.5, schéma TT) | 11 | ✔ |
-| Mesure d'isolement | `iso-cable-vieillissant` | III | IEC 60364-6:2016 · IEC 61557-2:2019 | 11 | ✔ |
+| Mesure d'isolement | `iso-prises-neuves` | I | IEC 60364-6:2016 (vérification initiale) · NF C 15-100:2002 · IEC 61557-2:2019 | 13 | ✔ |
+| Mesure d'isolement | `iso-eclairage-clou` | I | IEC 60364-6:2016 · NF C 15-100:2002 · IEC 61557-2:2019 | 13 | ✔ |
+| Mesure d'isolement | `iso-moteur-variateur` | II | IEC 60364-6:2016 · IEC 61557-2:2019 · NF C 18-510:2012+A1:2020 | 13 | ✔ |
+| Mesure d'isolement | `iso-commande-24v` | II | IEC 60364-6:2016 (TBTS : 250 V, 0,5 MΩ) · NF EN 60204-1:2018 (§ 9.4.3) | 12 | ✔ |
+| Mesure d'isolement | `iso-neutre-terre` | III | IEC 60364-6:2016 · IEC 60364-4-41:2005 (§ 411.5, schéma TT) | 12 | ✔ |
+| Mesure d'isolement | `iso-cable-vieillissant` | III | IEC 60364-6:2016 · IEC 61557-2:2019 | 12 | ✔ |
+| Mesure d'isolement | `iso-alternateur-humide` | II | IEC 60034-27-4:2018 · IEC 60364-6:2016 | 14 | ✔ |
+| Mesure d'isolement | `iso-moteur-vernis` | III | IEC 60034-27-4:2018 · IEC 60364-6:2016 | 14 | ✔ |

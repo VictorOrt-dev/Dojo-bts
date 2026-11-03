@@ -403,13 +403,23 @@ la cause, la démarche d'un pro et le piège du cas.
 ## Mesure d'isolement (`js/isolement.js`, `data/isolement.json`)
 
 - Un scénario = un circuit (`points`, `tensionReseau`), la tension d'essai conseillée (`essaiConseille` : 250 V DC en TBT,
-  500 V DC jusqu'à 500 V), le `seuil` en MΩ, l'électronique à débrancher (`electronique` : variateur, automate ou null),
+  500 V DC jusqu'à 500 V), le `seuil` en MΩ, l'électronique à débrancher (`electronique` : variateur, automate, regulateur ou null),
   la valeur des paires saines (`sain`) et des paires en défaut (`mesures`, clé « A|B » triée), les mesures indispensables
   (`cles`), trois conclusions dont une seule bonne, et une conclusion (cause, remède, piège, risque, norme).
 - Trois temps : préparer (consigner + VAT, débrancher l'électronique), mesurer (tension d'essai, deux pointes,
   « Tester »), conclure. Essai sous tension = alerte sécurité ; électronique raccordée = matériel endommagé et mesure
   sans valeur ; mauvaise tension d'essai = erreur de méthode. Une conclusion n'est validée que si les mesures clés ont
   été faites correctement. `lecture()` est pure.
+- **Dimension temporelle** : durée d'essai 15 s, 1 min (par défaut, la lecture de référence) ou 10 min · IP. Un
+  enroulement de machine tournante porte `absorption` : `{ "15", "30", "600" }`, la valeur à 15 s, 30 s et 10 min
+  rapportée à celle d'1 minute (le diélectrique se polarise, R monte). L'essai de 10 minutes affiche R30 s, R1 min,
+  R10 min, **DAR = R1 min / R30 s** et **IP = R10 min / R1 min** (IEC 60034-27-4), interprétés : IP < 1 dangereux,
+  1 à 2 douteux, 2 à 4 bon, ≥ 4 très bon ; DAR < 1 mauvais, < 1,25 douteux, < 1,6 bon. Lire à 15 s sur un enroulement
+  est une erreur de méthode (valeur sous-estimée). Sans `absorption` (câble, prises), la lecture est stable et l'IP
+  n'apporte rien. `ipRequis` : la conclusion n'est validée qu'avec un IP mesuré sur une paire clé.
+- Huit scénarios, dont deux machines tournantes : un alternateur de groupe resté à l'arrêt en local humide (3,2 MΩ,
+  IP 1,04 : sécher avant démarrage, régulateur AVR à débrancher) et un moteur de broyeur de 22 ans (80 MΩ, IP 1,30 :
+  vernis vieilli, réimprégnation à planifier). L'audit recalcule l'IP et vérifie qu'il figure dans la cause.
 - XP : 30 si juste, − 15 par alerte, − 10 par dégât, − 5 par erreur de méthode (minimum 10), + 20 sans faute.
 
 ## Prise en main et parcours en 3 blocs (`js/bienvenue.js`, `js/blocs.js`)

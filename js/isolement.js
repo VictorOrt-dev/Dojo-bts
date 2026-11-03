@@ -1,6 +1,10 @@
 // Mesure d'isolement au mégohmmètre : préparer (consigner, débrancher l'électronique), choisir la tension d'essai
-// (250, 500 ou 1 000 V DC), mesurer entre deux points, puis conclure. Les scénarios sont dans data/isolement.json :
-// chaque paire de points a sa valeur (mesures["A|B"], sinon « sain ») ; les mesures clés sont celles qui révèlent le cas.
+// (250, 500 ou 1 000 V DC) et la durée de l'essai (15 s, 1 min, ou 10 min pour l'indice de polarisation), mesurer entre
+// deux points, puis conclure. Les scénarios sont dans data/isolement.json :
+// chaque paire de points a sa valeur à 1 minute (mesures["A|B"], sinon « sain ») ; les mesures clés sont celles qui
+// révèlent le cas. Un enroulement de machine tournante a un `absorption` : la valeur à 15 s, 30 s et 10 min rapportée à
+// celle d'1 minute (le diélectrique se polarise, R monte). DAR = R1 min / R30 s ; IP = R10 min / R1 min (IEC 60034-27-4).
+// `ipRequis` : la conclusion n'est validée qu'avec un essai de 10 minutes sur une paire clé.
 // La fonction lecture() est pure : tests/unitaires.mjs la vérifie sans navigateur.
 
 import * as stockage from './storage.js';
@@ -16,12 +20,32 @@ import { zoneMemo, remplirMemo } from './memos.js';
 import { noterIsolementPropre } from './insignes.js';
 
 export const TENSIONS_ESSAI = [250, 500, 1000];
-const NOMS_ELECTRONIQUE = { variateur: 'le variateur', automate: 'les cartes de l\'automate' };
+export const DUREES = [{ s: 15, nom: '15 s' }, { s: 60, nom: '1 min' }, { s: 600, nom: '10 min · IP' }];
+const NOMS_ELECTRONIQUE = { variateur: 'le variateur', automate: 'les cartes de l\'automate', regulateur: 'le régulateur de tension (AVR)' };
+
+const deuxDec = v => v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const arrondi = v => Math.round(v * 100) / 100;
+
+// Lecture de l'indice de polarisation (IEC 60034-27-4 ; un enroulement de classe B ou plus attend IP ≥ 2).
+export function interpreterIP(ip) {
+  if (ip < 1) return { niveau: 'dangereux', texte: 'dangereux : isolant humide ou dégradé, ne pas remettre sous tension' };
+  if (ip < 2) return { niveau: 'douteux', texte: 'douteux : vernis vieilli, humidité ou encrassement' };
+  if (ip < 4) return { niveau: 'bon', texte: 'bon' };
+  return { niveau: 'tres-bon', texte: 'très bon' };
+}
+// Rapport d'absorption diélectrique : la même tendance, lue en une minute.
+export function interpreterDAR(dar) {
+  if (dar < 1) return { niveau: 'dangereux', texte: 'mauvais' };
+  if (dar < 1.25) return { niveau: 'douteux', texte: 'douteux' };
+  if (dar < 1.6) return { niveau: 'bon', texte: 'bon' };
+  return { niveau: 'tres-bon', texte: 'très bon' };
+}
 
 export const cle = (a, b) => [a, b].sort().join('|');
 
-// Résultat d'un essai : { valeur (MΩ) | null, danger?, degat?, methode?, note }.
-export function lecture(s, { consigne, debranche, tension, a, b }) {
+// Résultat d'un essai : { valeur (MΩ) | null, danger?, degat?, methode?, ip?: { r30, r60, r600, dar, ip }, note }.
+// duree : 15, 60 (par défaut) ou 600 secondes.
+export function lecture(s, { consigne, debranche, tension, a, b, duree = 60 }) {
   if (a === b) return { valeur: null, note: 'Choisis deux points différents.' };
   if (!consigne) return { valeur: null, danger: 'Mesure d\'isolement sous tension', note: 'Le circuit n\'est pas consigné : le mégohmmètre injecte ses 500 V DC sur un réseau sous tension. Appareil détruit, opérateur exposé. On consigne et on vérifie l\'absence de tension d\'abord.' };
   const brute = s.mesures[cle(a, b)] ?? s.sain;
@@ -38,6 +62,24 @@ export function lecture(s, { consigne, debranche, tension, a, b }) {
   } else if (tension < s.essaiConseille) {
     res.methode = 'Tension d\'essai trop faible';
     res.note = `Sous ${tension} V, un isolant fragilisé peut tenir alors qu'il claquerait sous la tension conseillée (${s.essaiConseille} V DC) : mesure peu probante. `;
+  }
+  const abs = s.absorption;
+  if (duree === 15 && abs) {
+    res.valeur = arrondi(brute * abs['15']);
+    res.methode ??= 'Lecture prise avant 1 minute';
+    res.note += `Lecture à 15 s : ${formater(res.valeur)}, et l'aiguille monte encore. Sur un enroulement, le diélectrique se charge et se polarise : on lit à 1 minute, sinon on sous-estime l'isolement. `;
+    return res;
+  }
+  if (duree === 600 && abs) {
+    const r30 = arrondi(brute * abs['30']), r600 = arrondi(brute * abs['600']);
+    const dar = arrondi(brute / r30), ip = arrondi(r600 / brute);
+    res.valeur = r600;
+    res.ip = { r30, r60: brute, r600, dar, ip };
+    res.note += `Essai de 10 minutes : DAR = ${deuxDec(dar)} (${interpreterDAR(dar).texte}) ; IP = ${deuxDec(ip)} (${interpreterIP(ip).texte}). `;
+  } else if (duree === 15) {
+    res.note += 'Pas d\'enroulement ici : la lecture est stable dès les premières secondes. ';
+  } else if (duree === 600) {
+    res.note += 'Pas d\'enroulement ici : la valeur ne bouge plus après 1 minute, l\'IP n\'apporte rien. La lecture à 1 minute suffit. ';
   }
   res.note += brute < s.seuil
     ? `${formater(brute)} : sous le seuil de ${formater(s.seuil)}, isolement insuffisant entre ces deux points.`
@@ -88,8 +130,8 @@ export async function renderIsolement({ vue, definirTitre, params }) {
 
 function jouer(vue, s, scenarios) {
   const etat = essaiCourant = {
-    consigne: false, debranche: false, tension: 500, a: s.points[0], b: s.points[s.points.length - 1],
-    journal: [], dangers: [], degats: [], methode: [], valides: new Set(), dernier: null, fini: false, choix: null
+    consigne: false, debranche: false, tension: 500, duree: 60, a: s.points[0], b: s.points[s.points.length - 1],
+    journal: [], dangers: [], degats: [], methode: [], valides: new Set(), ip: new Set(), dernier: null, fini: false, choix: null
   };
   const ordreVerdicts = melanger(s.verdicts.map((_, i) => i));
 
@@ -117,12 +159,22 @@ function jouer(vue, s, scenarios) {
         <div class="selecteur trois" role="group" aria-label="Tension d'essai">
           ${TENSIONS_ESSAI.map(u => `<button type="button" data-tension="${u}" aria-pressed="${u === etat.tension}">${u} V DC</button>`).join('')}
         </div>
+        <div class="selecteur trois selecteur-duree" role="group" aria-label="Durée de l'essai">
+          ${DUREES.map(d => `<button type="button" data-duree="${d.s}" aria-pressed="${d.s === etat.duree}">${d.nom}</button>`).join('')}
+        </div>
         <label class="pointe rouge"><span>Rouge</span><select id="iso-a" aria-label="Pointe rouge">${s.points.map(p => `<option${p === etat.a ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
         <label class="pointe noire"><span>Noire</span><select id="iso-b" aria-label="Pointe noire">${s.points.map(p => `<option${p === etat.b ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select></label>
         <div class="lecture-ligne">
           <div class="nixie"><output id="iso-lecture" class="nixie-valeur">${l?.valeur != null ? esc(formater(l.valeur).replace(' MΩ', '')) : ''}</output><span class="unite">MΩ</span></div>
           <button id="tester" class="btn principal" type="button">Tester</button>
         </div>
+        ${l?.ip ? `<dl class="iso-ip">
+          <div><dt>R30 s</dt><dd>${esc(formater(l.ip.r30))}</dd></div>
+          <div><dt>R1 min</dt><dd>${esc(formater(l.ip.r60))}</dd></div>
+          <div><dt>R10 min</dt><dd>${esc(formater(l.ip.r600))}</dd></div>
+          <div class="indice-${interpreterDAR(l.ip.dar).niveau}"><dt>DAR</dt><dd>${deuxDec(l.ip.dar)}</dd></div>
+          <div class="indice-${interpreterIP(l.ip.ip).niveau}"><dt>IP</dt><dd>${deuxDec(l.ip.ip)}</dd></div>
+        </dl>` : ''}
         ${l?.note ? `<p class="note-mesure${l.danger || l.degat || l.methode || (l.valeur != null && l.valeur < s.seuil) ? ' alerte' : ''}">${esc(typo(l.note))}</p>` : ''}
       </section>
 
@@ -144,6 +196,7 @@ function jouer(vue, s, scenarios) {
       afficher();
     }));
     vue.querySelectorAll('[data-tension]').forEach(b => b.addEventListener('click', () => { etat.tension = Number(b.dataset.tension); afficher(); }));
+    vue.querySelectorAll('[data-duree]').forEach(b => b.addEventListener('click', () => { etat.duree = Number(b.dataset.duree); afficher(); }));
     vue.querySelector('#iso-a').addEventListener('change', ev => { etat.a = ev.target.value; });
     vue.querySelector('#iso-b').addEventListener('change', ev => { etat.b = ev.target.value; });
     vue.querySelector('#tester').addEventListener('click', () => {
@@ -152,8 +205,10 @@ function jouer(vue, s, scenarios) {
       if (r.degat && !etat.degats.includes(r.degat)) etat.degats.push(r.degat);
       if (r.methode && !etat.methode.includes(r.methode)) etat.methode.push(r.methode);
       if (r.valeur != null) {
-        etat.journal.push(`${etat.a} – ${etat.b} sous ${etat.tension} V DC : ${formater(r.valeur)}${r.degat ? ' (électronique raccordée)' : ''}`);
+        const duree = DUREES.find(d => d.s === etat.duree).nom.replace(' · IP', '');
+        etat.journal.push(`${etat.a} – ${etat.b} sous ${etat.tension} V DC, ${duree} : ${formater(r.valeur)}${r.ip ? ` (DAR ${deuxDec(r.ip.dar)}, IP ${deuxDec(r.ip.ip)})` : ''}${r.degat ? ' (électronique raccordée)' : ''}`);
         if (!r.degat && !r.methode) etat.valides.add(cle(etat.a, etat.b));
+        if (r.ip && !r.degat && !r.methode) etat.ip.add(cle(etat.a, etat.b));
       } else if (r.danger) etat.journal.push(`Essai sous tension refusé par la sécurité : ${r.danger.toLowerCase()}.`);
       afficher();
       vue.querySelector('.megohmmetre').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -164,7 +219,8 @@ function jouer(vue, s, scenarios) {
   const rapport = () => {
     const v = s.verdicts[etat.choix];
     const manquantes = s.cles.filter(k => !etat.valides.has(k));
-    const juste = v.bon && !manquantes.length;
+    const ipManquant = s.ipRequis && !s.cles.some(k => etat.ip.has(k));
+    const juste = v.bon && !manquantes.length && !ipManquant;
     const parfait = juste && !etat.dangers.length && !etat.degats.length && !etat.methode.length;
     const xp = juste ? Math.max(10, 30 - 15 * etat.dangers.length - 10 * etat.degats.length - 5 * etat.methode.length) + (parfait ? 20 : 0) : 0;
     if (xp) annoncerMontee(gagnerXP(xp));
@@ -188,7 +244,9 @@ function jouer(vue, s, scenarios) {
       ${etat.dangers.length ? `<div class="alerte-securite"><p class="lecon-titre">Gestes dangereux</p><p>${etat.dangers.map(esc).join(' · ')}</p></div>` : ''}
       ${etat.degats.length ? `<div class="consequence"><p class="lecon-titre">Matériel endommagé</p><p>${etat.degats.map(d => esc(typo(d.charAt(0).toUpperCase() + d.slice(1)))).join(' · ')}</p></div>` : ''}
       ${etat.methode.length ? `<div class="diagnostic"><p class="lecon-titre">Méthode</p><p>${etat.methode.map(esc).join(' · ')}</p></div>` : ''}
-      ${manquantes.length ? `<div class="diagnostic"><p class="lecon-titre">Mesures qui manquaient</p><p>Sans mesure valable entre ${manquantes.map(k => k.replace('|', ' et ')).join(', ')}, la conclusion ne repose sur rien de solide.</p></div>` : ''}
+      ${manquantes.length || ipManquant ? `<div class="diagnostic"><p class="lecon-titre">Mesures qui manquaient</p>
+        ${manquantes.length ? `<p>Sans mesure valable entre ${manquantes.map(k => k.replace('|', ' et ')).join(', ')}, la conclusion ne repose sur rien de solide.</p>` : ''}
+        ${ipManquant ? '<p>Pas d\'indice de polarisation : sur un enroulement, seul l\'essai de 10 minutes (IP = R10 min / R1 min) montre l\'état du vernis et l\'humidité.</p>' : ''}</div>` : ''}
       <div class="essentiel">
         <div class="${v.bon ? 'lecon' : 'diagnostic'}"><p class="lecon-titre">${v.bon ? 'Ta conclusion' : 'Pourquoi ce n\'est pas ça'}</p><p>${esc(typo(v.explication))}</p></div>
         <div class="lecon"><p class="lecon-titre">Ce qu'il y avait</p><p>${esc(typo(s.conclusion.cause))}</p></div>
@@ -198,7 +256,7 @@ function jouer(vue, s, scenarios) {
       ${enSavoirPlus(`
         <div class="lecon"><p class="lecon-titre">Le remède</p><p>${esc(typo(s.conclusion.remede))}</p></div>
         <div class="piege-terrain"><p class="lecon-titre">Le piège en armoire</p><p>${esc(typo(s.conclusion.piege))}</p></div>
-        <div class="lecon"><p class="lecon-titre">Les bons réglages</p><p>${esc(typo(`Tension d'essai ${s.essaiConseille} V DC pour un circuit ${s.tensionReseau} V ; seuil ${formater(s.seuil)}.${s.electronique ? ` Débrancher ${NOMS_ELECTRONIQUE[s.electronique]} avant l'essai.` : ''}`))}</p></div>
+        <div class="lecon"><p class="lecon-titre">Les bons réglages</p><p>${esc(typo(`Tension d'essai ${s.essaiConseille} V DC pour un circuit ${s.tensionReseau} V ; seuil ${formater(s.seuil)}, lu à 1 minute.${s.absorption ? ' Essai de 10 minutes sur l\'enroulement : IP ≥ 2 attendu (DAR ≥ 1,25).' : ''}${s.electronique ? ` Débrancher ${NOMS_ELECTRONIQUE[s.electronique]} avant l'essai.` : ''}`))}</p></div>
         ${risqueComplet(s.conclusion.risque)}
         ${ligneNorme(s.conclusion.norme)}`, 'En savoir plus : remède, piège, réglages, norme')}
       <details class="approfondir journal"><summary>Ton journal (${etat.journal.length})</summary><ol>${etat.journal.map(j => `<li>${esc(j)}</li>`).join('')}</ol></details>

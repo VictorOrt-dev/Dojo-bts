@@ -25,6 +25,7 @@ export default async function ({ t }) {
   guidageEtMemos(t);
   insignesEtSeries(t);
   correctionsAudit360(t);
+  await mesureIsolementDansLeTemps(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -370,7 +371,7 @@ function insignesEtSeries(t) {
   const cas = lire('data/pannes.json');
   t.ok(B.CAS_EMBRANCHEMENTS.join() === cas.filter(c => c.etapes.some(e => e.branche)).map(c => c.id).join()
     && B.SCENARIOS_ISOLEMENT.join() === lire('data/isolement.json').map(x => x.id).join()
-    && B.CAS_CONSIGNATION.every(id => cas.some(c => c.id === id)), 'listes des insignes à jour avec les données (cas à embranchements, 6 mesures, cas de consignation)');
+    && B.CAS_CONSIGNATION.every(id => cas.some(c => c.id === id)), 'listes des insignes à jour avec les données (cas à embranchements, mesures d\'isolement, cas de consignation)');
   t.ok(B.BADGES.length >= 6 && B.BADGES.length <= 8 && new Set(B.BADGES.map(b => b.id)).size === B.BADGES.length
     && B.BADGES.every(b => b.icone.startsWith('<svg') && !/<text/.test(b.icone) && b.nom && b.critere), `${B.BADGES.length} insignes : icône SVG sans texte, nom et critère`);
 
@@ -394,10 +395,10 @@ function insignesEtSeries(t) {
   presque.stats.panne.elements['pompe-thermique-rearme'] = { essais: 2, reussites: 1 };
   presque.activite.jours = ['2026-03-01', '2026-03-02', '2026-03-04'];
   presque.stats.calcul.meilleurScore = 9;
-  t.ok(B.badgesMerites(presque).sort().join() === 'chasseur-pannes,consignateur', 'une condition manquée de peu : insigne refusé (banc avec alerte, 9 fiches, 5 mesures sur 6, embranchement au 2e essai, série coupée, 9/10)');
+  t.ok(B.badgesMerites(presque).sort().join() === 'chasseur-pannes,consignateur', 'une condition manquée de peu : insigne refusé (banc avec alerte, 9 fiches, une mesure manquante, embranchement au 2e essai, série coupée, 9/10)');
   t.ok(B.nouveauxBadges({ ...plein, badges: { 'habilite-banc': 1 } }).length === B.BADGES.length - 1, 'insigne déjà enregistré : pas décerné une seconde fois');
   const prog = B.badge('chasseur-pannes').progression(presque);
-  t.ok(prog.valeur === 5 && prog.cible === 5 && B.badge('megohmmetre').progression(presque).valeur === 5, 'progression affichable : 5/5 cas, 5/6 mesures');
+  t.ok(prog.valeur === 5 && prog.cible === 5 && B.badge('megohmmetre').progression(presque).valeur === B.SCENARIOS_ISOLEMENT.length - 1, `progression affichable : 5/5 cas, ${B.SCENARIOS_ISOLEMENT.length - 1}/${B.SCENARIOS_ISOLEMENT.length} mesures`);
 
   const abime = controler({ version: 1, activite: { jours: ['hier'] }, jalons: { memosApresErreur: -1 }, badges: { 'habilite-banc': 'jamais' } });
   t.ok(abime.anomalies.some(a => a.startsWith('activite')) && abime.anomalies.some(a => a.startsWith('jalons')) && abime.anomalies.some(a => a.includes('badges'))
@@ -439,4 +440,37 @@ function correctionsAudit360(t) {
   const fut = controler({ version: 1, activite: { jours: ['2026-10-31', '2999-01-01'] } });
   t.ok(imp.anomalies.some(a => a.startsWith('activite')) && fut.anomalies.length === 0 && fut.etat.activite.jours.join() === '2026-10-31',
     'sauvegarde : date impossible refusée (fichier abîmé) ; date future ignorée sans bloquer l\'import');
+}
+
+// ---------- Mégohmmètre : lecture à 1 minute, DAR et indice de polarisation ----------
+
+async function mesureIsolementDansLeTemps(t) {
+  t.section('U10. Mégohmmètre : lecture à 1 minute, DAR et indice de polarisation (isolement.js)');
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const I = await import('../js/isolement.js');
+  const iso = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/isolement.json'), 'utf8'));
+  const s = iso.find(x => x.id === 'iso-moteur-vernis');
+  const essai = (sc, duree, extra = {}) => I.lecture(sc, { consigne: true, debranche: true, tension: 500, a: sc.points[0], b: 'PE', duree, ...extra });
+  const r60 = essai(s, 60), r15 = essai(s, 15), r600 = essai(s, 600);
+  t.ok(r60.valeur === 80 && !r60.methode && !r60.ip && I.lecture(s, { consigne: true, tension: 500, a: 'U1', b: 'PE' }).valeur === 80,
+    'lecture à 1 minute par défaut : 80 MΩ, sans erreur de méthode');
+  t.ok(r15.valeur === 68.8 && r15.methode === 'Lecture prise avant 1 minute' && r15.note.includes('on lit à 1 minute'),
+    'lecture à 15 s sur un enroulement : 68,8 MΩ, valeur sous-estimée, erreur de méthode');
+  t.ok(r600.ip && r600.ip.r30 === 73.6 && r600.ip.r60 === 80 && r600.ip.r600 === 104 && r600.ip.dar === 1.09 && r600.ip.ip === 1.3 && r600.valeur === 104,
+    `essai de 10 minutes : R30 s 73,6 · R1 min 80 · R10 min 104 MΩ → DAR ${r600.ip?.dar}, IP ${r600.ip?.ip}`);
+  t.ok(/DAR = 1,09 \(douteux\)/.test(r600.note) && /IP = 1,30 \(douteux/.test(r600.note) && r600.note.includes('au-dessus du seuil'),
+    'note : DAR et IP calculés et interprétés, la valeur à 1 minute comparée au seuil');
+  const h = essai(iso.find(x => x.id === 'iso-alternateur-humide'), 600);
+  t.ok(h.ip.dar === 1.02 && h.ip.ip === 1.04, `alternateur humide : DAR ${h.ip.dar}, IP ${h.ip.ip} (le courant de fuite domine)`);
+  t.ok(['dangereux', 'douteux', 'bon', 'tres-bon'].join() === [0.8, 1.5, 2.5, 4.5].map(v => I.interpreterIP(v).niveau).join()
+    && I.interpreterIP(2).niveau === 'bon' && I.interpreterIP(1).niveau === 'douteux'
+    && ['dangereux', 'douteux', 'bon', 'tres-bon'].join() === [0.9, 1.1, 1.4, 1.7].map(v => I.interpreterDAR(v).niveau).join(),
+    'interprétation : IP < 1 dangereux, 1 à 2 douteux, 2 à 4 bon, ≥ 4 très bon ; DAR < 1, < 1,25, < 1,6, au-delà');
+  const cable = iso.find(x => x.id === 'iso-cable-vieillissant');
+  t.ok(!essai(cable, 600).ip && essai(cable, 600).note.includes('l\'IP n\'apporte rien') && !essai(cable, 15).methode,
+    'câble sans enroulement : pas d\'IP calculé, lecture stable dès 15 s');
+  t.ok(essai(iso.find(x => x.id === 'iso-alternateur-humide'), 600, { debranche: false }).degat?.includes('régulateur'),
+    'régulateur (AVR) resté raccordé : matériel endommagé, même pendant un essai de 10 minutes');
+  t.ok(iso.filter(x => x.ipRequis).every(x => x.absorption && x.verdicts.some(v => v.bon && /IP/.test(v.texte + v.explication))),
+    'scénarios à IP exigé : absorption décrite, la bonne conclusion repose sur l\'IP');
 }

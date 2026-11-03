@@ -304,5 +304,117 @@
       "risque": "Un câble enterré qui claque provoque un court-circuit et une coupure longue des deux bâtiments, souvent à la pire saison, quand l'humidité monte.",
       "norme": "IEC 60364-6 · IEC 61557-2"
     }
+  },
+  {
+    "id": "iso-alternateur-humide",
+    "niveau": 2,
+    "domaines": [
+      "tri"
+    ],
+    "titre": "Groupe de secours resté à l'arrêt tout l'hiver",
+    "contexte": "Essai avant démarrage d'un groupe électrogène 400 V, 200 kVA, à l'arrêt depuis quatre mois dans un local froid et humide. Mesure sur les bornes de l'alternateur, câble de puissance déconnecté. Points : U, V, W, PE.",
+    "points": [
+      "U",
+      "V",
+      "W",
+      "PE"
+    ],
+    "tensionReseau": 400,
+    "essaiConseille": 500,
+    "seuil": 1,
+    "electronique": "regulateur",
+    "sain": 3.2,
+    "mesures": {},
+    "absorption": {
+      "15": 0.97,
+      "30": 0.98,
+      "600": 1.04
+    },
+    "cles": [
+      "PE|U",
+      "PE|V",
+      "PE|W"
+    ],
+    "ipRequis": true,
+    "verdicts": [
+      {
+        "texte": "Ne pas démarrer en charge : sécher l'alternateur, puis refaire l'IP",
+        "bon": true,
+        "explication": "3,2 MΩ passe le seuil, mais un IP de 1,04 montre que le courant de fuite en surface domine : bobinage humide ou encrassé. On sèche (résistances de réchauffage, étuvage), on nettoie, et l'IP doit remonter au-dessus de 2."
+      },
+      {
+        "texte": "Conforme : 3,2 MΩ, au-dessus de 1 MΩ, on démarre",
+        "bon": false,
+        "explication": "La lecture à 1 minute passe le seuil, mais l'IP de 1,04 dit que l'isolant n'est pas sain : un démarrage en charge sur un bobinage humide peut amorcer un défaut à la masse."
+      },
+      {
+        "texte": "Bobinage claqué : rebobiner l'alternateur",
+        "bon": false,
+        "explication": "Un bobinage claqué donne une valeur proche de zéro. Ici, l'isolant est humide, pas détruit : un séchage suffit le plus souvent, l'IP le confirmera."
+      }
+    ],
+    "conclusion": {
+      "cause": "Bobinage de l'alternateur chargé d'humidité après des mois d'arrêt sans réchauffage : la lecture à 1 minute reste correcte, mais l'essai de 10 minutes donne IP 1,04 et DAR 1,02 : le courant de fuite domine.",
+      "remede": "Débrancher le régulateur, mettre les résistances de réchauffage en service ou étuver, nettoyer les têtes de bobines, puis refaire l'essai de 10 minutes : IP ≥ 2 avant le démarrage en charge.",
+      "piege": "Se fier à la seule lecture à 1 minute au-dessus du seuil : sur une machine tournante, l'IP révèle l'humidité et l'encrassement que la valeur seule masque.",
+      "risque": "Un alternateur humide démarré en charge peut amorcer un défaut à la masse : groupe détruit au moment précis où il devait secourir l'hôpital ou la salle serveurs.",
+      "norme": "IEC 60034-27-4 · IEC 60364-6"
+    }
+  },
+  {
+    "id": "iso-moteur-vernis",
+    "niveau": 3,
+    "domaines": [
+      "tri"
+    ],
+    "titre": "Moteur de broyeur, 22 ans de service : 80 MΩ, et pourtant…",
+    "contexte": "Arrêt programmé. Moteur asynchrone 400 V, 250 kW, d'un broyeur, en service depuis 22 ans. Le plan de maintenance demande un bilan de l'isolation du stator. Barrettes du bornier retirées, câble déconnecté. Points : U1, V1, W1, PE.",
+    "points": [
+      "U1",
+      "V1",
+      "W1",
+      "PE"
+    ],
+    "tensionReseau": 400,
+    "essaiConseille": 500,
+    "seuil": 1,
+    "electronique": null,
+    "sain": 80,
+    "mesures": {},
+    "absorption": {
+      "15": 0.86,
+      "30": 0.92,
+      "600": 1.3
+    },
+    "cles": [
+      "PE|U1",
+      "PE|V1",
+      "PE|W1"
+    ],
+    "ipRequis": true,
+    "verdicts": [
+      {
+        "texte": "Conforme au seuil, mais IP 1,3 : vernis vieilli, planifier une réimprégnation",
+        "bon": true,
+        "explication": "80 MΩ à 1 minute passe largement le seuil, mais l'IP de 1,3 (au lieu de 2 au moins) montre un isolant qui ne se polarise plus : vernis vieilli, fissuré ou encrassé. On nettoie, on étuve, on refait l'IP, et on prévoit la réimprégnation à l'arrêt suivant."
+      },
+      {
+        "texte": "80 MΩ, très au-dessus de 1 MΩ : remettre en service sans suite",
+        "bon": false,
+        "explication": "La valeur à 1 minute est bonne, mais l'IP de 1,3 signale un isolant en fin de vie. Sans suite, le défaut arrivera à la masse au prochain démarrage difficile."
+      },
+      {
+        "texte": "Isolement claqué : arrêt immédiat et rebobinage en urgence",
+        "bon": false,
+        "explication": "Rien n'est claqué : 80 MΩ, c'est un isolement encore sain en valeur. L'IP demande un plan de maintenance, pas une urgence."
+      }
+    ],
+    "conclusion": {
+      "cause": "Vernis d'imprégnation vieilli (22 ans de cycles thermiques et de poussière) : l'isolant ne se polarise plus. R passe de 73,6 MΩ à 30 s à 80 MΩ à 1 min et 104 MΩ à 10 min : DAR 1,09, IP 1,30.",
+      "remede": "Nettoyer et étuver le stator, refaire l'essai de 10 minutes. Si l'IP reste sous 2, réimprégner (ou rebobiner) au prochain arrêt programmé. Noter les valeurs et la température pour suivre la tendance.",
+      "piege": "Conclure sur la seule lecture à 1 minute : un gros moteur peut afficher des dizaines de MΩ avec un vernis en fin de vie. Seul l'essai de 10 minutes (IP) le montre.",
+      "risque": "Un stator dont le vernis est mort finit par claquer à la masse lors d'un démarrage : moteur de 250 kW à rebobiner en urgence, broyeur arrêté plusieurs semaines.",
+      "norme": "IEC 60034-27-4 · IEC 60364-6"
+    }
   }
 ]

@@ -131,6 +131,14 @@ export async function auditer() {
     verifier(l, s.verdicts.filter(v => v.bon).length === 1, 'une seule bonne conclusion');
     verifier(l, [...s.cles, ...Object.keys(s.mesures)].every(c => c.split('|').every(x => s.points.includes(x)) && c === c.split('|').sort().join('|')), 'mesures clés et valeurs sur des points existants');
     verifier(l, Object.values(s.mesures).every(v => v >= 0) && s.sain > 0, 'valeurs d\'isolement positives');
+    if (s.absorption) {
+      // Un diélectrique qui se polarise : R monte avec le temps (15 s < 30 s < 1 min ≤ 10 min).
+      const a = s.absorption;
+      verifier(l, a['15'] < a['30'] && a['30'] < 1 && a['600'] >= 1, 'absorption : la résistance doit croître avec la durée de l\'essai');
+      const ip = (Math.round(s.sain * a['600'] * 100) / 100 / s.sain).toFixed(2).replace('.', ',');
+      verifier(l, k.cause.includes(`IP ${ip}`), `IP calculé ${ip} absent de la cause`);
+    }
+    verifier(l, !s.ipRequis || (s.absorption && s.cles.length > 0), 'IP exigé sans absorption ni mesure clé');
   }
 
   const anomalies = lignes.flatMap(l => l.anomalies.map(a => `${l.famille} · ${l.id} : ${a}`));

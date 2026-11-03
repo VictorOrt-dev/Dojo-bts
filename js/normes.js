@@ -40,6 +40,7 @@ export const EDITIONS = [
   { code: 'UTE C 15-105', edition: '2003' },
   { code: 'IEC 60381-1', edition: '1982' },
   { code: 'IEC 60034-8', edition: '2007' },
+  { code: 'IEC 60034-27-4', edition: '2018' },
   { code: 'IEC 62271-105', edition: '2021' },
   { code: 'IEC 60417', edition: 'base en ligne', libre: true },
   { code: 'IEC 60076', edition: 'série', libre: true },
