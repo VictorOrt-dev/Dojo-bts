@@ -60,6 +60,7 @@ js/domaines.js          les 5 domaines techniques, repères couleur, filtre (bar
 js/tuteur.js            correction en deux temps : resume() (essentiel ≤ ~60 mots), « le risque, en vrai », norme, « En savoir plus »
 js/panne.js             mode Cas de panne (interventions pas à pas, démarches expliquées, filtre par domaine)
 js/banc.js              mode Banc de mesure (panne cachée, multimètre V~ / LoZ / Ω, pince, consignation, horloge, rapport)
+js/tutoriel-banc.js     guide « Première intervention » du banc : 4 étapes, geste courant et surbrillance (logique pure)
 js/circuit.js           petit solveur électrique du banc (potentiels en alternatif, transformateur, tensions fantômes, Ω)
 js/atelier.js           plaque signalétique + galvanomètre, bornier de progression, salutation
 js/xp.js                niveaux, barème, gain d'XP, statistiques par mode
@@ -106,10 +107,10 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence) |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, geste courant, surbrillance, écarts rattrapés) |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
-| `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, visite guidée en 3 gestes, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
+| `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, aides du multimètre, volets en accordéon, appareil mémorisé, guide « Première intervention » joué au doigt de bout en bout (déclenchement au premier accès, surbrillances, fin, bouton « ? Guide du banc », « Quitter le guide »), aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
 | `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
 | `tests/apprentissage.mjs` | **Q** : une erreur d'il y a 4 jours revient en 6e question d'une séance de niveau II, marquée « Rappel d'erreur » ; une erreur de 12 h n'y revient pas ; calculs rappelés avec de nouvelles valeurs ; filtre de domaine respecté. **R** : examen blanc joué au doigt (chronomètre, ni verdict ni fiche pendant l'épreuve, 10/15 → 13,5/20, bilan par compétence, corrigé, erreurs en révision, record à l'accueil, arrêt au bout du temps) |
 | `tests/banc.mjs` | **I** : les pannes des 3 circuits du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
@@ -399,8 +400,24 @@ la cause, la démarche d'un pro et le piège du cas.
   de l'armoire, schéma, résultat, journal) défile au-dessus. Le bon d'intervention se replie au premier geste.
   L'appareil **arrive replié** en une barre « Appareil de mesure » toujours visible (dernière mesure affichée, bouton
   « Indice » à côté) : la toucher le déplie ou le replie ; « Indice » le déplie de lui-même.
-- **Visite guidée** au premier passage (3 gestes : mesurer en V~, refaire en LoZ pour démasquer la tension fantôme,
-  consigner), passable, mémorisée dans `preferences.visiteBanc`.
+- **Guide « Première intervention »** (`js/tutoriel-banc.js`, logique pure) : au tout premier passage au banc (sans
+  `?circuit=` ni `?panne=`), ou à tout moment par le bouton **« ? Guide du banc »** (`?tuto=1`). Un cas de démonstration
+  toujours identique, le câble du pupitre coupé, joué en 4 étapes et 9 gestes : 1. lire le symptôme du bon
+  d'intervention ; 2. poser les pointes (rouge sur le point testé, COM sur le 0 V) en armoire, puis au pupitre ;
+  3. V~ ou LoZ : 91 V qui hésitent, la LoZ les fait tomber à 0 V (tension fantôme) ; 4. localiser le câble, consigner,
+  confirmer à l'ohmmètre (OL), remplacer, déconsigner, essai. La fiche du guide est en tête de la console, sous le pouce,
+  avec la progression en 4 segments ; ce qu'il faut toucher est **mis en surbrillance** (`.tuto-cible`) et l'onglet
+  utile s'ouvre de lui-même. Un écart est rattrapé (« déconsigne d'abord », « consigne d'abord »). La fin rappelle les
+  4 réflexes et lance « Ma première vraie panne ». La démonstration ne compte ni en statistiques ni en XP ; elle est
+  mémorisée dans `preferences.tutoBanc` (un apprenti qui avait fait l'ancienne visite, `visiteBanc`, n'y est pas forcé).
+- **Volets en accordéon** : « Comment ça marche ? », le bon d'intervention et le schéma de l'armoire sont des
+  `<details name="volets-banc">` : un seul ouvert à la fois. Le symptôme signalé reste affiché en une ligne.
+- **Aides du multimètre** : sous chaque fonction, une légende (V~ « Tension ? », V~ LoZ « Anti-fantôme »,
+  Ω « Hors tension ») ; sous le sélecteur, l'aide de la fonction choisie (`#aide-fonction`, reliée par
+  `aria-describedby`), qui passe en alerte si Ω est choisi départ non consigné. Un geste dangereux à la mesure est
+  rappelé dans la console même.
+- **Appareil mémorisé** : replié à la toute première intervention, il garde ensuite l'état choisi
+  (`preferences.consoleBanc`) : laissé ouvert, il revient ouvert, « Mesurer » sous le pouce sans aucun geste.
 
 ## Mesure d'isolement (`js/isolement.js`, `data/isolement.json`)
 
@@ -566,6 +583,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
 - [x] Enrichissement terrain : banc étoile-triangle (4 pannes), mégohmmètre à 1 minute avec DAR et indice de polarisation, rappels d'erreurs dans les séances, Bilan · examen blanc
+- [x] Banc pour non-initié : guide « Première intervention » en 4 étapes, volets en accordéon, aides du multimètre, appareil mémorisé
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)

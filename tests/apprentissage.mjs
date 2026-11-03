@@ -11,7 +11,8 @@ export default async function ({ t, url: U, navigateur }) {
   // ---------- Q. Rappels dans les séances ----------
   t.section('Q. Répétition espacée : les erreurs d\'il y a quelques jours reviennent dans les séances ordinaires');
   {
-    const [ancienne, recente] = questions.filter(q => q.niveau === 1);
+    // Deux questions de niveau I à l'image unique : on les reconnaît à l'écran sans ambiguïté.
+    const [ancienne, recente] = questions.filter(q => q.niveau === 1 && questions.filter(x => x.image === q.image).length === 1);
     const { contexte, page: p } = await nouvellePage(navigateur);
     await p.addInitScript(({ ancienne, recente, J }) => {
       if (sessionStorage.getItem('prepare')) return;

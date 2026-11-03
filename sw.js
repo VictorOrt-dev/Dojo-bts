@@ -26,6 +26,7 @@ const FICHIERS = [
   'js/app.js',
   'js/atelier.js',
   'js/banc.js',
+  'js/tutoriel-banc.js',
   'js/bienvenue.js',
   'js/calcul.js',
   'js/circuit.js',

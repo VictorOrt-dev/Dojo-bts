@@ -15,22 +15,17 @@ import { esc } from './util.js';
 import { pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import * as stockage from './storage.js';
+import * as T from './tutoriel-banc.js';
 
 // Repères de borne (« X1 : 1 », « KM1 : 13 ») : jamais coupés en fin de ligne.
 const typo = t => typoBase(t).replace(/\b([A-Z][A-Z0-9]*)\u202F: (?=[0-9A-Z])/g, '$1\u202F:\u00A0');
 
+// Les trois fonctions du multimètre : une légende d'un coup d'œil sous chaque bouton, et l'aide de la fonction choisie.
 const FONCTIONS = [
-  { id: 'hz', libelle: 'V~', aide: 'Multimètre classique (haute impédance)' },
-  { id: 'loz', libelle: 'V~ LoZ', aide: 'Basse impédance : supprime les tensions fantômes' },
-  { id: 'ohm', libelle: 'Ω', aide: 'Résistance / continuité, circuit consigné' }
+  { id: 'hz', libelle: 'V~', legende: 'Tension ?', aide: 'Voit la tension, mais aussi la fantôme d\'un fil coupé.' },
+  { id: 'loz', libelle: 'V~ LoZ', legende: 'Anti-fantôme', aide: 'Une fantôme tombe à 0 V ; une vraie tension reste.' },
+  { id: 'ohm', libelle: 'Ω', legende: 'Hors tension', aide: 'Départ consigné, VAT faite. Jamais en amont de Q1.' }
 ];
-// Visite guidée : les 3 gestes qui font comprendre le banc à un débutant.
-const GUIDE = {
-  1: "Ouvre l'appareil de mesure (barre du bas), choisis tes deux pointes, puis touche « Mesurer » en V~.",
-  2: "Même mesure en V~ LoZ : si la valeur s'effondre, c'était une tension fantôme.",
-  3: "Onglet « Actions » › « Consigner le départ » : avant tout Ω ou tout démontage.",
-  fin: "Les trois gestes de base sont acquis. À toi de trouver la panne."
-};
 const nb = (x, d = 1) => x.toLocaleString('fr-FR', { maximumFractionDigits: d });
 const horloge = m => `${String(Math.floor(m / 60)).padStart(2, '0')} h ${String(m % 60).padStart(2, '0')}`;
 
@@ -53,6 +48,13 @@ export async function renderBanc({ vue, definirTitre, params }) {
   definirTitre('Banc de mesure');
   // ?circuit=<id> choisit le circuit (départ moteur par défaut) ; ?panne=<id> force une panne précise (tests).
   const voulu = params?.get('panne');
+  // Tutoriel « Première intervention » : au tout premier passage au banc (sans circuit ni panne demandés), ou par le
+  // bouton « ? Guide du banc ». Toujours le même cas de démonstration.
+  const prefs = stockage.lire().preferences ?? {};
+  if (params?.get('tuto') === '1' || (!voulu && !params?.get('circuit') && !prefs.tutoBanc && !prefs.visiteBanc)) {
+    const b = await chargerBanc(T.CIRCUIT_TUTO);
+    return demarrer(vue, b, b.pannes.find(p => p.id === T.PANNE_TUTO), { tuto: true });
+  }
   let banc = await chargerBanc(params?.get('circuit') ?? 'depart-moteur');
   if (voulu && !banc.pannes.some(p => p.id === voulu)) {
     for (const c of CIRCUITS) { const b = await chargerBanc(c.id); if (b.pannes.some(p => p.id === voulu)) banc = b; }
@@ -63,9 +65,10 @@ export async function renderBanc({ vue, definirTitre, params }) {
   demarrer(vue, banc, panne);
 }
 
-function demarrer(vue, banc, panne) {
+function demarrer(vue, banc, panne, { tuto = false } = {}) {
   const P = PROFILS[banc.id];
   const etat = interventionCourante = {
+    tuto: tuto ? { lu: false, vu: -1 } : null,   // tutoriel : bon lu, dernier geste affiché
     circuit: banc.id,
     tl: false,                     // éclairage : position du télérupteur (allumé / éteint)
     appui: false,                  // éclairage : appui bref sur S1 pendant un essai
@@ -86,7 +89,8 @@ function demarrer(vue, banc, panne) {
     moteur: 'arrêté',
     resolu: false,
     onglet: 'multimetre',
-    consoleOuverte: false,         // l'appareil de mesure arrive replié : le contenu d'abord
+    // L'appareil arrive replié la première fois ; ensuite, il garde l'état choisi par l'utilisateur.
+    consoleOuverte: !tuto && !!stockage.lire().preferences?.consoleBanc,
     mesure: { fonction: 'hz', ...P.mesureDepart, lecture: null },
     pince: 1,
     dernier: null,
@@ -237,23 +241,45 @@ function demarrer(vue, banc, panne) {
       ? `<div class="${etat.dernier.type === 'danger' ? 'alerte-securite' : etat.dernier.type === 'ok' ? 'lecon' : etat.dernier.type === 'indice' ? 'lecon indice' : etat.dernier.type === 'alerte' ? 'diagnostic' : 'bon-intervention resultat-action'}">${etat.dernier.titre ? `<p class="lecon-titre">${etat.dernier.type === 'danger' ? 'Danger : ' : ''}${esc(etat.dernier.titre)}</p>` : ''}<p>${esc(typo(etat.dernier.texte))}</p></div>`
       : '';
 
-    const guideHtml = guide ? `
-      <div class="guide-banc" role="status">
-        <p><span class="guide-etape">${guide === 'fin' ? 'Visite terminée' : `Visite ${guide}/3`}</span> ${esc(typo(GUIDE[guide]))}</p>
-        ${guide === 'fin' ? '' : '<button type="button" class="guide-passer">Passer</button>'}
+    // Tutoriel : au changement de geste, on ouvre ce qu'il faut (onglet, appareil, pièce présélectionnée).
+    const gi = etat.tuto ? T.gesteCourant(etat) : -1;
+    const g = T.GESTES[gi];
+    if (etat.tuto && gi !== etat.tuto.vu) {
+      etat.tuto.vu = gi;
+      const c = T.cible(etat, g);
+      if (c?.onglet) etat.onglet = c.onglet;
+      if (gi > 0) { if (!etat.consoleOuverte) animerOuverture = true; etat.consoleOuverte = true; }
+      if (g?.piece) etat.selPiece = g.piece;
+      etat.bonOuvert = gi === 0 ? true : etat.bonOuvert;
+    }
+    const ciblage = etat.tuto && g ? T.cible(etat, g) : null;
+    const tutoHtml = etat.tuto && g ? `
+      <div class="tuto-carte" role="region" aria-label="Guide du banc" aria-live="polite" data-geste="${gi}">
+        <div class="tuto-tete">
+          <p class="tuto-etape">Étape ${g.etape}/${T.NB_ETAPES} · ${esc(T.TITRES[g.etape - 1])}</p>
+          <button type="button" id="tuto-quitter" class="tuto-quitter">Quitter le guide</button>
+        </div>
+        <ol class="tuto-progression" aria-hidden="true">${T.TITRES.map((_, i) => `<li class="${i + 1 < g.etape ? 'fait' : i + 1 === g.etape ? 'en-cours' : ''}"></li>`).join('')}</ol>
+        <p class="tuto-texte"><strong>${esc(typo(g.titre))}${/[?!]$/.test(g.titre) ? '' : '.'}</strong> ${esc(typo(g.texte))}</p>
+        ${ciblage?.remarque ? `<p class="tuto-remarque">${esc(typo(ciblage.remarque))}</p>` : ''}
+        ${g.lu ? '<button type="button" id="tuto-suivant" class="btn principal">J\'ai lu le bon : étape 2</button>' : ''}
       </div>` : '';
+    const fonctionActive = FONCTIONS.find(f => f.id === fonction);
 
     vue.innerHTML = `
       <header class="frontispice frontispice-banc">
-        <p class="surtitre">Banc de mesure · panne cachée ${etiquetteNiveau(panne.niveau, { long: true })}</p>
+        <p class="surtitre">${etat.tuto ? 'Guide du banc · première intervention' : `Banc de mesure · panne cachée ${etiquetteNiveau(panne.niveau, { long: true })}`}</p>
         <h2 class="titre-chapitre">${banc.titreHtml}</h2>
       </header>
-      <nav class="segments choix-circuit" aria-label="Circuit du banc">
+      ${etat.tuto ? '' : `<nav class="segments choix-circuit" aria-label="Circuit du banc">
         ${CIRCUITS.map(c => `<a href="#/entrainement/banc?circuit=${c.id}"${c.id === banc.id ? ' aria-current="true"' : ''}>${esc(c.court)}</a>`).join('')}
-      </nav>
+      </nav>`}
       <p class="reco-domaines">${pucesDomaines(banc.domaines)}</p>
-      <p class="mission"><strong>Ta mission :</strong> ${esc(P.mission)}</p>
-      <details class="approfondir mode-emploi"><summary>Comment ça marche ?</summary>
+      <div class="mission-ligne">
+        <p class="mission"><strong>Ta mission :</strong> ${esc(P.mission)}</p>
+        <a class="btn-guide" href="#/entrainement/banc?tuto=1&r=${Date.now()}" aria-label="Guide du banc : refaire la première intervention guidée"><span aria-hidden="true">?</span> Guide du banc</a>
+      </div>
+      <details class="approfondir mode-emploi volet-banc" name="volets-banc"><summary>Comment ça marche ?</summary>
         <ol class="etapes-banc">
           <li><strong>Ouvre l'appareil de mesure</strong> : la barre en bas de l'écran. Touche-la pour le déplier ou le replier.</li>
           <li><strong>Mesure sous tension</strong> (onglet Multimètre) : choisis deux points, touche « Mesurer ». On suit le courant depuis la source : là où la tension disparaît, la panne est juste avant.</li>
@@ -261,13 +287,15 @@ function demarrer(vue, banc, panne) {
           <li><strong>Confirme</strong> à l'ohmmètre ou en contrôlant le fusible, puis <strong>remplace</strong> la pièce.</li>
           <li><strong>Déconsigne et fais un essai</strong> : ${esc(P.reussite)}. Le rapport compte ton temps, tes alertes sécurité et les pièces changées pour rien.</li>
         </ol>
-        <p class="discret petit">Bloqué ? Le bouton « Indice » place les pointes pour toi et explique pourquoi.</p>
+        <p class="discret petit">Bloqué ? Le bouton « Indice » place les pointes pour toi et explique pourquoi. Première fois ? « ? Guide du banc » rejoue une intervention complète, pas à pas.</p>
       </details>
-      <p class="signale-court"><strong>Signalé :</strong> ${esc(typo(panne.symptome))}</p>
-      <details class="approfondir bon-details"${etat.bonOuvert ?? true ? ' open' : ''}>
-        <summary>Bon d'intervention</summary>
-        <div class="bon-intervention"><p>${esc(typo(banc.description))}</p></div>
-      </details>
+      <div class="bloc-symptome">
+        <p class="signale-court"><strong>Signalé :</strong> ${esc(typo(panne.symptome))}</p>
+        <details class="approfondir bon-details volet-banc" name="volets-banc"${etat.bonOuvert ?? true ? ' open' : ''}>
+          <summary>Bon d'intervention</summary>
+          <div class="bon-intervention"><p>${esc(typo(banc.description))}</p></div>
+        </details>
+      </div>
 
       <div class="tableau-bord">
         <p class="horloge"><span>Temps d'intervention</span><b class="mono">${horloge(etat.minutes)}</b></p>
@@ -278,17 +306,16 @@ function demarrer(vue, banc, panne) {
         ${P.pastilles({ etat, lire })}
       </ul>
 
-      <details class="approfondir"><summary>Voir le schéma</summary><div class="schema"><img src="${esc(banc.schema)}" alt="Schéma : ${esc(banc.titre)}"></div></details>
+      <details class="approfondir schema-details volet-banc" name="volets-banc"><summary>Schéma de l'armoire</summary><div class="schema"><img src="${esc(banc.schema)}" alt="Schéma : ${esc(banc.titre)}"></div></details>
 
-      ${etat.onglet === 'multimetre' ? `<p class="aide aide-fonction">${esc(FONCTIONS.find(f => f.id === fonction).libelle)} : ${esc(FONCTIONS.find(f => f.id === fonction).aide)}</p>` : ''}
       <div id="resultat-banc">${dernier}</div>
 
       <details class="approfondir journal"><summary>Journal d'intervention (${etat.journal.length})</summary>
         <ol>${etat.journal.map(j => `<li class="${j.type}"><span class="mono">${horloge(j.t)}</span> ${esc(typo(j.texte))}</li>`).join('') || '<li>Rien pour l\'instant.</li>'}</ol>
       </details>
 
-      <section class="console-banc${etat.consoleOuverte ? ' ouverte' : ''}${animerOuverture ? ' s-ouvre' : ''}" aria-label="Appareil de mesure">
-        ${guideHtml}
+      <section class="console-banc${etat.consoleOuverte ? ' ouverte' : ''}${animerOuverture ? ' s-ouvre' : ''}${etat.tuto && gi > 0 ? ' en-tuto' : ''}" aria-label="Appareil de mesure">
+        ${tutoHtml}
         <div class="poignee-ligne">
           <button type="button" class="poignee-console" aria-expanded="${etat.consoleOuverte}" aria-controls="corps-console">
             <span class="poignee-trait" aria-hidden="true"></span>
@@ -306,8 +333,11 @@ function demarrer(vue, banc, panne) {
         ${etat.onglet === 'multimetre' ? `
           <div class="instrument">
             <div class="selecteur fonctions" role="group" aria-label="Fonction">
-              ${FONCTIONS.map(f => `<button type="button" data-fonction="${f.id}" aria-pressed="${f.id === fonction}">${f.libelle}</button>`).join('')}
+              ${FONCTIONS.map(f => `<button type="button" data-fonction="${f.id}" aria-pressed="${f.id === fonction}" aria-describedby="aide-fonction"><span class="fonction-nom">${f.libelle}</span><span class="fonction-legende">${esc(f.legende)}</span></button>`).join('')}
             </div>
+            <p id="aide-fonction" class="aide-fonction${fonction === 'ohm' && !etat.consigne ? ' alerte' : ''}">${fonction === 'ohm' && !etat.consigne
+              ? '⚠ Non consigné : consigne d\'abord (onglet Actions).'
+              : esc(typo(fonctionActive.aide))}</p>
             <label class="pointe rouge"><span>Rouge</span><select id="rouge" aria-label="Pointe rouge">${options(rouge)}</select></label>
             <label class="pointe noire"><span>COM</span><select id="noir" aria-label="Pointe noire (COM)">${options(noir)}</select></label>
             <div class="lecture-ligne">
@@ -315,6 +345,7 @@ function demarrer(vue, banc, panne) {
               <button id="mesurer" class="btn principal" type="button">Mesurer</button>
             </div>
             ${lecture?.note ? `<p class="note-mesure${/hésite|Attention/.test(lecture.note) ? ' alerte' : ''}">${esc(lecture.note)}</p>` : ''}
+            ${!lecture && etat.dernier?.type === 'danger' ? `<p class="note-mesure alerte">⚠ ${esc(etat.dernier.titre)} : explication au-dessus.</p>` : ''}
           </div>` : ''}
 
         ${etat.onglet === 'pince' ? `
@@ -364,10 +395,26 @@ function demarrer(vue, banc, panne) {
     const maxUtile = Math.max(0, fin - (innerHeight - visible) + 12);
     if (scrollY > maxUtile) scrollTo(0, maxUtile);
 
-    vue.querySelector('.guide-passer')?.addEventListener('click', () => { terminerGuide(); afficher(); });
+    // Tutoriel : surbrillance de ce qu'il faut toucher (l'onglet d'abord s'il est fermé).
+    if (ciblage) {
+      const sel = ciblage.onglet && ciblage.onglet !== etat.onglet ? `[data-onglet-banc="${ciblage.onglet}"]`
+        : !etat.consoleOuverte && ciblage.onglet ? '.poignee-console' : ciblage.selecteur;
+      vue.querySelectorAll(sel).forEach(el => {
+        el.classList.add('tuto-cible');
+        if (el.closest('.actions-banc')) el.scrollIntoView({ block: 'nearest' });   // liste d'actions défilante
+      });
+      // Étape 1 : le bon d'intervention en haut de l'écran, au-dessus de la fiche du guide.
+      if (gi === 0) requestAnimationFrame(() => { const b = vue.querySelector('.bloc-symptome'); if (b) scrollTo(0, Math.max(0, b.getBoundingClientRect().top + scrollY - 64)); });
+    }
+    vue.querySelector('#tuto-suivant')?.addEventListener('click', () => { etat.tuto.lu = true; etat.bonOuvert = false; afficher(); });
+    vue.querySelector('#tuto-quitter')?.addEventListener('click', () => {
+      stockage.modifier(e => { e.preferences = { ...e.preferences, tutoBanc: true }; });
+      location.hash = `#/entrainement/banc?circuit=${T.CIRCUIT_TUTO}&r=${Date.now()}`;
+    });
     vue.querySelector('.poignee-console').addEventListener('click', () => {
       etat.consoleOuverte = !etat.consoleOuverte;
       animerOuverture = etat.consoleOuverte;
+      if (!etat.tuto) stockage.modifier(e => { e.preferences = { ...e.preferences, consoleBanc: etat.consoleOuverte }; });
       afficher();
     });
     vue.querySelector('.bouton-indice').addEventListener('click', () => {
@@ -386,7 +433,6 @@ function demarrer(vue, banc, panne) {
       geste();
       actions.mesurer();
       constater('mesurer');
-      avancerGuide({ mesure: etat.mesure.fonction });
       afficher();
     });
     vue.querySelector('#pince')?.addEventListener('click', () => { geste(); actions.pince(); if (etat.suggestion === 'pince') etat.suggestion = null; constater('pince'); apres(); });
@@ -400,7 +446,6 @@ function demarrer(vue, banc, panne) {
       else actions[a]();
       if (etat.suggestion === a) etat.suggestion = null;
       constater(a, detail);
-      avancerGuide({ action: a });
       apres();
     }));
   };
@@ -469,21 +514,40 @@ function demarrer(vue, banc, panne) {
     signaler(`${etape.pourquoi} Le bon bouton est mis en évidence dans l'onglet Actions.`, 'indice', 'Indice');
   };
 
-  // ---------- Visite guidée (premier passage au banc) : 3 gestes ----------
   let animerOuverture = false;   // petite animation seulement au moment où l'on déplie
-  let guide = stockage.lire().preferences?.visiteBanc ? null : 1;
-  function terminerGuide() {
-    guide = null;
-    stockage.modifier(e => { e.preferences = { ...e.preferences, visiteBanc: true }; });
-  }
-  function avancerGuide({ mesure, action }) {
-    if (guide === 'fin') guide = null;
-    if (guide === 1 && mesure === 'hz' && etat.mesure.lecture) guide = 2;
-    else if (guide === 2 && mesure === 'loz' && etat.mesure.lecture) guide = 3;
-    else if (guide === 3 && action === 'consigner' && etat.consigne) { terminerGuide(); guide = 'fin'; }
-  }
+
+  // ---------- Fin du tutoriel : les 4 réflexes, puis les vraies pannes ----------
+  const finTuto = () => {
+    vue.classList.remove('avec-console');
+    stockage.modifier(e => { e.preferences = { ...e.preferences, tutoBanc: true }; });
+    vue.innerHTML = `
+      <section class="bilan bilan-tuto">
+        <p class="surtitre">Guide du banc · première intervention</p>
+        <p class="bilan-message">${etat.resolu ? 'Diagnostic validé.' : 'Guide interrompu.'}</p>
+        <p class="bilan-xp">Démonstration : elle ne compte ni dans tes statistiques ni dans ton XP.</p>
+      </section>
+      <div class="lecon">
+        <p class="lecon-titre">Les 4 réflexes ${etat.resolu ? 'que tu viens de pratiquer' : 'de la démarche'}</p>
+        <ol class="reflexes">
+          <li><strong>Lire le symptôme</strong> : il dit où chercher. Voyant allumé = la commande a sa tension.</li>
+          <li><strong>Suivre le courant</strong> : rouge sur le point testé, COM sur la référence, de la source vers le récepteur.</li>
+          <li><strong>Douter d'une valeur qui hésite</strong> : le LoZ confirme une vraie tension ou fait tomber la fantôme.</li>
+          <li><strong>Prouver avant de changer</strong> : consigner, ohmmètre, remplacer, déconsigner, essai.</li>
+        </ol>
+      </div>
+      <div class="lecon objectif-suivant">
+        <p class="lecon-titre">Et maintenant ?</p>
+        <p>${esc(typo(`Les vraies pannes sont cachées et tirées au sort : niveau I d'abord, puis II et III, sur trois circuits. L'indice reste là si tu bloques, mais il coûte de l'XP. La maîtrise, c'est la panne réparée sans indice, sans alerte de sécurité et dans le temps d'un technicien confirmé (${horloge(panne.reference)} ici).`))}</p>
+      </div>
+      <div class="actions pousse-bas">
+        <a class="btn principal" href="#/entrainement/banc?circuit=${T.CIRCUIT_TUTO}&r=${Date.now()}">Ma première vraie panne</a>
+        <a class="btn" href="#/entrainement/banc?tuto=1&r=${Date.now()}">Refaire le guide</a>
+      </div>`;
+    window.scrollTo(0, 0);
+  };
 
   const debrief = () => {
+    if (etat.tuto) return finTuto();
     vue.classList.remove('avec-console');
     const causeCourte = resume(panne.cause, MOTS_POURQUOI);
     const inutiles = etat.remplacements.filter(r => !r.utile);

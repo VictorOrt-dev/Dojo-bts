@@ -28,6 +28,7 @@ export default async function ({ t }) {
   await mesureIsolementDansLeTemps(t);
   rappelsDansLesSeances(t);
   await examenBlanc(t);
+  await guideDuBanc(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -94,7 +95,7 @@ function controleDesSauvegardes(t) {
       banc: { sessions: 1, meilleurScore: 1, derniereSession: null, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } }
     },
     derniereSauvegarde: 1761900000000,
-    preferences: { matiere: 'porcelaine', visiteBanc: true },
+    preferences: { matiere: 'porcelaine', visiteBanc: true, tutoBanc: true, consoleBanc: false },
     profil: 'formation',
     positionnement: { niveau: 2, score: 8, date: 1761900000000, niveaux: { reco: 2, calcul: 1, panne: 0 } },
     activite: { jours: ['2026-10-30', '2026-10-31', '2026-11-01'] },
@@ -546,4 +547,45 @@ async function examenBlanc(t) {
   t.ok(E.minutes(905) === '15:05' && E.minutes(59) === '00:59' && E.DUREE_EXAMEN === 900, 'chronomètre : 15 minutes, affichage mm:ss');
   t.ok(controler({ version: 1, stats: { examen: { sessions: 2, meilleurScore: 12, derniereSession: 1, elements: {} } } }).anomalies.length === 0,
     'sauvegarde : statistiques de l\'examen blanc acceptées à l\'import');
+}
+
+// ---------- Banc : guide « Première intervention » ----------
+
+async function guideDuBanc(t) {
+  t.section('U13. Guide du banc « Première intervention » (tutoriel-banc.js)');
+  const T = await import('../js/tutoriel-banc.js');
+  const banc = JSON.parse(fs.readFileSync(path.join(RACINE, `data/banc-${T.CIRCUIT_TUTO}.json`), 'utf8'));
+  const panne = banc.pannes.find(p => p.id === T.PANNE_TUTO);
+  const noeuds = new Set(banc.noeuds.map(n => n.id));
+  t.ok(panne && T.GESTES.every(g => !g.mesure || g.mesure.slice(1).every(n => noeuds.has(n))) && T.GESTES.filter(g => g.piece).every(g => banc.composants.some(c => c.id === g.piece)),
+    `cas de démonstration « ${T.PANNE_TUTO} » : points de mesure et pièce du guide présents dans le circuit`);
+  t.ok([1, 2, 3, 4].every(n => T.GESTES.some(g => g.etape === n)) && T.GESTES.every((g, i) => !i || g.etape >= T.GESTES[i - 1].etape) && T.TITRES.length === T.NB_ETAPES,
+    `4 étapes dans l'ordre (${T.TITRES.join(' → ')}), ${T.GESTES.length} gestes`);
+  const cles = panne.pistes.filter(x => x.mesure).map(x => x.mesure.join());
+  t.ok(T.GESTES.filter(g => g.mesure).every(g => cles.includes(g.mesure.join())) && T.GESTES.some(g => g.mesure?.[0] === 'loz'),
+    'chaque mesure du guide fait partie de la démarche de référence de la panne, dont la mesure en LoZ');
+  t.ok(T.GESTES.every(g => g.texte.split(/\s+/).length <= 40), `fiches courtes : ${Math.max(...T.GESTES.map(g => g.texte.split(/\s+/).length))} mots au plus (40)`);
+
+  const e = { tuto: { lu: false }, faits: new Set(), consigne: false, resolu: false, mesure: { fonction: 'hz', rouge: 'c0', noir: 'n0' } };
+  t.ok(T.gesteCourant(e) === 0 && T.cible(e).selecteur === '.bloc-symptome', 'au départ : étape 1, le symptôme en surbrillance');
+  e.tuto.lu = true;
+  t.ok(T.GESTES[T.gesteCourant(e)].etape === 2 && T.cible(e).selecteur === '.pointe.rouge', 'bon lu : étape 2, pointe rouge à poser');
+  e.mesure.rouge = 'x1';
+  t.ok(T.cible(e).selecteur === '#mesurer', 'pointes en place : « Mesurer »');
+  e.faits.add('m:hz:x1:n0'); e.faits.add('m:hz:n0:s11');
+  t.ok(T.GESTES[T.gesteCourant(e)].etape === 3 && T.cible(e).selecteur === '[data-fonction="loz"]', 'mesure dans un sens ou dans l\'autre comptée ; étape 3 : choisir LoZ');
+  e.consigne = true;
+  t.ok(T.cible(e).selecteur === '[data-action="consigner"]' && /déconsigne/.test(T.cible(e).remarque), 'écart rattrapé : départ consigné alors qu\'il faut une tension → déconsigner d\'abord');
+  e.consigne = false; e.faits.add('m:loz:s11:n0');
+  t.ok(T.GESTES[T.gesteCourant(e)].etape === 4 && T.cible(e).onglet === 'actions', 'LoZ fait : étape 4, onglet Actions pour consigner');
+  e.faits.add('consigne'); e.consigne = false;
+  t.ok(T.cible(e).selecteur === '[data-action="consigner"]' && /consigne d'abord/.test(T.cible(e).remarque), 'Ω demandé départ non consigné : le guide fait consigner');
+  e.consigne = true; e.mesure = { fonction: 'ohm', rouge: 'x1', noir: 's11' };
+  t.ok(T.cible(e).selecteur === '#mesurer', 'Ω, consigné, pointes posées : « Mesurer »');
+  e.faits.add('m:ohm:x1:s11'); e.faits.add('r:cable'); e.faits.add('deconsigne-apres');
+  t.ok(T.GESTES[T.gesteCourant(e)].action === 'essai', 'pièce remplacée, départ rendu : reste l\'essai');
+  e.resolu = true;
+  t.ok(T.gesteCourant(e) === T.GESTES.length && T.cible(e) === null, 'essai réussi : guide terminé');
+  t.ok(controler({ version: 1, preferences: { tutoBanc: true, consoleBanc: true } }).anomalies.length === 0 && controler({ version: 1, preferences: { tutoBanc: 'oui' } }).anomalies.length > 0,
+    'sauvegarde : guide fait et appareil ouvert gardés (vrai / faux), autre valeur refusée');
 }

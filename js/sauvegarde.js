@@ -24,7 +24,7 @@ export function etatParDefaut() {
     xp: 0,
     stats: {},               // résultats des exercices, par mode
     derniereSauvegarde: null, // horodatage du dernier export
-    preferences: { matiere: 'auto', visiteBanc: false },
+    preferences: { matiere: 'auto', visiteBanc: false, tutoBanc: false, consoleBanc: false },
     profil: null,            // 'debutant' | 'formation' | 'confirme' ; null = premier lancement pas encore fait
     positionnement: null,    // { niveau: 0 à 3, score: 0 à 12, date, niveaux?: { reco, calcul, panne } } : test de positionnement
     activite: { jours: [] }, // jours d'entraînement (« AAAA-MM-JJ », heure locale) : séries
@@ -137,9 +137,10 @@ export function controler(donnees) {
       if (MATIERES.includes(donnees.preferences.matiere)) etat.preferences.matiere = donnees.preferences.matiere;
       else anomalies.push(`preferences.matiere doit valoir ${MATIERES.join(' ou ')}`);
     }
-    if (estObjet(donnees.preferences) && donnees.preferences.visiteBanc !== undefined) {
-      if (typeof donnees.preferences.visiteBanc === 'boolean') etat.preferences.visiteBanc = donnees.preferences.visiteBanc;
-      else anomalies.push('preferences.visiteBanc doit être vrai ou faux');
+    for (const cle of ['visiteBanc', 'tutoBanc', 'consoleBanc']) {
+      if (!estObjet(donnees.preferences) || donnees.preferences[cle] === undefined) continue;
+      if (typeof donnees.preferences[cle] === 'boolean') etat.preferences[cle] = donnees.preferences[cle];
+      else anomalies.push(`preferences.${cle} doit être vrai ou faux`);
     }
   }
 

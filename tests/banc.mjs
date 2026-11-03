@@ -1,7 +1,20 @@
 // Banc de mesure : chaque panne résolue comme le ferait un technicien, au doigt, dans l'interface.
 // Vérifie les lectures, les alertes de sécurité, le rapport et la fin d'intervention.
 
-import { nouvellePage } from './outils.mjs';
+import { nouvellePage as pageNeuve } from './outils.mjs';
+
+// Ces tests portent sur le banc lui-même : l'apprenti a déjà fait le guide « Première intervention »
+// (le guide est testé dans tests/ergonomie.mjs).
+async function nouvellePage(navigateur) {
+  const r = await pageNeuve(navigateur);
+  await r.contexte.addInitScript(() => {
+    const e = JSON.parse(localStorage.getItem('elec-learning:v1') ?? '{"version":1}');
+    if (e.preferences?.tutoBanc) return;
+    e.preferences = { ...e.preferences, tutoBanc: true };
+    localStorage.setItem('elec-learning:v1', JSON.stringify(e));
+  });
+  return r;
+}
 
 export default async function ({ t, url: U, navigateur }) {
   const { contexte, page: p } = await nouvellePage(navigateur);
@@ -127,7 +140,7 @@ export default async function ({ t, url: U, navigateur }) {
     t.ok(bancE.pannes.length >= 5 && [1, 2, 3].every(n => bancE.pannes.some(x => x.niveau === n))
       && bancE.pannes.every(x => x.pistes?.length && x.risque.length > 60 && x.norme && x.piege && x.ouvre.every(id => bancE.composants.some(c => c.repare.includes(id)))),
       `éclairage : ${bancE.pannes.length} pannes, niveaux I à III, chacune réparable, avec démarche, piège, risque et norme`);
-    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc'); await p.waitForSelector('.choix-circuit');
+    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?circuit=depart-moteur'); await p.waitForSelector('.choix-circuit');
     await p.click('.choix-circuit a:has-text("Éclairage")'); await p.waitForFunction(() => document.querySelector('.titre-chapitre')?.textContent.includes('télérupteur'));
     t.ok((await p.textContent('.titre-chapitre')).includes('télérupteur') && (await p.textContent('.etat-armoire')).includes('Lampe H2')
       && (await p.getAttribute('.choix-circuit a[aria-current="true"]', 'href')).includes('eclairage'), 'choix du circuit : éclairage par télérupteur, voyants lampes et télérupteur');
@@ -203,7 +216,9 @@ export default async function ({ t, url: U, navigateur }) {
   }
 
   t.section('I. Banc · appareil de mesure repliable');
+  // Premier passage : appareil replié (ensuite, il garde l'état choisi par l'utilisateur).
   await ouvrir('fu1-fondu');
+  if (await p.isVisible('#mesurer')) { await p.click('.poignee-console'); await ouvrir('fu1-fondu'); }
   const barre = await p.locator('.console-banc').boundingBox();
   t.ok(!(await p.isVisible('#mesurer')) && await p.isVisible('.poignee-console') && barre.height <= 80 && barre.y > (await p.evaluate(() => innerHeight)) * 0.7,
     `à l'arrivée : appareil replié en une barre de ${Math.round(barre.height)} px en bas de l'écran, toujours visible`);
@@ -222,8 +237,8 @@ export default async function ({ t, url: U, navigateur }) {
   await p.click('a[href="#/entrainement/banc"]'); await p.waitForSelector('.tableau-bord');
   t.ok(await p.isVisible('.bon-intervention'), 'accès depuis l\'accueil, panne tirée au sort');
   // Le contenu défile au-dessus de la console fixée : on l'amène en haut de l'écran, comme le ferait le pouce.
-  await p.evaluate(() => { const e = [...document.querySelectorAll('summary')].find(x => x.textContent.includes('Voir le schéma')); scrollBy(0, e.getBoundingClientRect().top - 70); });
-  await p.click('summary:has-text("Voir le schéma")'); await p.waitForTimeout(200);
+  await p.evaluate(() => { const e = [...document.querySelectorAll('summary')].find(x => x.textContent.includes('Schéma de l\'armoire')); scrollBy(0, e.getBoundingClientRect().top - 70); });
+  await p.click('summary:has-text("Schéma de l\'armoire")'); await p.waitForTimeout(200);
   t.ok(await p.evaluate(() => { const i = document.querySelector('.schema img'); return i.complete && i.naturalWidth > 0; }), 'schéma affiché');
   await action('abandonner'); await p.waitForSelector('.bilan');
   t.ok((await p.textContent('.bilan-message')).includes('abandonnée') && await p.isVisible('.essentiel .lecon') && await p.isVisible('.essentiel .risque')
