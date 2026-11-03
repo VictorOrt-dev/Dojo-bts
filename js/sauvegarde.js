@@ -10,7 +10,7 @@
 import { dateValide, joursValides } from './badges.js';
 
 export const VERSION = 1;
-export const MODES = ['reco', 'calcul', 'panne', 'banc', 'isolement'];
+export const MODES = ['reco', 'calcul', 'panne', 'banc', 'isolement', 'examen'];
 export const MATIERES = ['auto', 'bakelite', 'porcelaine'];   // auto = suit le réglage clair / sombre du téléphone
 export const PROFILS = ['debutant', 'formation', 'confirme'];
 export const XP_MAX = 10_000_000;      // très au-delà du dernier rang (3 000 XP) : au-delà, c'est une donnée trafiquée

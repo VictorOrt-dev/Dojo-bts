@@ -987,6 +987,7 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .revision-titre { font-size: 15px; line-height: 1.4; }
 .revision-meta { font: 500 13px/1.4 var(--mono); color: var(--texte-2); }
 .pastille-revision { display: inline-block; padding: 3px 9px; border-radius: 999px; background: rgb(255 179 64 / .15); color: var(--attention); font: 700 13px/1.2 var(--mono); }
+.bilan-rappels { margin: 8px 0 0; font-size: 14px; color: var(--texte-2); }
 
 /* ---------- Cas à embranchements : conséquences ---------- */
 .consequence { margin-top: 12px; padding: 12px 14px; border-radius: var(--rayon); background: rgb(255 90 79 / .08); box-shadow: inset 3px 0 0 var(--faux); }
@@ -1115,3 +1116,34 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .alerte-stockage p { margin: 0; }
 .alerte-stockage strong { color: var(--faux); }
 .alerte-stockage .btn { min-height: 44px; }
+
+/* ---------- Bilan · examen blanc ---------- */
+.mode-examen { --teinte: rgb(168 85 247 / .42); }   /* violet : épreuve */
+.examen-entete { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.examen-entete .niveau-seance { margin: 0; }
+.pastille-examen { display: inline-block; padding: 3px 9px; border-radius: 999px; background: rgb(168 85 247 / .16); color: var(--texte-1); font: 700 13px/1.2 var(--mono); }
+.chrono { margin: 0; padding: 6px 12px; border-radius: 10px; background: var(--surface-2); font: 700 18px/1 var(--mono); font-variant-numeric: tabular-nums; }
+.chrono.presse { color: var(--attention); box-shadow: inset 0 0 0 1px var(--attention); }
+.avancement-examen { height: 6px; margin-top: 8px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.avancement-examen span { display: block; height: 100%; background: var(--texte-2); }
+.regles-examen { margin-top: 8px; }
+.bilan-note { margin: 4px 0 0; font-size: 18px; color: var(--texte-2); }
+.mention-a-retravailler { color: var(--attention); }
+.competences { margin: 10px 0 0; padding: 0; list-style: none; }
+.competences-types { margin-top: 18px; }
+.competence { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 11px 0; border-top: 1px solid var(--filet); }
+.competence-nom { font-weight: 700; }
+.competence-score { font-size: 13px; text-align: right; }
+.competence-jauge { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.competence-jauge span { display: block; height: 100%; background: var(--juste); }
+.competence.a-consolider .competence-jauge span { background: var(--attention); }
+.competence.a-retravailler .competence-jauge span { background: var(--attention); opacity: .6; }
+.competence-verdict { grid-column: 1 / -1; font-size: 13px; color: var(--texte-2); }
+.competence.acquis .competence-verdict { color: var(--juste); }
+.competence.a-retravailler .competence-verdict { color: var(--attention); }
+.competence-verdict a { color: inherit; font-weight: 700; display: inline-block; min-height: 44px; line-height: 44px; margin: -14px 0; }
+.liste-corrige { margin: 8px 0 0; padding-left: 22px; }
+.liste-corrige li { padding: 8px 0; border-top: 1px solid var(--filet); }
+.liste-corrige p { margin: 0; }
+.corrige-reponses { font-size: 14px; color: var(--texte-2); }
+.liste-corrige li.faux .corrige-reponses strong { color: var(--texte-1); }

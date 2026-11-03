@@ -48,6 +48,7 @@ const FICHIERS = [
   'js/leitner.js',
   'js/revision.js',
   'js/isolement.js',
+  'js/examen.js',
   'js/banc-profils.js',
   'js/memos.js',
   'js/guidage.js',

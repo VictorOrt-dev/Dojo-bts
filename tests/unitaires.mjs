@@ -26,6 +26,8 @@ export default async function ({ t }) {
   insignesEtSeries(t);
   correctionsAudit360(t);
   await mesureIsolementDansLeTemps(t);
+  rappelsDansLesSeances(t);
+  await examenBlanc(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -180,7 +182,7 @@ function parcoursGuide(t) {
   };
   for (let i = 0; i < 11; i++) { const p = P.prochaineSeance(e, cas); suite.push(p.code); if (p.code === 'libre') break; e = acquerir(e, p.code); }
   t.ok(suite.join(' ') === 'R1 C1 P1 B R2 C2 P2 R3 C3 P3 libre', `parcours Débutant : ${suite.join(' → ')}`);
-  t.ok(P.prochaineSeance(d, cas).href === '#/entrainement/reco?n=1' && P.ordreModes('debutant').join() === 'reco,calcul,panne,banc,isolement',
+  t.ok(P.prochaineSeance(d, cas).href === '#/entrainement/reco?n=1' && P.ordreModes('debutant').join() === 'reco,calcul,panne,banc,isolement,examen',
     'débutant : première séance Reconnaissance niveau I ; accueil ordonné Reconnaissance → Calculs → Cas → Banc');
   t.ok(P.ordreModes('confirme')[0] === 'banc' && P.prochaineSeance(etat({ profil: 'confirme' }), cas).code === 'T', 'confirmé : le banc en premier, et la première recommandation est le test de positionnement');
   t.ok(P.prochaineSeance(etat({ stats: reco(1) }), cas).code === 'C1', 'reconnaissance niveau I à 80 % : la séance suivante passe aux calculs');
@@ -473,4 +475,75 @@ async function mesureIsolementDansLeTemps(t) {
     'régulateur (AVR) resté raccordé : matériel endommagé, même pendant un essai de 10 minutes');
   t.ok(iso.filter(x => x.ipRequis).every(x => x.absorption && x.verdicts.some(v => v.bon && /IP/.test(v.texte + v.explication))),
     'scénarios à IP exigé : absorption décrite, la bonne conclusion repose sur l\'IP');
+}
+
+// ---------- Répétition espacée : les erreurs reviennent dans les séances ordinaires ----------
+
+function rappelsDansLesSeances(t) {
+  t.section('U11. Rappels d\'erreurs glissés dans les séances ordinaires (leitner.js)');
+  const J = 86_400_000, maintenant = Date.UTC(2026, 10, 3, 12);
+  let el = L.appliquerResultat(undefined, false, maintenant - 3 * J);          // raté il y a 3 jours
+  const etat = { stats: { reco: { elements: {
+    ancien: el,
+    hier: L.appliquerResultat(undefined, false, maintenant - 1 * J),            // raté hier : trop frais
+    boite2: L.appliquerResultat(L.appliquerResultat(undefined, false, maintenant - 2 * J), true, maintenant - 1 * J),   // revu hier : dû aujourd'hui, mais trop frais
+    boite3: { essais: 3, reussites: 2, boite: 3, revoir: maintenant - 1 * J },   // revu il y a 4 jours, échéance passée
+    tresAncien: L.appliquerResultat(undefined, false, maintenant - 9 * J),
+    autre: L.appliquerResultat(undefined, false, maintenant - 5 * J),
+    acquis: { essais: 4, reussites: 4 }
+  } } } };
+  const ids = L.rappelsPourSeance(etat, 'reco', { maintenant, max: 10 });
+  t.ok(ids.join() === 'tresAncien,autre,ancien,boite3', `éléments rappelés : ${ids.join(', ')} (erreurs d'au moins ${L.DELAI_RAPPEL_JOURS} jours, les plus en retard d'abord)`);
+  t.ok(!ids.includes('hier') && !ids.includes('boite2') && !ids.includes('acquis'), 'erreur d\'hier, élément revu hier, élément jamais raté : pas de rappel');
+  t.ok(L.rappelsPourSeance(etat, 'reco', { maintenant }).length === L.RAPPELS_MAX && L.rappelsPourSeance(etat, 'reco', { maintenant, admis: id => id === 'autre' }).join() === 'autre'
+    && L.rappelsPourSeance(etat, 'calcul', { maintenant }).length === 0, `au plus ${L.RAPPELS_MAX} rappels par séance ; filtre de la séance (niveau, domaine) respecté ; mode respecté`);
+  const base = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+  const serie = L.intercaler(base, ['R1', 'R2', 'R3'], 10);
+  t.ok(serie.length === 10 && serie.indexOf('R1') === 2 && serie.indexOf('R2') === 5 && serie.indexOf('R3') === 7 && serie.slice(0, 2).join() === 'a,b',
+    `rappels répartis dans la séance (places ${['R1', 'R2', 'R3'].map(r => serie.indexOf(r) + 1).join(', ')}), jamais en premier`);
+  t.ok(L.intercaler(['a', 'b'], ['R1', 'R2', 'R3'], 10).join() === 'a,R1,R2,R3,b' && L.intercaler(base, [], 10).join() === base.join() && L.intercaler(['a'], [], 10).join() === 'a',
+    'peu de questions au niveau : la séance raccourcit sans perdre de rappel ; sans rappel, séance inchangée');
+  const apres = L.appliquerResultat(etat.stats.reco.elements.ancien, true, maintenant);
+  t.ok(apres.boite === 2 && apres.revoir === maintenant + J && L.rappelsPourSeance({ stats: { reco: { elements: { x: apres } } } }, 'reco', { maintenant: maintenant + 2 * J }).join() === 'x',
+    'rappel réussi : boîte 2, puis de retour dans une séance 2 jours plus tard');
+}
+
+// ---------- Bilan · examen blanc ----------
+
+async function examenBlanc(t) {
+  t.section('U12. Bilan · examen blanc : composition, note, bilan par compétence (examen.js)');
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const E = await import('../js/examen.js');
+  const { GENERATEURS } = await import('../js/calcul.js');
+  const questions = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/reconnaissance.json'), 'utf8'));
+  const domaines = ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'];
+  let ok = true, mixte = true;
+  for (let i = 0; i < 60; i++) {
+    const l = E.composerExamen(questions, GENERATEURS);
+    const cles = new Set(l.map(e => `${e.mode}:${e.id}`));
+    ok &&= l.length === E.TAILLE_EXAMEN && cles.size === l.length && domaines.every(d => l.filter(e => e.domaine === d).length === 3);
+    mixte &&= domaines.every(d => new Set(l.filter(e => e.domaine === d).map(e => e.mode)).size === 2);
+  }
+  t.ok(ok, `60 tirages : ${E.TAILLE_EXAMEN} éléments distincts, 3 par domaine`);
+  t.ok(mixte, 'dans chaque domaine : questions et calculs mêlés');
+  const peu = E.composerExamen(questions.filter(q => q.domaines[0] === 'tri'), GENERATEURS.filter(g => g.domaines[0] === 'tri'));
+  t.ok(peu.length === 15 && peu.every(e => e.domaine === 'tri'), 'un domaine seul disponible : la série est complétée à 15 avec lui');
+
+  const rep = (domaine, mode, niveau, juste, repondu = true) => ({ domaine, mode, niveau, juste, repondu });
+  const reponses = [
+    ...['tbt-cc', 'mono-bt', 'tri'].flatMap(d => [rep(d, 'reco', 1, true), rep(d, 'calcul', 2, true), rep(d, 'reco', 3, true)]),
+    rep('securite', 'reco', 1, true), rep('securite', 'calcul', 2, false), rep('securite', 'reco', 3, false, false),
+    rep('hta', 'reco', 1, false), rep('hta', 'calcul', 2, false), rep('hta', 'reco', 3, false)
+  ];
+  const b = E.bilanExamen(reponses);
+  t.ok(b.score === 10 && b.total === 15 && b.sur20 === 13.5 && b.sansReponse === 1 && b.mention === 'Admissible, à consolider',
+    `10/15 : ${b.sur20}/20, « ${b.mention} », 1 sans réponse`);
+  t.ok(b.parDomaine.tri.verdict === 'acquis' && b.parDomaine.securite.verdict === 'a-consolider' && b.parDomaine.hta.verdict === 'a-retravailler'
+    && b.parType.reco.total === 10 && b.parType.calcul.justes === 3 && b.parNiveau[3].justes === 3,
+    'bilan par compétence : domaine acquis (3/3), à consolider (1/3), à retravailler (0/3) ; par type et par niveau');
+  t.ok(E.bilanExamen(reponses.map(r => ({ ...r, juste: true }))).mention === 'Prêt pour l\'examen' && E.bilanExamen(reponses.slice(0, 8).concat(reponses.slice(9).map(r => ({ ...r, juste: false })))).mention === 'À retravailler',
+    'mentions : ≥ 80 % « Prêt pour l\'examen », < 60 % « À retravailler »');
+  t.ok(E.minutes(905) === '15:05' && E.minutes(59) === '00:59' && E.DUREE_EXAMEN === 900, 'chronomètre : 15 minutes, affichage mm:ss');
+  t.ok(controler({ version: 1, stats: { examen: { sessions: 2, meilleurScore: 12, derniereSession: 1, elements: {} } } }).anomalies.length === 0,
+    'sauvegarde : statistiques de l\'examen blanc acceptées à l\'import');
 }

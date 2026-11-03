@@ -10,7 +10,7 @@ import { conseilNiveau, SEUIL } from './parcours.js';
 import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
-import { aReviser } from './leitner.js';
+import { aReviser, rappelsPourSeance, intercaler } from './leitner.js';
 import { zoneMemo, remplirMemo } from './memos.js';
 import { esc } from './util.js';
 
@@ -60,8 +60,15 @@ export async function renderReco({ vue, definirTitre, params }) {
     return;
   }
 
+  // Séance ordinaire : les erreurs d'il y a quelques jours (même niveau ou plus bas, même domaine) y reviennent.
+  const rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'reco', {
+    admis: id => toutes.some(q => q.id === id && q.niveau <= niveau && filtrerParDomaine([q], dom).length)
+  });
   const session = {
-    questions: melanger(disponibles).slice(0, TAILLE_SESSION),
+    questions: intercaler(
+      melanger(disponibles.filter(q => !rappels.includes(q.id))),
+      rappels.map(id => ({ ...toutes.find(q => q.id === id), rappel: true })),
+      TAILLE_SESSION),
     index: 0,
     score: 0,
     xp: 0,
@@ -73,7 +80,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     const choix = melanger([q.nom, ...q.faux]);
 
     vue.innerHTML = `
-      <p class="niveau-seance">${revision ? `<span class="pastille-revision">Révision</span> ${etiquetteNiveau(q.niveau)}` : etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
+      <p class="niveau-seance">${revision ? `<span class="pastille-revision">Révision</span> ${etiquetteNiveau(q.niveau)}` : q.rappel ? `<span class="pastille-revision" title="Une erreur d'il y a quelques jours, glissée dans ta séance">Rappel d'erreur</span> ${etiquetteNiveau(q.niveau)}` : etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
       ${enteteSession(session.index + 1, session.score, session.resultats, session.questions.length)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
         <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
@@ -101,6 +108,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     });
 
     session.resultats.push(juste);
+    if (q.rappel) session.rappelsReussis = (session.rappelsReussis ?? 0) + (juste ? 1 : 0);
     vue.querySelectorAll('.borne')[session.index].className = `borne ${juste ? 'juste' : 'faux'}`;
     noterReponse('reco', q.id, juste);
     let gain = 0;
@@ -162,6 +170,7 @@ export async function renderReco({ vue, definirTitre, params }) {
       total,
       xpGagne: session.xp,
       onRejouer: () => renderReco({ vue, definirTitre, params }),
+      rappels: rappels.length ? { total: rappels.length, reussis: session.rappelsReussis ?? 0 } : null,
       valide: !dom && !revision && total >= 10 && session.score >= SEUIL,
       suite: revision ? { href: '#/entrainement/revision', libelle: 'Retour à « À réviser »' } : session.score >= Math.ceil(total * 0.8) && suivantNiveau ? { href: lienSeance('#/entrainement/reco', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });

@@ -44,7 +44,7 @@ index.html              coquille : barre du haut, zone #vue, onglets Entraîneme
 manifest.webmanifest    installation PWA (nom, icônes, couleurs)
 css/style.css           tout le style ; jetons des thèmes sombre et clair en tête de fichier
 sw.js                   service worker : cache d'abord en production (version injectée au déploiement), réseau d'abord en dev — liste FICHIERS à tenir à jour
-js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/banc, /panne, /calcul, /reco, #/profil
+js/app.js               routeur par hash : #/entrainement (accueil), #/entrainement/banc, /panne, /calcul, /reco, /isolement, /examen, #/profil
                         (anciens liens redirigés : #/dojo… → #/entrainement… ; #/cours et #/fiche/… → accueil)
 js/storage.js           SEUL fichier qui touche localStorage (clé "elec-learning:v1", reprend l'ancienne clé "dojo:v1")
 js/sauvegarde.js        contrôle strict des données (import refusé à la moindre anomalie, stockage local nettoyé au démarrage)
@@ -53,6 +53,7 @@ js/entrainement.js      accueil : « Ta prochaine séance », modes dans l'ordre
 js/parcours.js          parcours guidé, logique pure : profils, prochaine séance, mentions « Conseillé après… », règle du positionnement
 js/bienvenue.js         premier lancement : « Où en es-tu ? » (3 profils)
 js/positionnement.js    test de positionnement (12 questions : reconnaissance, calculs, cas de panne ; sans XP)
+js/examen.js            Bilan · examen blanc (15 questions et calculs chronométrés, sans aide, bilan par compétence)
 js/normes.js            éditions des normes citées, ajoutées d'elles-mêmes à la ligne « Réf. »
 js/mise-a-jour.js       enregistrement du service worker, bandeau « Nouvelle version prête »
 js/domaines.js          les 5 domaines techniques, repères couleur, filtre (barreDomaines), puces
@@ -105,11 +106,12 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence) |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, visite guidée en 3 gestes, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
 | `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
+| `tests/apprentissage.mjs` | **Q** : une erreur d'il y a 4 jours revient en 6e question d'une séance de niveau II, marquée « Rappel d'erreur » ; une erreur de 12 h n'y revient pas ; calculs rappelés avec de nouvelles valeurs ; filtre de domaine respecté. **R** : examen blanc joué au doigt (chronomètre, ni verdict ni fiche pendant l'épreuve, 10/15 → 13,5/20, bilan par compétence, corrigé, erreurs en révision, record à l'accueil, arrêt au bout du temps) |
 | `tests/banc.mjs` | **I** : les pannes des 3 circuits du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
@@ -178,9 +180,9 @@ Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphi
 
   | Profil | Parcours (R = Reconnaissance, C = Calculs, P = Cas de panne, B = Banc, T = positionnement) | Ordre des modes |
   |---|---|---|
-  | Débutant | R1 → C1 → P1 → B → R2 → C2 → P2 → R3 → C3 → P3 | Reconnaissance, Calculs, Cas, Banc |
+  | Débutant | R1 → C1 → P1 → B → R2 → C2 → P2 → R3 → C3 → P3 | Reconnaissance, Calculs, Cas, Banc, Isolement, Examen blanc |
   | En formation | R1 → C1 → R2 → C2 → P1 → B → P2 → R3 → C3 → P3 | idem |
-  | Confirmé | T → B → P2 → C2 → P3 → C3 → R3 → … | Banc, Cas, Calculs, Reconnaissance |
+  | Confirmé | T → B → P2 → C2 → P3 → C3 → R3 → … | Banc, Isolement, Cas, Calculs, Reconnaissance, Examen blanc |
 
   Une étape est acquise à 80 % sur une séance « tous domaines » (Reconnaissance, Calculs), par un cas réussi sans faute
   (Cas de panne), par une panne réparée sans alerte de sécurité, indices compris (Banc), ou par le test de positionnement.
@@ -502,6 +504,29 @@ la cause, la démarche d'un pro et le piège du cas.
 - Écran `#/entrainement/revision` (depuis le Carnet ou le rappel de l'accueil) : éléments à revoir par mode ;
   `#/entrainement/reco?revision=1` et `#/entrainement/calcul?revision=1` lancent une séance des seuls éléments dus,
   les cas et les pannes du banc s'ouvrent directement.
+- **Rappels dans les séances ordinaires** (`rappelsPourSeance`, `intercaler`) : une question ou un calcul raté revient
+  de lui-même dans une séance ordinaire de reconnaissance ou de calculs, **quelques jours plus tard** : arrivé à échéance
+  et dont la dernière réponse remonte à 2 jours au moins (`DELAI_RAPPEL_JOURS`). Au plus 3 par séance de 10
+  (`RAPPELS_MAX`), les plus en retard d'abord, répartis dans la séance (jamais en premier : places 3, 6 et 8 pour trois
+  rappels), de même niveau ou d'un niveau inférieur, dans le domaine de la séance. Marqués « Rappel d'erreur » ; un calcul
+  revient avec de nouvelles valeurs. Le rapport indique « Dont N rappels d'erreurs passées : M retrouvés ». La réponse
+  fait avancer (ou redescendre) l'élément dans ses boîtes, comme en révision.
+
+## Bilan · examen blanc (`js/examen.js`)
+
+- `#/entrainement/examen`, sixième mode de l'accueil. 15 éléments tirés au sort (`composerExamen`) : **3 par domaine**,
+  questions de reconnaissance et calculs alternés, tous niveaux ; les calculs passent en QCM (`calculEnQcm`).
+- **15 minutes** au chronomètre (`DUREE_EXAMEN`, `?duree=` en secondes pour les tests) ; passé 2 minutes restantes, il
+  passe en couleur d'alerte. Au bout du temps, l'examen s'arrête seul : les questions restantes comptent sans réponse.
+- **Aucune aide pendant l'épreuve** : ni verdict, ni correction, ni fiche mémo ; « Passer la question » compte comme une
+  erreur.
+- **Rapport** (`bilanExamen`) : score sur 15, note sur 20 (au demi-point), mention (≥ 80 % « Prêt pour l'examen »,
+  ≥ 60 % « Admissible, à consolider », sinon « À retravailler »), temps passé, puis **bilan par compétence** : chaque
+  domaine, chaque type (reconnaissance, calculs) et chaque niveau, avec une jauge et un verdict (≥ 2/3 acquis, ≥ 1/3 à
+  consolider, sinon à retravailler) et, pour un domaine non acquis, un lien vers une séance ciblée. Le corrigé des 15
+  questions vient ensuite.
+- Les réponses sont enregistrées comme en séance (XP du niveau, révision espacée) ; `stats.examen` garde le nombre
+  d'examens et le meilleur score, affiché sur la carte de l'accueil.
 
 ## XP et niveaux (`js/xp.js`)
 
@@ -514,7 +539,7 @@ la cause, la démarche d'un pro et le piège du cas.
 | Rapidité | sans effet |
 
 Niveaux : N1 Apprenti (0) · N2 Compagnon (200) · N3 Technicien (600) · N4 Technicien Confirmé (1 500) · N5 Expert Senior (3 000).
-Les résultats par question sont gardés dans `stats.reco.elements` / `stats.calcul.elements` (base pour une future révision des erreurs) ;
+Les résultats par question sont gardés dans `stats.reco.elements` / `stats.calcul.elements` (base de la révision espacée et des rappels) ;
 le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 
 ## Feuille de route
@@ -540,7 +565,8 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Phase 1 : prochaine étape guidée par domaine (lacunes), 23 fiches mémo sous les corrections et dans le Carnet
 - [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
-- [ ] Banc : VAT faite par l'élève, nouveaux circuits (étoile-triangle, inverseur, différentiel)
+- [x] Enrichissement terrain : banc étoile-triangle (4 pannes), mégohmmètre à 1 minute avec DAR et indice de polarisation, rappels d'erreurs dans les séances, Bilan · examen blanc
+- [ ] Banc : VAT faite par l'élève, nouveaux circuits (inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)
 

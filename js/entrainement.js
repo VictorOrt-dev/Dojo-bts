@@ -22,7 +22,7 @@ export { deuxChiffres };
 // Plaque signalétique de l'opérateur (rang, XP, galvanomètre).
 export function carteNiveau() {
   const xp = lireXP();
-  const sessions = ['reco', 'calcul', 'panne', 'banc', 'isolement'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
+  const sessions = ['reco', 'calcul', 'panne', 'banc', 'isolement', 'examen'].reduce((total, mode) => total + statsMode(mode).sessions, 0);
   return plaqueOperateur({ xp, n: niveauPour(xp), total: NIVEAUX.length, sessions });
 }
 
@@ -43,18 +43,24 @@ function mesuresReussies() {
   return n ? `${n} réussie${n > 1 ? 's' : ''}` : '';
 }
 
+function recordExamen() {
+  const s = statsMode('examen');
+  return s.sessions ? `${deuxChiffres(s.meilleurScore)}/15` : '';
+}
+
 function record(mode) {
   const s = statsMode(mode);
   return s.sessions ? `${deuxChiffres(s.meilleurScore)}/${TAILLE_SESSION}` : '';
 }
 
-// Les 5 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
+// Les 6 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
 const MODES = {
   banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur 3 circuits : départ moteur direct, étoile-triangle, éclairage par télérupteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
   panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la VAT au poste HTA · par domaine', record: () => casSansFaute() },
   calcul: { titre: 'Calculs flash', desc: 'La valeur à lire avant de mesurer · par domaine et par niveau', record: () => record('calcul') },
   reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') },
-  isolement: { titre: 'Mesure d\'isolement', desc: 'Mégohmmètre 250 / 500 / 1 000 V DC · préparer, mesurer, conclure', record: () => mesuresReussies() }
+  isolement: { titre: 'Mesure d\'isolement', desc: 'Mégohmmètre 250 / 500 / 1 000 V DC · lecture à 1 min, indice de polarisation', record: () => mesuresReussies() },
+  examen: { titre: 'Bilan · Examen blanc', desc: '15 questions et calculs tirés au sort, 15 minutes, sans aide ni correction avant la fin · bilan par compétence', record: () => recordExamen() }
 };
 
 // Encart « Prochaine étape » : l'action prioritaire de l'accueil, choisie par guidage.js d'après les réponses
@@ -107,7 +113,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
     <nav class="modes pousse-bas" aria-label="Modes d'entraînement">
       ${ordreModes(etat.profil).map((id, i) => `
       <a class="mode mode-${id}" href="#/entrainement/${id}">
-        <span class="mode-bouton">${'ABCDE'[i]}</span>
+        <span class="mode-bouton">${'ABCDEF'[i]}</span>
         <span><span class="mode-titre">${MODES[id].titre}</span><span class="mode-desc">${MODES[id].desc}</span>${id === 'banc' && conseilDuBanc ? `<span class="conseil">${esc(conseilDuBanc)}</span>` : ''}</span>
         <span class="mode-record">${MODES[id].record()}</span>
       </a>`).join('')}
@@ -154,7 +160,7 @@ export function enteteSession(numero, score, resultats = [], total = TAILLE_SESS
 // Rapport de fin de séance.
 // suite (facultatif) : { href, libelle } pour proposer le niveau supérieur après une bonne séance.
 // valide : la séance valide un niveau (8/10 sur une séance de niveau, tous domaines) → tampon « Niveau validé ».
-export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onRejouer, suite = null, valide = false }) {
+export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onRejouer, suite = null, valide = false, rappels = null }) {
   const parfait = score === total;
   const taux = score / total;
   const message = parfait ? 'Sans faute.' : taux >= 0.7 ? 'Belle séance.' : taux >= 0.4 ? 'Ça vient, continue.' : 'Reprends les explications, puis recommence.';
@@ -165,6 +171,7 @@ export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onR
       ${valide ? '<p class="tampon-valide" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Niveau validé</p>' : ''}
       <p class="bilan-message">${message}</p>
       <p class="bilan-xp">+${xpGagne} XP${parfait && total >= SEANCE_MIN_BONUS ? ' · bonus sans faute' : ''}</p>
+      ${rappels ? `<p class="bilan-rappels">Dont ${rappels.total} rappel${rappels.total > 1 ? 's' : ''} d'erreurs passées : ${rappels.reussis} retrouvé${rappels.reussis > 1 ? 's' : ''}${rappels.reussis === rappels.total ? ', bien ancré' + (rappels.total > 1 ? 's' : '') : ''}.</p>` : ''}
     </section>
     ${carteNiveau()}
     <div class="actions pousse-bas">
