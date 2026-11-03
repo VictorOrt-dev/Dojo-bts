@@ -34,7 +34,7 @@ export async function auditer() {
   const reco = lire('data/reconnaissance.json');
   const cas = lire('data/pannes.json');
   const iso = lire('data/isolement.json');
-  const bancs = ['data/banc-depart-moteur.json', 'data/banc-eclairage.json'].map(lire);
+  const bancs = ['data/banc-depart-moteur.json', 'data/banc-eclairage.json', 'data/banc-etoile-triangle.json'].map(lire);
 
   const lignes = [];      // { famille, id, niveau, norme, controles, anomalies[] }
   const ligne = (famille, id, niveau, norme) => { const l = { famille, id, niveau, norme, controles: 0, anomalies: [] }; lignes.push(l); return l; };
@@ -101,14 +101,15 @@ export async function auditer() {
   }
 
   // ---------- Banc de mesure ----------
-  const CONTROLES = { 'depart-moteur': ['fu1', 'fu-l1', 'fu-l2', 'fu-l3'], eclairage: ['h1', 'h2'] };
+  const CONTROLES = { 'depart-moteur': ['fu1', 'fu-l1', 'fu-l2', 'fu-l3'], eclairage: ['h1', 'h2'], 'etoile-triangle': ['fu1', 'fu-l1', 'fu-l2', 'fu-l3'] };
   for (const b of bancs) {
     const noeuds = new Set(b.noeuds.map(n => n.id));
     for (const p of b.pannes) {
       const l = ligne(`Banc · ${b.titre}`, p.id, p.niveau, p.norme);
       normes(l, p.norme); securite(l, p.risque, p.piege);
       verifier(l, [1, 2, 3].includes(p.niveau), 'niveau I, II ou III');
-      verifier(l, p.ouvre.every(id => b.composants.some(c => c.repare.includes(id))), 'panne réparable par une pièce du banc');
+      verifier(l, [...p.ouvre, ...Object.keys(p.resistances ?? {}), ...(p.soudes ?? [])].length > 0
+        && [...p.ouvre, ...Object.keys(p.resistances ?? {}), ...(p.soudes ?? [])].every(id => b.composants.some(c => c.repare.includes(id))), 'panne réparable par une pièce du banc');
       for (const s of p.pistes ?? []) {
         if (s.mesure) verifier(l, s.mesure.slice(1).every(n => noeuds.has(n)) && ['hz', 'loz', 'ohm'].includes(s.mesure[0]), `démarche : mesure ${s.mesure.join(' ')} sur des points existants`);
         if (s.remplacer) verifier(l, b.composants.some(c => c.id === s.remplacer), `démarche : pièce « ${s.remplacer} » existante`);

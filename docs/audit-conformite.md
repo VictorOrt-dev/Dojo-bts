@@ -2,7 +2,7 @@
 
 *Généré par `node outils/audit.mjs` (aussi exécuté par la CI à chaque envoi) : ne pas modifier à la main.*
 
-**136 éléments, 1623 contrôles automatiques, 0 anomalie.**
+**140 éléments, 1702 contrôles automatiques, 0 anomalie.**
 
 | Famille | Éléments | Contrôles | Anomalies |
 |---|---|---|---|
@@ -11,6 +11,7 @@
 | Cas de panne | 28 | 472 | 0 |
 | Banc · Départ moteur direct | 5 | 101 | 0 |
 | Banc · Éclairage de couloir par télérupteur | 5 | 101 | 0 |
+| Banc · Démarrage étoile-triangle | 4 | 79 | 0 |
 | Mesure d'isolement | 6 | 69 | 0 |
 
 ## Ce qui est contrôlé
@@ -161,6 +162,10 @@
 | Banc · Éclairage de couloir par télérupteur | `cable-s3` | II | NF C 15-100:2002 · NF C 18-510:2012+A1:2020 | 21 | ✔ |
 | Banc · Éclairage de couloir par télérupteur | `neutre-boite` | II | NF C 18-510:2012+A1:2020 (VAT sur tous les conducteurs actifs, neutre compris) · NF C 15-100:2002 | 21 | ✔ |
 | Banc · Éclairage de couloir par télérupteur | `contact-kl` | III | IEC 60669-2-2:2006 · NF C 15-100:2002 | 21 | ✔ |
+| Banc · Démarrage étoile-triangle | `maintien-coupe` | I | NF EN 60204-1:2018 (§ 7.5, redémarrage après coupure) | 16 | ✔ |
+| Banc · Démarrage étoile-triangle | `tempo-hs` | II | IEC 60947-4-1:2018 (démarreurs étoile-triangle) · IEC 60947-5-1:2016 | 20 | ✔ |
+| Banc · Démarrage étoile-triangle | `enroulement-desequilibre` | II | IEC 60034-1:2022 · IEC 60034-26:2006 (déséquilibre) | 21 | ✔ |
+| Banc · Démarrage étoile-triangle | `basculement-colle` | III | IEC 60947-4-1:2018 (contacts miroirs, annexe F) · NF EN 60204-1:2018 (§ 9.3.4, verrouillages) | 22 | ✔ |
 | Mesure d'isolement | `iso-prises-neuves` | I | IEC 60364-6:2016 (vérification initiale) · NF C 15-100:2002 · IEC 61557-2:2019 | 12 | ✔ |
 | Mesure d'isolement | `iso-eclairage-clou` | I | IEC 60364-6:2016 · NF C 15-100:2002 · IEC 61557-2:2019 | 12 | ✔ |
 | Mesure d'isolement | `iso-moteur-variateur` | II | IEC 60364-6:2016 · IEC 61557-2:2019 · NF C 18-510:2012+A1:2020 | 12 | ✔ |

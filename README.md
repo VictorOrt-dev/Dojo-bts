@@ -72,8 +72,8 @@ fonts/                  polices auto-hébergées (Archivo, JetBrains Mono — li
 js/util.js              esc(), plurielS()
 data/reconnaissance.json CONTENU des questions de reconnaissance
 data/pannes.json        CONTENU des cas de panne
-data/banc-depart-moteur.json CIRCUIT et pannes du banc de mesure
-img/banc/               schéma du banc (depart-moteur.svg)
+data/banc-*.json        CIRCUITS et pannes du banc de mesure (départ moteur, étoile-triangle, éclairage)
+img/banc/               schémas du banc (depart-moteur.svg, etoile-triangle.svg, eclairage.svg)
 img/reco/               visuels des questions (sym-*.svg = symboles, mat-*.svg = matériel)
 tests/                  tests automatisés (voir « Tests automatisés ») — hors de l'app, jamais mis en cache
 .github/workflows/      test.yml : tests puis déploiement sur GitHub Pages
@@ -110,7 +110,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, visite guidée en 3 gestes, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
 | `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
-| `tests/banc.mjs` | **I** : les 5 pannes du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
+| `tests/banc.mjs` | **I** : les pannes des 3 circuits du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
 `.github/workflows/test.yml`, Chromium mis en cache) et bloque le déploiement en cas d'échec. Changer de version de Playwright :
@@ -343,8 +343,8 @@ Une séance = 10 calculs répartis entre les générateurs du niveau (et du doma
 
 ## Banc de mesure (`js/banc.js`, `js/circuit.js`, `data/banc-depart-moteur.json`)
 
-Deux circuits : un départ moteur direct (Q1 porte-fusibles aM, KM1, F2, M1 ; commande 230 V par T1, pupitre Marche / Arrêt
-distant) et un éclairage de couloir par télérupteur (voir « Deux circuits » plus bas).
+Trois circuits : un départ moteur direct (Q1 porte-fusibles aM, KM1, F2, M1 ; commande 230 V par T1, pupitre Marche / Arrêt
+distant), un démarrage étoile-triangle et un éclairage de couloir par télérupteur (voir « Trois circuits » plus bas).
 Une panne cachée est tirée au sort parmi celles du fichier (jamais deux fois de suite). L'élève mesure, consigne, contrôle
 et remplace ; chaque geste avance une **horloge d'intervention simulée** (pas de chronomètre réel). Le rapport compare
 son temps à celui d'un technicien confirmé, liste les alertes sécurité et les pièces changées pour rien, puis explique
@@ -376,13 +376,22 @@ la cause, la démarche d'un pro et le piège du cas.
   `{ consigner: true }`, `{ controle: 'fu1' | 'fu-l2' }`, `{ remplacer: id }`, `{ deconsigner: true }`, `{ collegue: true }`,
   `{ rearmer: true }`, `{ essai: true }`. Le test **I** vérifie que chaque panne se résout en suivant seulement les indices, sans alerte.
 - `#/entrainement/banc?panne=<id>` force une panne précise (tests).
-- **Deux circuits** (`js/banc-profils.js`, sélecteur en tête du banc, `?circuit=eclairage`) : le départ moteur direct
+- **Trois circuits** (`js/banc-profils.js`, sélecteur en tête du banc, `?circuit=eclairage`) : le départ moteur direct
   et l'**éclairage de couloir par télérupteur** (`data/banc-eclairage.json`, schéma `img/banc/eclairage.svg`) : Q1
   bipolaire, poussoirs S1 et S3 (25 m), télérupteur KL, boîte de dérivation, lampes H1 et H2. Cinq pannes graduées :
   lampe H2 (I), bobine du télérupteur (I), câble vers S3 (II), neutre coupé dans la boîte (II, neutre des lampes à
   230 V), contact du télérupteur brûlé (III, même symptôme que le neutre coupé : c'est la mesure du retour lampes qui
   tranche). Un profil de circuit fournit les textes, les voyants, la pince, les pièces à contrôler hors circuit et ce
   qui se passe à l'essai ; multimètre, consignation, indices et rapport sont communs. Nouveau type de piste : `{ appui: true }`.
+- **Démarrage étoile-triangle** (`data/banc-etoile-triangle.json`, schéma `img/banc/etoile-triangle.svg`, `?circuit=etoile-triangle`) :
+  KM1 ligne, KM3 étoile, KM2 triangle (en amont de F2, qui voit le courant d'enroulement), temporisateur KT (55-56 repos,
+  67-68 travail), verrouillages croisés NF. Quatre pannes : fil de maintien KM1 13-14 coupé (I : le moteur ne tourne que
+  bouton appuyé), temporisateur hors service (II : reste en étoile), enroulement V déséquilibré (II : 1,3 Ω au lieu de
+  2,1 Ω, courants de ligne 24 / 31 / 31 A à la pince, F2 déclenche), contacteur étoile KM3 collé (III : KM2 bloqué par
+  le NF de KM3, couplage étoile au-delà de la temporisation, F2 déclenche).
+  Deux types de pannes s'ajoutent à `ouvre` : `resistances` (`{ élément: Ω }`, une résistance modifiée) et `soudes`
+  (contacteurs aux pôles collés, une commande logique toujours fermée). Nouveau type de piste : `{ pince: n }` (index de la
+  pince à lire, l'indice ouvre l'onglet Pince).
 - **Sous le pouce** : la console d'instruments (onglets Multimètre / Pince / Actions, V~ / LoZ / Ω, pointe rouge et COM,
   afficheur et « Mesurer » côte à côte) est fixée au-dessus des onglets ; le contenu (symptôme, bon d'intervention, état
   de l'armoire, schéma, résultat, journal) défile au-dessus. Le bon d'intervention se replie au premier geste.

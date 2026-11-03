@@ -7,7 +7,8 @@
 
 export const CIRCUITS = [
   { id: 'depart-moteur', fichier: 'data/banc-depart-moteur.json', court: 'Départ moteur' },
-  { id: 'eclairage', fichier: 'data/banc-eclairage.json', court: 'Éclairage' }
+  { id: 'eclairage', fichier: 'data/banc-eclairage.json', court: 'Éclairage' },
+  { id: 'etoile-triangle', fichier: 'data/banc-etoile-triangle.json', court: 'Étoile-triangle' }
 ];
 
 const pastille = (libelle, valeur, etat) => `<li class="pastille ${etat}"><span>${libelle}</span><b>${valeur}</b></li>`;
@@ -123,6 +124,86 @@ export const PROFILS = {
       const lampes = h1 && h2 ? 'les deux lampes s\'allument' : h1 ? 'seule H1 s\'allume' : h2 ? 'seule H2 s\'allume' : 'rien ne s\'allume';
       const i = (h1 ? 0.087 : 0) + (h2 ? 0.087 : 0);
       return { courants: [i, i], texte: `Appui sur ${poussoir} : clac, le télérupteur bascule en position « ${etat.tl ? 'allumé' : 'éteint'} » ; ${etat.tl ? lampes : 'le couloir est éteint'}.` };
+    }
+  },
+  'etoile-triangle': {
+    mission: 'trouver la pièce en panne, la remplacer, puis faire démarrer le ventilateur en étoile et basculer en triangle.',
+    reussite: 'si le moteur bascule en triangle et tient, c\'est gagné',
+    mesureDepart: { rouge: 'c0', noir: 'n0' },
+    amont: ['L1', 'L2', 'L3'],
+    organe: 'Q1',
+    consigner: 'Consigner le départ (Q1 + VAT)',
+    deconsigner: 'Déconsigner (refermer Q1)',
+    consigneTexte: 'Départ consigné : Q1 ouvert et cadenassé, VAT vérifié. L\'amont du sectionneur (arrivée L1, L2, L3) reste sous tension.',
+    essaiLibelle: 'Essai : appuyer sur Marche, puis relâcher',
+    collegue: ['Un collègue maintient Marche', 'Le collègue relâche Marche'],
+    collegueJournal: ['Un collègue maintient Marche, délai du temporisateur passé', 'Le collègue relâche Marche'],
+    rearmer: true,
+    controles: [{ id: 'fu1', libelle: 'FU1 (commande)' }, { id: 'fu-l1', libelle: 'Q1 · L1' }, { id: 'fu-l2', libelle: 'Q1 · L2' }, { id: 'fu-l3', libelle: 'Q1 · L3' }],
+    controleNom: 'Fusible',
+    pince: [{ id: 0, libelle: 'L1' }, { id: 1, libelle: 'L2' }, { id: 2, libelle: 'L3' }],
+    pinceNote: () => '(plaque : 28 A en triangle sur 400 V)',
+    pinceVia: 'pince',
+    relacher(etat) { Object.assign(etat, { km1: false, km2: false, km3: false, tempo: false, moteur: 'arrêté' }); },
+    // Contacteurs, verrouillages croisés (contacts miroirs) et contacts temporisés de KT.
+    commande(c, e) {
+      const km3 = e.km3 || e.soudes?.has('km3');
+      return ({ km1: e.km1, km2: e.km2, km3, 'nf-km2': !e.km2, 'nf-km3': !km3, 'kt-repos': !e.tempo, 'kt-travail': e.tempo })[c] ?? false;
+    },
+    pastilles({ etat }) {
+      const km3 = etat.km3 || etat.soudes.has('km3');
+      return [
+        pastille('Q1', etat.consigne ? 'consigné' : 'fermé', etat.consigne ? 'neutre' : 'ok'),
+        pastille('KM1 ligne', etat.km1 ? 'collé' : 'retombé', etat.km1 ? 'ok' : 'neutre'),
+        pastille('KM3 étoile', km3 ? 'collé' : 'retombé', km3 ? 'ok' : 'neutre'),
+        pastille('KM2 triangle', etat.km2 ? 'collé' : 'retombé', etat.km2 ? 'ok' : 'neutre'),
+        pastille('Relais F2', etat.relais ? 'déclenché' : 'normal', etat.relais ? 'alerte' : 'neutre'),
+        pastille('Moteur', etat.moteur, etat.moteur === 'triangle' ? 'ok' : 'neutre'),
+        etat.marche ? pastille('Marche', 'maintenu', 'alerte') : ''
+      ].join('');
+    },
+    // Séquence : appui sur Marche → KM1 + KM3 (étoile) → délai de KT → KM3 retombe, KM2 colle (triangle).
+    // via 'essai' : on relâche Marche aussitôt ; via 'collegue' : Marche reste maintenu (séquence figée pour mesurer) ;
+    // via 'pince' : comme un essai, courants relevés dans les premières minutes, avant un éventuel déclenchement thermique.
+    essai({ etat, lire }, via = 'essai') {
+      const soude = etat.soudes.has('km3');
+      const sous = (noeud, s) => { const m = lire(noeud, 'n0', 'hz', s); return !m.instable && m.valeur > 150; };
+      const arret = (texte, courants = [0, 0, 0], extra = {}) => {
+        Object.assign(etat, { km1: false, km2: false, km3: false, tempo: false, moteur: 'arrêté', ...extra });
+        return { courants, texte };
+      };
+      let s = { ...etat, marche: true, km1: false, km2: false, km3: false, tempo: false };
+      if (etat.relais || !sous('x3', s)) return arret('Rien ne se passe : KM1 ne colle pas.');
+      s.km1 = true;
+      s.km3 = sous('y2', s);
+      if (!s.km3 && !soude) return arret('KM1 colle, mais KM3 ne colle pas : sans point étoile, le moteur ne démarre pas.');
+      if (via !== 'collegue' && !sous('x3', { ...s, marche: false })) {
+        return arret('Le moteur démarre en étoile tant que Marche est appuyé, puis s\'arrête dès qu\'on relâche.', [9.6, 9.8, 9.7]);
+      }
+      s.tempo = sous('kt1', s) && !etat.ouverts.has('kt-bobine');
+      s.km3 = soude || sous('y2', s);
+      s.km2 = !s.km3 && sous('z2', s);
+      if (!s.km2) {
+        if (via === 'collegue') {
+          Object.assign(etat, { km1: true, km3: s.km3, km2: false, tempo: s.tempo, moteur: 'étoile' });
+          return { courants: [18.6, 18.9, 18.7], texte: 'Le moteur démarre en étoile, le délai passe… et il ne bascule pas en triangle : un seul claquement. Il peine sous la charge du ventilateur.' };
+        }
+        return arret('Le moteur démarre en étoile mais ne bascule jamais en triangle : un seul claquement. Il peine sous la charge, et au bout de 20 s le relais thermique déclenche.', [18.6, 18.9, 18.7], { relais: true });
+      }
+      // Triangle établi.
+      if (etat.modifies.size) {
+        if (via === 'collegue' || via === 'pince') {
+          if (via === 'collegue') Object.assign(etat, { km1: true, km2: true, km3: false, tempo: true, moteur: 'triangle' });
+          return { courants: [24.2, 31.5, 31.2], texte: 'Étoile, puis triangle après le délai : la séquence est normale. Le carter chauffe d\'un côté.' };
+        }
+        return arret('Étoile, puis triangle après le délai : la séquence est normale. Mais au bout de 4 minutes, le relais thermique déclenche ; le carter chauffe d\'un côté.', [24.2, 31.5, 31.2], { relais: true });
+      }
+      Object.assign(etat, { km1: true, km2: true, km3: false, tempo: true, moteur: 'triangle' });
+      if (etat.ouverts.size === 0 && etat.soudes.size === 0) {
+        etat.resolu = true;
+        return { courants: [27.6, 27.9, 27.4], texte: 'Deux claquements : étoile, puis triangle après le délai. Le ventilateur prend sa vitesse et tient, courants équilibrés.' };
+      }
+      return { courants: [27.6, 27.9, 27.4], texte: 'Étoile, puis triangle : le moteur tourne.' };
     }
   }
 };

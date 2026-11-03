@@ -1008,7 +1008,8 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .megohmmetre #tester { min-height: 56px; }
 
 /* ---------- Banc : choix du circuit ---------- */
-.choix-circuit { grid-template-columns: 1fr 1fr; margin: 12px 0 4px; }
+.choix-circuit { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 12px 0 4px; }
+.choix-circuit a { font-size: 14px; }
 .choix-circuit a { min-height: 44px; }
 
 /* ---------- Identité : devise et « à propos » ---------- */

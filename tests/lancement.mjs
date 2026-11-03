@@ -171,8 +171,8 @@ export default async function ({ t, url: U, navigateur }) {
       localStorage.setItem('elec-learning:v1', JSON.stringify(e));
     });
     await p.goto(U + '#/entrainement'); await p.waitForSelector('.mode-banc');
-    t.ok(net(await p.textContent('.mode-banc .mode-record')) === '1 réparée' && net(await p.textContent('.mode-banc .mode-desc')).includes('2 circuits'),
-      'accueil › Banc : « 1 réparée » (plus « sans faute ») et description des 2 circuits');
+    t.ok(net(await p.textContent('.mode-banc .mode-record')) === '1 réparée' && net(await p.textContent('.mode-banc .mode-desc')).includes('3 circuits'),
+      'accueil › Banc : « 1 réparée » (plus « sans faute ») et description des 3 circuits');
     await p.goto(U + '#/profil'); await p.waitForSelector('.stats');
     const carnet = net(await p.textContent('.stats'));
     t.ok(carnet.includes('Banc de mesure1 réparée') && carnet.includes('Mesure d\'isolement1 réussie'), 'Carnet : banc « réparée », isolement « réussie »');

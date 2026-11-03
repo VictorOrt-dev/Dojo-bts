@@ -1,0 +1,813 @@
+{
+  "id": "etoile-triangle",
+  "titre": "Démarrage étoile-triangle",
+  "titreHtml": "Démarrage <em>étoile-triangle</em>",
+  "schema": "img/banc/etoile-triangle.svg",
+  "domaines": [
+    "tri",
+    "tbt-cc"
+  ],
+  "description": "Ventilateur de tour aéroréfrigérante, moteur 15 kW 400/690 V couplé en triangle sur 400 V (28 A). Q1 sectionneur à fusibles aM, KM1 contacteur de ligne, KM3 étoile, KM2 triangle, relais thermique F2 réglé sur le courant d'enroulement. Commande 230 V par T1 : Arrêt S1, Marche S2, temporisateur KT (55-56 au repos, 67-68 au travail, 6 s), verrouillages croisés NF entre KM2 et KM3.",
+  "noeuds": [
+    {
+      "id": "L1",
+      "label": "Arrivée L1 (amont Q1)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "L2",
+      "label": "Arrivée L2 (amont Q1)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "L3",
+      "label": "Arrivée L3 (amont Q1)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "PE",
+      "label": "Barrette de terre PE",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "a1",
+      "label": "Q1 : 1 (entrée fusible L1)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "a2",
+      "label": "Q1 : 3 (entrée fusible L2)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "a3",
+      "label": "Q1 : 5 (entrée fusible L3)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "p1",
+      "label": "Q1 : 2 (sortie fusible L1)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "p2",
+      "label": "Q1 : 4 (sortie fusible L2)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "p3",
+      "label": "Q1 : 6 (sortie fusible L3)",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "k1",
+      "label": "KM1 : 2/T1",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "k2",
+      "label": "KM1 : 4/T2",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "k3",
+      "label": "KM1 : 6/T3",
+      "zone": "Arrivée et puissance"
+    },
+    {
+      "id": "U1",
+      "label": "Moteur : U1",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "V1",
+      "label": "Moteur : V1",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "W1",
+      "label": "Moteur : W1",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "U2",
+      "label": "Moteur : U2",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "V2",
+      "label": "Moteur : V2",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "W2",
+      "label": "Moteur : W2",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "e",
+      "label": "KM3 : point étoile (2/4/6 pontés)",
+      "zone": "Moteur et couplage"
+    },
+    {
+      "id": "c0",
+      "label": "T1 : secondaire 230 V",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "n0",
+      "label": "0 V commande (bornier N)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "c1",
+      "label": "FU1 : sortie",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "x1",
+      "label": "F2 : 96 (après 95-96)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "x2",
+      "label": "S1 Arrêt : sortie",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "x3",
+      "label": "KM1 : A1 (après Marche)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "m1",
+      "label": "KM1 : 14 (contact de maintien)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "kt1",
+      "label": "KT : A1 (bobine du temporisateur)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "y1",
+      "label": "KT : 56 (repos, vers KM3)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "y2",
+      "label": "KM3 : A1",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "z1",
+      "label": "KT : 68 (travail, vers KM2)",
+      "zone": "Commande 230 V"
+    },
+    {
+      "id": "z2",
+      "label": "KM2 : A1",
+      "zone": "Commande 230 V"
+    }
+  ],
+  "sources": {
+    "L1": [
+      230,
+      0
+    ],
+    "L2": [
+      -115,
+      -199.186
+    ],
+    "L3": [
+      -115,
+      199.186
+    ],
+    "PE": [
+      0,
+      0
+    ]
+  },
+  "transformateurs": [
+    {
+      "id": "T1",
+      "primaire": [
+        "p1",
+        "p3"
+      ],
+      "secondaire": [
+        "c0",
+        "n0"
+      ],
+      "rapport": 0.575,
+      "enroulementSecondaire": "t1-sec"
+    }
+  ],
+  "fantomes": {},
+  "elements": [
+    {
+      "id": "q1-1",
+      "a": "L1",
+      "b": "a1",
+      "R": 0.01,
+      "commande": "q1"
+    },
+    {
+      "id": "q1-3",
+      "a": "L2",
+      "b": "a2",
+      "R": 0.01,
+      "commande": "q1"
+    },
+    {
+      "id": "q1-5",
+      "a": "L3",
+      "b": "a3",
+      "R": 0.01,
+      "commande": "q1"
+    },
+    {
+      "id": "fu-l1",
+      "a": "a1",
+      "b": "p1",
+      "R": 0.02
+    },
+    {
+      "id": "fu-l2",
+      "a": "a2",
+      "b": "p2",
+      "R": 0.02
+    },
+    {
+      "id": "fu-l3",
+      "a": "a3",
+      "b": "p3",
+      "R": 0.02
+    },
+    {
+      "id": "km1-1",
+      "a": "p1",
+      "b": "k1",
+      "R": 0.01,
+      "commande": "km1"
+    },
+    {
+      "id": "km1-3",
+      "a": "p2",
+      "b": "k2",
+      "R": 0.01,
+      "commande": "km1"
+    },
+    {
+      "id": "km1-5",
+      "a": "p3",
+      "b": "k3",
+      "R": 0.01,
+      "commande": "km1"
+    },
+    {
+      "id": "th-1",
+      "a": "k1",
+      "b": "U1",
+      "R": 0.01
+    },
+    {
+      "id": "th-2",
+      "a": "k2",
+      "b": "V1",
+      "R": 0.01
+    },
+    {
+      "id": "th-3",
+      "a": "k3",
+      "b": "W1",
+      "R": 0.01
+    },
+    {
+      "id": "m-u",
+      "a": "U1",
+      "b": "U2",
+      "R": 2.1
+    },
+    {
+      "id": "m-v",
+      "a": "V1",
+      "b": "V2",
+      "R": 2.1
+    },
+    {
+      "id": "m-w",
+      "a": "W1",
+      "b": "W2",
+      "R": 2.1
+    },
+    {
+      "id": "km3-1",
+      "a": "U2",
+      "b": "e",
+      "R": 0.01,
+      "commande": "km3"
+    },
+    {
+      "id": "km3-3",
+      "a": "V2",
+      "b": "e",
+      "R": 0.01,
+      "commande": "km3"
+    },
+    {
+      "id": "km3-5",
+      "a": "W2",
+      "b": "e",
+      "R": 0.01,
+      "commande": "km3"
+    },
+    {
+      "id": "km2-1",
+      "a": "k1",
+      "b": "W2",
+      "R": 0.01,
+      "commande": "km2"
+    },
+    {
+      "id": "km2-3",
+      "a": "k2",
+      "b": "U2",
+      "R": 0.01,
+      "commande": "km2"
+    },
+    {
+      "id": "km2-5",
+      "a": "k3",
+      "b": "V2",
+      "R": 0.01,
+      "commande": "km2"
+    },
+    {
+      "id": "t1-prim",
+      "a": "p1",
+      "b": "p3",
+      "R": 25
+    },
+    {
+      "id": "t1-sec",
+      "a": "c0",
+      "b": "n0",
+      "R": 3
+    },
+    {
+      "id": "n0-pe",
+      "a": "n0",
+      "b": "PE",
+      "R": 0.05
+    },
+    {
+      "id": "fu1",
+      "a": "c0",
+      "b": "c1",
+      "R": 0.02
+    },
+    {
+      "id": "h1",
+      "a": "c1",
+      "b": "n0",
+      "R": 2400
+    },
+    {
+      "id": "f2-95",
+      "a": "c1",
+      "b": "x1",
+      "R": 0.02,
+      "commande": "relais"
+    },
+    {
+      "id": "s1",
+      "a": "x1",
+      "b": "x2",
+      "R": 0.02
+    },
+    {
+      "id": "s2",
+      "a": "x2",
+      "b": "x3",
+      "R": 0.02,
+      "commande": "marche"
+    },
+    {
+      "id": "km1-13",
+      "a": "x2",
+      "b": "m1",
+      "R": 0.02,
+      "commande": "km1"
+    },
+    {
+      "id": "fil-maintien",
+      "a": "m1",
+      "b": "x3",
+      "R": 0.05
+    },
+    {
+      "id": "bob-km1",
+      "a": "x3",
+      "b": "n0",
+      "R": 450
+    },
+    {
+      "id": "kt-fil",
+      "a": "x3",
+      "b": "kt1",
+      "R": 0.05
+    },
+    {
+      "id": "kt-bobine",
+      "a": "kt1",
+      "b": "n0",
+      "R": 600
+    },
+    {
+      "id": "kt-55",
+      "a": "x3",
+      "b": "y1",
+      "R": 0.02,
+      "commande": "kt-repos"
+    },
+    {
+      "id": "nf-km2",
+      "a": "y1",
+      "b": "y2",
+      "R": 0.02,
+      "commande": "nf-km2"
+    },
+    {
+      "id": "bob-km3",
+      "a": "y2",
+      "b": "n0",
+      "R": 450
+    },
+    {
+      "id": "kt-67",
+      "a": "x3",
+      "b": "z1",
+      "R": 0.02,
+      "commande": "kt-travail"
+    },
+    {
+      "id": "nf-km3",
+      "a": "z1",
+      "b": "z2",
+      "R": 0.02,
+      "commande": "nf-km3"
+    },
+    {
+      "id": "bob-km2",
+      "a": "z2",
+      "b": "n0",
+      "R": 450
+    }
+  ],
+  "composants": [
+    {
+      "id": "fu1",
+      "libelle": "Fusible de commande FU1",
+      "duree": 10,
+      "repare": [
+        "fu1"
+      ]
+    },
+    {
+      "id": "fusibles",
+      "libelle": "Les 3 cartouches aM de Q1",
+      "duree": 15,
+      "repare": [
+        "fu-l1",
+        "fu-l2",
+        "fu-l3"
+      ]
+    },
+    {
+      "id": "relais",
+      "libelle": "Relais thermique F2",
+      "duree": 25,
+      "repare": [
+        "f2-95"
+      ]
+    },
+    {
+      "id": "fil-maintien",
+      "libelle": "Fil de maintien KM1 13-14 → A1",
+      "duree": 15,
+      "repare": [
+        "fil-maintien"
+      ]
+    },
+    {
+      "id": "temporisateur",
+      "libelle": "Temporisateur KT",
+      "duree": 20,
+      "repare": [
+        "kt-bobine",
+        "kt-55",
+        "kt-67"
+      ]
+    },
+    {
+      "id": "contacteur-km1",
+      "libelle": "Contacteur de ligne KM1",
+      "duree": 40,
+      "repare": [
+        "bob-km1",
+        "km1-1",
+        "km1-3",
+        "km1-5",
+        "km1-13"
+      ]
+    },
+    {
+      "id": "contacteur-km2",
+      "libelle": "Contacteur triangle KM2",
+      "duree": 40,
+      "repare": [
+        "bob-km2",
+        "km2-1",
+        "km2-3",
+        "km2-5",
+        "nf-km2"
+      ]
+    },
+    {
+      "id": "contacteur-km3",
+      "libelle": "Contacteur étoile KM3",
+      "duree": 40,
+      "repare": [
+        "bob-km3",
+        "km3-1",
+        "km3-3",
+        "km3-5",
+        "nf-km3",
+        "km3"
+      ]
+    },
+    {
+      "id": "moteur",
+      "libelle": "Moteur M1 (rebobinage ou échange)",
+      "duree": 240,
+      "repare": [
+        "m-u",
+        "m-v",
+        "m-w"
+      ]
+    }
+  ],
+  "durees": {
+    "mesure": 2,
+    "pince": 4,
+    "essai": 2,
+    "collegue": 1,
+    "rearmer": 1,
+    "consigner": 10,
+    "deconsigner": 5
+  },
+  "pannes": [
+    {
+      "id": "maintien-coupe",
+      "niveau": 1,
+      "domaines": [
+        "tri",
+        "tbt-cc"
+      ],
+      "symptome": "Le ventilateur démarre tant qu'on garde le doigt sur Marche, et s'arrête dès qu'on relâche.",
+      "ouvre": [
+        "fil-maintien"
+      ],
+      "reference": 32,
+      "cause": "Le fil qui relie le contact de maintien 13-14 de KM1 à la bobine est coupé : l'auto-maintien ne reprend jamais le relais du bouton Marche.",
+      "methode": "Le symptôme pointe l'auto-maintien. Hors tension, l'ohmmètre entre la borne 14 de KM1 et A1 donne OL : fil coupé, on le remplace.",
+      "piege": "Changer le bouton Marche ou KM1 entier : le contacteur colle, il démarre bien. Ce qui manque, c'est le chemin parallèle au bouton, un simple fil.",
+      "risque": "Un opérateur qui « bloque » le bouton Marche avec un serre-joint pour faire tourner le ventilateur supprime l'arrêt en cas de coupure : au retour de la tension, le moteur repart seul.",
+      "norme": "NF EN 60204-1 (§ 7.5, redémarrage après coupure)",
+      "pistes": [
+        {
+          "appui": true,
+          "pourquoi": "Fais un essai : appuie sur Marche, puis relâche. Observe à quel moment le moteur s'arrête."
+        },
+        {
+          "consigner": true,
+          "pourquoi": "Il ne tient que tant que Marche est appuyé : l'auto-maintien ne fait pas son travail. Consigne pour contrôler son câblage."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "m1",
+            "x3"
+          ],
+          "pourquoi": "Contrôle la continuité entre le contact de maintien 13-14 de KM1 et la bobine (A1)."
+        },
+        {
+          "remplacer": "fil-maintien",
+          "pourquoi": "OL : le fil de maintien est coupé. Remplace-le."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Fil remplacé : déconsigne pour essayer."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Appuie sur Marche et relâche : le moteur doit démarrer en étoile, basculer en triangle et continuer de tourner."
+        }
+      ]
+    },
+    {
+      "id": "tempo-hs",
+      "niveau": 2,
+      "domaines": [
+        "tri",
+        "tbt-cc"
+      ],
+      "symptome": "Le ventilateur démarre, mais reste lent et bruyant ; au bout d'une vingtaine de secondes, le relais thermique déclenche.",
+      "ouvre": [
+        "kt-bobine"
+      ],
+      "reference": 41,
+      "cause": "La bobine du temporisateur KT est coupée : son contact 67-68 ne se ferme jamais, KM2 n'est jamais commandé, le moteur reste couplé en étoile sous la charge du ventilateur.",
+      "methode": "Collègue sur Marche : 230 V aux bornes de KT, mais 0 V après son contact 67-68 une fois le délai passé. La bobine est alimentée et rien ne commute : le temporisateur est en cause.",
+      "piege": "Monter le réglage du relais thermique : le moteur en étoile ne développe qu'un tiers de son couple, il reste en surcharge permanente. Le relais a raison.",
+      "risque": "Un moteur qui reste en étoile sous charge peine, chauffe et finit par griller ; shunter le relais thermique pour « finir la journée », c'est le condamner.",
+      "norme": "IEC 60947-4-1 (démarreurs étoile-triangle) · IEC 60947-5-1",
+      "pistes": [
+        {
+          "collegue": true,
+          "pourquoi": "Fais maintenir Marche par un collègue : le démarrage reste en cours le temps de tes mesures."
+        },
+        {
+          "mesure": [
+            "hz",
+            "kt1",
+            "n0"
+          ],
+          "pourquoi": "Le moteur reste en étoile. Le temporisateur KT reçoit-il la tension sur sa bobine ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "z1",
+            "n0"
+          ],
+          "pourquoi": "230 V sur KT. Après le délai, son contact 67-68 envoie-t-il la tension vers KM2 ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "KT est alimenté mais ne commute pas : il est en cause. Consigne avant de le changer."
+        },
+        {
+          "remplacer": "temporisateur",
+          "pourquoi": "Remplace le temporisateur KT."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Temporisateur neuf : déconsigne."
+        },
+        {
+          "rearmer": true,
+          "pourquoi": "Le relais thermique avait déclenché : réarme-le."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Appuie sur Marche : démarrage en étoile, puis basculement en triangle après le délai."
+        }
+      ]
+    },
+    {
+      "id": "enroulement-desequilibre",
+      "niveau": 2,
+      "domaines": [
+        "tri"
+      ],
+      "symptome": "Démarrage et basculement normaux, mais le relais thermique déclenche après quelques minutes en triangle ; le carter chauffe d'un côté.",
+      "ouvre": [],
+      "resistances": {
+        "m-v": 1.3
+      },
+      "reference": 74,
+      "cause": "Des spires en court-circuit dans l'enroulement V1-V2 : sa résistance est tombée de 2,1 à 1,3 Ω. Les courants se déséquilibrent, une phase dépasse le réglage du relais.",
+      "methode": "À la pince, en triangle : une phase nettement plus basse que les deux autres. Hors tension, couplage ouvert (KM2 et KM3 au repos), on mesure chaque enroulement : V1-V2 sort du lot. Moteur à rebobiner ou à échanger.",
+      "piege": "Accuser le réseau ou le relais : un déséquilibre qui reste sur la même borne du moteur, quelles que soient les phases, vient du moteur. Et on compare les enroulements entre eux, pas à une valeur absolue.",
+      "risque": "Des spires en court-circuit s'échauffent localement : l'isolant se carbonise, le défaut gagne la masse. Relancer en boucle après chaque déclenchement, c'est aller au claquage, parfois au départ de feu.",
+      "norme": "IEC 60034-1 · IEC 60034-26 (déséquilibre)",
+      "pistes": [
+        {
+          "pince": 0,
+          "pourquoi": "Le relais déclenche en triangle : mesure le courant de chaque phase pendant un essai. Commence par L1."
+        },
+        {
+          "pince": 2,
+          "pourquoi": "Compare avec une autre phase : L3."
+        },
+        {
+          "consigner": true,
+          "pourquoi": "Courants déséquilibrés en triangle : contrôle les enroulements eux-mêmes, hors tension."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "U1",
+            "U2"
+          ],
+          "pourquoi": "Mesure l'enroulement U1-U2 : KM2 et KM3 au repos, il est isolé des deux autres."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "V1",
+            "V2"
+          ],
+          "pourquoi": "Compare avec l'enroulement V1-V2."
+        },
+        {
+          "remplacer": "moteur",
+          "pourquoi": "V1-V2 est nettement plus bas que U1-U2 : spires en court-circuit. Le moteur part au rebobinage."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Moteur échangé : déconsigne."
+        },
+        {
+          "rearmer": true,
+          "pourquoi": "Réarme le relais thermique, déclenché lors des essais."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Essai : les trois courants doivent être équilibrés, le relais ne doit plus déclencher."
+        }
+      ]
+    },
+    {
+      "id": "basculement-colle",
+      "niveau": 3,
+      "domaines": [
+        "tri",
+        "tbt-cc"
+      ],
+      "symptome": "Le ventilateur démarre, ne passe jamais en vitesse normale, et le relais thermique finit par déclencher. On n'entend qu'un seul claquement au démarrage.",
+      "ouvre": [],
+      "soudes": [
+        "km3"
+      ],
+      "reference": 58,
+      "cause": "Les pôles du contacteur étoile KM3 sont soudés. Son contact de verrouillage NF, lié mécaniquement aux pôles (contacts miroirs), reste ouvert : KM2 ne peut jamais coller. Sans ce verrouillage, le basculement aurait mis les phases en court-circuit.",
+      "methode": "Collègue sur Marche, délai passé : 230 V après le contact 67-68 de KT, mais 0 V après le verrouillage NF de KM3, alors que KM3 n'est plus commandé. Hors tension, un pôle de KM3 reste passant au repos : contacts soudés.",
+      "piege": "Ponter le verrouillage NF « qui ne passe pas » : KM2 collerait sur un KM3 soudé, court-circuit franc entre phases au basculement. Ce contact fait exactement son travail.",
+      "risque": "Un verrouillage étoile-triangle ponté sur un contacteur soudé, c'est un court-circuit entre phases dans l'armoire : arc, projection de cuivre fondu, porte qui s'ouvre sous la pression. Le verrouillage est là pour ça.",
+      "norme": "IEC 60947-4-1 (contacts miroirs, annexe F) · NF EN 60204-1 (§ 9.3.4, verrouillages)",
+      "pistes": [
+        {
+          "collegue": true,
+          "pourquoi": "Fais maintenir Marche par un collègue : la séquence reste en cours le temps des mesures."
+        },
+        {
+          "mesure": [
+            "hz",
+            "z1",
+            "n0"
+          ],
+          "pourquoi": "Le moteur reste en étoile. Après le délai, le contact 67-68 de KT envoie-t-il la tension vers KM2 ?"
+        },
+        {
+          "mesure": [
+            "hz",
+            "z2",
+            "n0"
+          ],
+          "pourquoi": "230 V après KT. Et après le contact de verrouillage NF de KM3, à l'entrée de la bobine de KM2 ?"
+        },
+        {
+          "consigner": true,
+          "pourquoi": "Le verrouillage de KM3 reste ouvert alors que KM3 n'est plus commandé : KM3 serait-il collé ? Consigne pour le contrôler."
+        },
+        {
+          "mesure": [
+            "ohm",
+            "U2",
+            "e"
+          ],
+          "pourquoi": "Contrôle un pôle de KM3, contacteur au repos : il devrait être ouvert."
+        },
+        {
+          "remplacer": "contacteur-km3",
+          "pourquoi": "Pôle passant au repos : KM3 est soudé. Remplace-le, et cherche pourquoi (surintensité au démarrage, usure)."
+        },
+        {
+          "deconsigner": true,
+          "pourquoi": "Contacteur neuf : déconsigne."
+        },
+        {
+          "rearmer": true,
+          "pourquoi": "Réarme le relais thermique."
+        },
+        {
+          "essai": true,
+          "pourquoi": "Essai : deux claquements, étoile puis triangle, et le ventilateur prend sa vitesse."
+        }
+      ]
+    }
+  ]
+}

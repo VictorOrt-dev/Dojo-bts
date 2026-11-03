@@ -75,6 +75,9 @@ function demarrer(vue, banc, panne) {
     marche: false,                 // un collègue maintient le bouton Marche
     relais: !!panne.relaisDeclenche,
     ouverts: new Set(panne.ouvre),
+    modifies: new Map(Object.entries(panne.resistances ?? {})),   // résistances altérées (ex. spires en court-circuit)
+    soudes: new Set(panne.soudes ?? []),                          // contacteurs aux pôles soudés
+    km1: false, km2: false, km3: false, tempo: false,             // étoile-triangle : contacteurs et temporisateur
     minutes: 0,
     dangers: [],
     remplacements: [],
@@ -97,7 +100,9 @@ function demarrer(vue, banc, panne) {
   const noeuds = banc.noeuds.filter(n => !n.interne);
   const label = id => banc.noeuds.find(n => n.id === id)?.label ?? id;
 
-  // Éléments conducteurs dans l'état actuel du départ.
+  // Éléments conducteurs dans l'état actuel du départ. Les commandes propres à un circuit (contacteurs d'un
+  // étoile-triangle, temporisateur…) sont résolues par son profil ; une résistance altérée par la panne remplace la nominale.
+  const COMMUNES = ['q1', 'km', 'marche', 'relais', 'tl', 'appui'];
   const fermes = (e = etat) => banc.elements.filter(el => !e.ouverts.has(el.id) && (
     !el.commande ||
     (el.commande === 'q1' && !e.consigne) ||
@@ -105,7 +110,9 @@ function demarrer(vue, banc, panne) {
     (el.commande === 'marche' && e.marche) ||
     (el.commande === 'relais' && !e.relais) ||
     (el.commande === 'tl' && e.tl) ||
-    (el.commande === 'appui' && e.appui)));
+    (el.commande === 'appui' && e.appui) ||
+    (!COMMUNES.includes(el.commande) && !!P.commande?.(el.commande, e))))
+    .map(el => (e.modifies?.has(el.id) ? { ...el, R: e.modifies.get(el.id) } : el));
   const lire = (a, b, mode, e = etat) => tension(banc, fermes(e), a, b, mode);
 
   // Ce que veut dire une lecture en volts, en une phrase.
@@ -145,7 +152,7 @@ function demarrer(vue, banc, panne) {
           return danger('Ohmmètre sur l\'amont du sectionneur', 'L\'amont de Q1 reste sous tension même consigné : jamais d\'ohmmètre sur les bornes d\'arrivée. Fusible du multimètre grillé.', 15);
         }
         const r = resistance(banc, fermes(), rouge, noir);
-        etat.mesure.lecture = { valeur: r === Infinity ? 'OL' : r < 1 ? nb(r, 2) : r < 1000 ? nb(r, 0) : nb(r / 1000, 2), unite: r !== Infinity && r >= 1000 ? 'kΩ' : 'Ω',
+        etat.mesure.lecture = { valeur: r === Infinity ? 'OL' : r < 1 ? nb(r, 2) : r < 100 ? nb(r, 1) : r < 1000 ? nb(r, 0) : nb(r / 1000, 2), unite: r !== Infinity && r >= 1000 ? 'kΩ' : 'Ω',
           note: r === Infinity ? 'OL : circuit ouvert, le courant ne passe pas entre ces deux points.' : r < 1 ? 'Bip : continuité, le courant passe.' : 'Résistance d\'un récepteur (bobine, voyant, enroulement).' };
         noter(`Ω ${label(rouge)} → ${label(noir)} : ${etat.mesure.lecture.valeur} ${etat.mesure.lecture.unite}`, banc.durees.mesure);
       } else {
@@ -158,7 +165,7 @@ function demarrer(vue, banc, panne) {
     },
     pince() {
       if (etat.consigne) return signaler('Le départ est consigné : pas d\'essai possible. Déconsigne d\'abord.', 'info');
-      const r = essai();
+      const r = essai(P.pinceVia ?? 'essai');   // étoile-triangle : courants relevés avant que le thermique ne déclenche
       const i = r.courants[etat.pince];
       noter(`Pince sur ${P.pince[etat.pince].libelle} pendant un essai : ${nb(i, 2)} A`, banc.durees.pince);
       signaler(`${r.texte} La pince sur ${P.pince[etat.pince].libelle} indique ${nb(i, 2)} A ${i > 0 ? P.pinceNote(i) : ''}`.trim(), r.courants.some(x => x > 30) ? 'alerte' : 'info');
@@ -176,7 +183,7 @@ function demarrer(vue, banc, panne) {
       if (etat.marche) {
         const r = essai('collegue');
         signaler(`${P.collegueJournal[0]}. ${r.texte}`, 'info');
-      } else signaler(`${P.collegueJournal[1]}.`, 'info');
+      } else { P.relacher?.(etat); signaler(`${P.collegueJournal[1]}.`, 'info'); }
     },
     rearmer() {
       const etait = etat.relais && !etat.ouverts.has('f2-95');
@@ -191,6 +198,7 @@ function demarrer(vue, banc, panne) {
         return signaler(`Déconsigné : ${P.organe} est refermé, l'installation est de nouveau sous tension.`, 'info');
       }
       etat.consigne = true; etat.km = false; etat.marche = false; etat.moteur = 'arrêté';
+      etat.km1 = etat.km2 = etat.km3 = etat.tempo = false;
       noter(`Consignation : ${P.organe} ouvert et cadenassé, absence de tension vérifiée`, banc.durees.consigner);
       signaler(P.consigneTexte, 'ok');
     },
@@ -208,8 +216,8 @@ function demarrer(vue, banc, panne) {
     remplacer(id) {
       const c = banc.composants.find(x => x.id === id);
       if (!etat.consigne) return danger('Remplacement sans consignation', `On ne démonte jamais une pièce sous tension. Consigne le départ, vérifie l'absence de tension, puis remplace : ${c.libelle}.`, 2);
-      const utile = c.repare.some(r => panne.ouvre.includes(r));
-      c.repare.forEach(r => etat.ouverts.delete(r));
+      const utile = c.repare.some(r => panne.ouvre.includes(r) || panne.resistances?.[r] !== undefined || panne.soudes?.includes(r));
+      c.repare.forEach(r => { etat.ouverts.delete(r); etat.modifies.delete(r); etat.soudes.delete(r); });
       if (id === 'relais') etat.relais = false;
       etat.remplacements.push({ id, libelle: c.libelle, utile });
       noter(`Remplacement : ${c.libelle} (${c.duree} min)`, c.duree, utile ? 'info' : 'alerte');
@@ -315,7 +323,7 @@ function demarrer(vue, banc, panne) {
             <div class="selecteur trois" role="group" aria-label="Conducteur">
               ${P.pince.map(c => `<button type="button" data-pince="${c.id}" aria-pressed="${c.id === etat.pince}">${c.libelle}</button>`).join('')}
             </div>
-            <button id="pince" class="btn principal" type="button">Lancer un essai, pince en place</button>
+            <button id="pince" class="btn principal" type="button"${etat.suggestion === 'pince' ? ' data-suggere="true"' : ''}>Lancer un essai, pince en place</button>
           </div>` : ''}
 
         ${etat.onglet === 'actions' ? `
@@ -381,7 +389,7 @@ function demarrer(vue, banc, panne) {
       avancerGuide({ mesure: etat.mesure.fonction });
       afficher();
     });
-    vue.querySelector('#pince')?.addEventListener('click', () => { geste(); actions.pince(); apres(); });
+    vue.querySelector('#pince')?.addEventListener('click', () => { geste(); actions.pince(); if (etat.suggestion === 'pince') etat.suggestion = null; constater('pince'); apres(); });
     vue.querySelectorAll('[data-action]').forEach(b => b.addEventListener('click', () => {
       const a = b.dataset.action;
       geste();
@@ -409,6 +417,7 @@ function demarrer(vue, banc, panne) {
     if (geste === 'remplacer' && etat.consigne) f.add(`r:${detail}`);
     if (geste === 'collegue' && etat.marche) f.add('marche');
     if (geste === 'essai') f.add('appui');
+    if (geste === 'pince' && !etat.consigne) f.add(`p:${etat.pince}`);
     if (geste === 'rearmer' && !etat.relais && utile()) f.add('rearme-apres');
   };
   const fait = etape => {
@@ -421,6 +430,7 @@ function demarrer(vue, banc, panne) {
     if (etape.collegue) return f.has('marche');
     if (etape.rearmer) return f.has('rearme-apres') || (!etat.relais && utile() && f.has('deconsigne-apres'));
     if (etape.appui) return f.has('appui');
+    if (etape.pince !== undefined) return f.has(`p:${etape.pince}`);
     if (etape.essai) return etat.resolu;
     return true;
   };
@@ -434,6 +444,14 @@ function demarrer(vue, banc, panne) {
     if (etape.mesure && etape.mesure[0] !== 'ohm' && etat.consigne) {
       etat.onglet = 'actions'; etat.suggestion = 'consigner';
       return signaler('Pour mesurer une tension, le départ doit être en service : déconsigne d\'abord (onglet Actions).', 'indice', 'Indice');
+    }
+    if (etape.pince !== undefined && etat.consigne) {
+      etat.onglet = 'actions'; etat.suggestion = 'consigner';
+      return signaler('Pour mesurer un courant pendant un essai, le départ doit être en service : déconsigne d\'abord (onglet Actions).', 'indice', 'Indice');
+    }
+    if (etape.pince !== undefined) {
+      etat.onglet = 'pince'; etat.pince = etape.pince; etat.suggestion = 'pince';
+      return signaler(`${etape.pourquoi} La pince est en place sur ${P.pince[etape.pince].libelle} : lance l'essai.`, 'indice', 'Indice');
     }
     if (etape.mesure) {
       const [fonction, rouge, noir] = etape.mesure;

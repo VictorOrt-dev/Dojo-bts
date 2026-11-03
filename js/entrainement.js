@@ -50,7 +50,7 @@ function record(mode) {
 
 // Les 5 modes de l'accueil ; leur ordre dépend du profil (voir parcours.ordreModes).
 const MODES = {
-  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur 2 circuits, départ moteur et éclairage par télérupteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
+  banc: { titre: 'Banc de mesure', desc: 'Panne cachée sur 3 circuits : départ moteur direct, étoile-triangle, éclairage par télérupteur · multimètre, LoZ, pince, consignation', record: () => bancsReussis() },
   panne: { titre: 'Cas de panne', desc: 'Interventions pas à pas, de la VAT au poste HTA · par domaine', record: () => casSansFaute() },
   calcul: { titre: 'Calculs flash', desc: 'La valeur à lire avant de mesurer · par domaine et par niveau', record: () => record('calcul') },
   reco: { titre: 'Reconnaissance', desc: 'Symboles IEC, matériel, repérages · par domaine et par niveau', record: () => record('reco') },

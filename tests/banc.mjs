@@ -158,6 +158,38 @@ export default async function ({ t, url: U, navigateur }) {
     }
   }
 
+  t.section('I. Banc · troisième circuit : démarrage étoile-triangle');
+  {
+    const bancET = await (await fetch(U + 'data/banc-etoile-triangle.json')).json();
+    t.ok(bancET.pannes.length >= 4 && [1, 2, 3].every(n => bancET.pannes.some(x => x.niveau === n)), `étoile-triangle : ${bancET.pannes.length} pannes, niveaux I à III`);
+    await ouvrir('maintien-coupe'); await action('essai');
+    t.ok((await p.textContent('#resultat-banc')).includes('dès qu\'on relâche'), 'fil de maintien coupé : démarre tant que Marche est appuyé, s\'arrête au relâchement');
+    await ouvrir('basculement-colle'); await action('collegue');
+    t.ok((await p.textContent('.etat-armoire')).includes('KM3 étoilecollé') && (await p.textContent('#resultat-banc')).includes('ne bascule pas'), 'KM3 soudé : reste en étoile, KM3 collé, un seul claquement');
+    t.ok((await mesure('hz', 'z1', 'n0')).v === '225' && (await mesure('hz', 'z2', 'n0')).v === '0', 'collègue sur Marche : 225 V après le contact 67-68 de KT, 0 V après le verrouillage NF de KM3');
+    await action('consigner');
+    t.ok((await mesure('ohm', 'U2', 'e')).note.includes('continuité'), 'consigné : un pôle de KM3 reste passant au repos (contacts soudés)');
+    await ouvrir('enroulement-desequilibre');
+    await onglet('pince'); await p.click('[data-pince="0"]'); await p.click('#pince');
+    const l1 = await p.textContent('#resultat-banc');
+    await p.click('[data-pince="2"]'); await p.click('#pince');
+    t.ok(l1.includes('24,2') && (await p.textContent('#resultat-banc')).includes('31,2'), 'enroulement en court-circuit : courants déséquilibrés en triangle (24,2 A sur L1, 31,2 A sur L3)');
+    await action('consigner');
+    t.ok((await mesure('ohm', 'U1', 'U2')).v === '2,1' && (await mesure('ohm', 'V1', 'V2')).v === '1,3', 'consigné, couplage ouvert : U1-U2 = 2,1 Ω, V1-V2 = 1,3 Ω');
+    for (const id of bancET.pannes.map(x => x.id)) {
+      await ouvrir(id);
+      let gestes = 0;
+      while (!(await p.$('.bilan')) && gestes < 25) {
+        await p.click('.bouton-indice');
+        const suggere = await p.$('[data-suggere="true"]');
+        if (suggere) await suggere.click(); else await p.click('#mesurer');
+        gestes++;
+      }
+      const r = await etat();
+      t.ok(await p.isVisible('.bilan') && r.resolu && r.dangers === 0, `étoile-triangle · ${id} : réparée en ${gestes} gestes guidés par les indices, sans alerte de sécurité`);
+    }
+  }
+
   t.section('I. Banc · pannes graduées');
   {
     const { contexte: c, page: q } = await nouvellePage(navigateur);
