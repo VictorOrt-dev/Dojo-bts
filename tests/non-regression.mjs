@@ -347,7 +347,7 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(p.url().endsWith('#/entrainement/reco?n=2') && await p.isVisible('.choix-btn'), 'ancien lien #/dojo/reco?n=2 redirigé');
   const { contexte: ctx2, page: p2 } = await nouvellePage(navigateur, { profil: null });
   await ctx2.addInitScript(() => { if (!sessionStorage.getItem('fait')) { sessionStorage.setItem('fait', 1); localStorage.setItem('dojo:v1', JSON.stringify({ version: 1, xp: 777, fichesVues: {}, stats: {} })); } });
-  await p2.goto(U); await p2.waitForSelector('.plaque');
+  await p2.goto(U); await p2.waitForSelector('#sas'); await p2.click('#sas [data-profil="formation"]'); await p2.waitForSelector('.plaque');
   const cles = await p2.evaluate(() => ({ nouv: JSON.parse(localStorage.getItem('elec-learning:v1') || '{}').xp, anc: localStorage.getItem('dojo:v1') }));
   t.ok(cles.nouv === 777 && cles.anc === null && (await p2.textContent('.niveau-xp .valeur')) === '777', 'progression de l\'ancienne version reprise automatiquement (777 XP)');
   await p2.goto(U + '#/profil'); await p2.waitForSelector('#btn-export');
@@ -361,7 +361,9 @@ export default async function ({ t, url: U, navigateur }) {
   const fichiersRepo = fichiersDeLApp();
   const manquants = fichiersRepo.filter(f => !listeSw.includes(f)), enTrop = listeSw.filter(f => f !== './' && !fichiersRepo.includes(f));
   t.ok(!manquants.length && !enTrop.length, `sw.js liste exactement les ${fichiersRepo.length} fichiers de l'app` + (manquants.length ? ' — manquants : ' + manquants : '') + (enTrop.length ? ' — inexistants : ' + enTrop : ''));
-  await p2.goto(U + '#/entrainement'); await p2.evaluate(() => navigator.serviceWorker.ready); await p2.reload(); await p2.waitForSelector('.plaque');
+  // La sauvegarde importée n'avait pas de profil : le sas le demande une fois, puis l'app s'ouvre.
+  await p2.goto(U + '#/entrainement'); await p2.waitForSelector('#sas'); await p2.click('#sas [data-profil="formation"]'); await p2.waitForSelector('.plaque');
+  await p2.evaluate(() => navigator.serviceWorker.ready); await p2.reload(); await p2.waitForSelector('.plaque');
   t.ok(await p2.evaluate(() => !!navigator.serviceWorker.controller), 'service worker actif');
   await p2.goto(U + '#/profil'); await p2.waitForSelector('.ligne-etat');
   t.ok((await p2.textContent('main')).includes('Disponible hors connexion'), 'le Carnet indique « Disponible hors connexion »');

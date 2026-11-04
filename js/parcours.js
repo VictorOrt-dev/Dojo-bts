@@ -24,11 +24,10 @@ export function ordreModes(profil) {
   return profil === 'confirme' ? ['banc', 'isolement', 'panne', 'calcul', 'reco', 'examen'] : ['reco', 'calcul', 'panne', 'banc', 'isolement', 'examen'];
 }
 
-// Premier lancement : ni profil, ni progression (un utilisateur qui a déjà joué n'est pas renvoyé à l'accueil).
+// Sas d'entrée : tant qu'aucun profil n'est choisi, l'app reste verrouillée (même avec de la progression : un ancien
+// utilisateur choisit une fois son profil, sa progression est gardée).
 export function premierLancement(etat) {
-  if (etat.profil) return false;
-  const joue = Object.values(etat.stats ?? {}).some(m => m.sessions > 0);
-  return !joue && !(etat.xp > 0);
+  return !etat.profil;
 }
 
 const MODE_DE = { R: 'reco', C: 'calcul', P: 'panne' };

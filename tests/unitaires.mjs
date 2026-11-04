@@ -172,8 +172,9 @@ function parcoursGuide(t) {
   const etat = (autres = {}) => ({ ...etatParDefaut(), ...autres });
   const reco = n => ({ reco: { sessions: 1, meilleurScore: 9, derniereSession: 1, elements: {}, niveaux: { [n]: 9 } } });
 
-  t.ok(P.premierLancement(etat()) && !P.premierLancement(etat({ profil: 'debutant' })) && !P.premierLancement(etat({ xp: 40 }))
-    && !P.premierLancement(etat({ stats: reco(1) })), 'premier lancement : seulement sans profil ET sans progression (un ancien utilisateur n\'est pas renvoyé à l\'accueil)');
+  t.ok(P.premierLancement(etat()) && !P.premierLancement(etat({ profil: 'debutant' })) && P.premierLancement(etat({ xp: 40 }))
+    && P.premierLancement(etat({ stats: reco(1) })) && !P.premierLancement(etat({ xp: 40, profil: 'confirme' })),
+    'sas d\'entrée : verrouillé tant qu\'aucun profil n\'est choisi, même avec de la progression ; ouvert dès qu\'un profil existe');
 
   const d = etat({ profil: 'debutant' });
   const suite = [];

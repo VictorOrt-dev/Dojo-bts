@@ -10,10 +10,9 @@ export default async function ({ t, url: U, navigateur }) {
   const qs = await (await fetch(U + 'data/reconnaissance.json')).json();
 
   // Premier lancement : stockage vide → « Où en es-tu ? »
-  await p.goto(U); await p.waitForSelector('[data-profil]');
-  t.ok(p.url().endsWith('#/bienvenue') && await p.locator('.mode-profil[data-profil]').count() === 2 && await p.locator('.choix-entre-deux[data-profil="formation"]').count() === 1
-    && (await p.textContent('main')).includes('Grand débutant') && (await p.textContent('main')).includes('Confirmé / Pro'),
-    'premier lancement : « Où en es-tu ? » en deux grands choix (Grand débutant, Confirmé / Pro), « Entre les deux » en option discrète');
+  await p.goto(U); await p.waitForSelector('#sas [data-profil]');
+  t.ok(await p.locator('#sas .mode-profil[data-profil]').count() === 3 && (await p.textContent('#sas')).includes('Grand débutant') && (await p.textContent('#sas')).includes('Confirmé / Pro'),
+    'premier lancement : sas « Choisis ton point de départ » à 3 choix (Grand débutant, En formation, Confirmé / Pro)');
   await p.click('[data-profil="debutant"]'); await p.waitForSelector('.socle-jeu');
   t.ok((await etat()).profil === 'debutant' && p.url().endsWith('#/entrainement/socle'), 'choix « Grand débutant » enregistré, direction le socle des 4 piliers');
   await p.goto(U + '#/entrainement'); await p.waitForSelector('.prochaine');
@@ -83,11 +82,12 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(p.erreurs.length === 0, 'parcours guidé : aucune erreur dans la console' + (p.erreurs.length ? ' — ' + p.erreurs.join(' | ') : ''));
   await contexte.close();
 
-  // Un utilisateur qui a déjà de la progression n'est jamais renvoyé vers « Où en es-tu ? »
+  // Un utilisateur qui a déjà de la progression mais pas de profil choisit une fois son profil ; sa progression reste.
   const { contexte: c2, page: p2 } = await nouvellePage(navigateur, { profil: null });
   await c2.addInitScript(() => { if (!localStorage.getItem('elec-learning:v1')) localStorage.setItem('elec-learning:v1', JSON.stringify({ version: 1, xp: 350, stats: {} })); });
-  await p2.goto(U); await p2.waitForSelector('.plaque');
-  t.ok(p2.url().endsWith('#/entrainement') || !p2.url().includes('bienvenue'), 'utilisateur existant (350 XP, pas de profil) : accueil direct, sans questionnaire');
+  await p2.goto(U); await p2.waitForSelector('#sas');
+  await p2.click('#sas [data-profil="formation"]'); await p2.waitForSelector('.plaque');
+  t.ok(await p2.evaluate(() => JSON.parse(localStorage.getItem('elec-learning:v1')).xp) === 350, 'utilisateur existant (350 XP, pas de profil) : le sas une seule fois, progression gardée');
   await c2.close();
 
   // ---------- À réviser : une erreur revient, puis s'espace ----------

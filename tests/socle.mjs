@@ -11,12 +11,9 @@ export default async function ({ t, url: U, navigateur }) {
   // ---------- Grand débutant : socle complet ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur, { profil: null });
-    await p.goto(U); await p.waitForSelector('.mode-profil');
-    const cartes = await p.$$eval('.mode-profil .mode-titre', l => l.map(x => x.textContent.trim()));
-    t.ok(p.url().endsWith('#/bienvenue') && cartes.join() === 'Grand débutant,Confirmé / Pro' && await p.isVisible('.choix-entre-deux'),
-      `premier lancement : deux grands choix (${cartes.join(' · ')}) et « Entre les deux » discret`);
-    const h = await p.evaluate(() => document.documentElement.scrollHeight / innerHeight);
-    t.ok(h < 1.7, `écran sobre : ${h.toFixed(2)} hauteur d'écran`);
+    await p.goto(U); await p.waitForSelector('#sas .mode-profil');
+    const cartes = await p.$$eval('#sas .mode-profil .mode-titre', l => l.map(x => x.textContent.trim()));
+    t.ok(cartes.join() === 'Grand débutant,En formation,Confirmé / Pro', `premier lancement : sas à 3 choix (${cartes.join(' · ')})`);
     await p.click('[data-profil="debutant"]'); await p.waitForSelector('.socle-jeu');
     t.ok((await lire(p)).profil === 'debutant' && net(await p.textContent('.titre-chapitre')).includes('La tension'), '« Grand débutant » : profil mémorisé, pilier 1 « La tension »');
 
@@ -74,7 +71,7 @@ export default async function ({ t, url: U, navigateur }) {
   // ---------- Grand débutant qui quitte le socle en route ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur, { profil: null });
-    await p.goto(U); await p.waitForSelector('.mode-profil'); await p.click('[data-profil="debutant"]'); await p.waitForSelector('.socle-jeu');
+    await p.goto(U); await p.waitForSelector('#sas .mode-profil'); await p.click('[data-profil="debutant"]'); await p.waitForSelector('.socle-jeu');
     await p.goto(U + '#/entrainement'); await p.waitForSelector('.carte-socle');
     t.ok((await p.getAttribute('.carte-socle', 'href')) === '#/entrainement/socle', 'socle quitté en route : l\'accueil propose « Le socle : 4 piliers en 3 minutes » en tête');
     await contexte.close();
@@ -83,23 +80,22 @@ export default async function ({ t, url: U, navigateur }) {
   // ---------- Confirmé / Pro : accès direct ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur, { profil: null });
-    await p.goto(U); await p.waitForSelector('.mode-profil'); await p.click('[data-profil="confirme"]'); await p.waitForSelector('.prochaine');
+    await p.goto(U); await p.waitForSelector('#sas .mode-profil'); await p.click('[data-profil="confirme"]'); await p.waitForSelector('.prochaine');
     const e = await lire(p);
     t.ok(e.profil === 'confirme' && !e.socle && !(await p.$('.carte-socle')) && (await p.$$eval('.modes .mode', l => l[0].getAttribute('href'))) === '#/entrainement/banc',
       '« Confirmé / Pro » : accueil direct, ni socle ni carte, le banc en premier mode');
     // Réinitialisation : retour au choix du profil
     p.on('dialog', d => d.accept());
-    await p.goto(U + '#/profil'); await p.click('button:has-text("Tout effacer")'); await p.waitForTimeout(400);
-    await p.goto(U + '#/entrainement'); await p.waitForSelector('.mode-profil');
-    t.ok(p.url().endsWith('#/bienvenue') && !(await lire(p)).profil, 'après « Tout effacer » : l\'écran de choix du profil revient');
+    await p.goto(U + '#/profil'); await p.click('button:has-text("Tout effacer")'); await p.waitForSelector('#sas');
+    t.ok(!(await lire(p)).profil, 'après « Tout effacer » : le sas de choix du profil revient aussitôt');
     await contexte.close();
   }
 
-  // ---------- Entre les deux ----------
+  // ---------- En formation ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur, { profil: null });
-    await p.goto(U); await p.waitForSelector('.choix-entre-deux'); await p.click('.choix-entre-deux'); await p.waitForSelector('.prochaine');
-    t.ok((await lire(p)).profil === 'formation' && !(await p.$('.carte-socle')), '« Entre les deux » : profil « En formation », accueil direct');
+    await p.goto(U); await p.waitForSelector('#sas [data-profil="formation"]'); await p.click('#sas [data-profil="formation"]'); await p.waitForSelector('.prochaine');
+    t.ok((await lire(p)).profil === 'formation' && !(await p.$('.carte-socle')), '« En formation » : accueil direct, sans socle imposé');
     await contexte.close();
   }
 }

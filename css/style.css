@@ -1324,3 +1324,41 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .fil-neutre .fil-trait { background: #60a5fa; }
 .fil-terre .fil-trait { background: repeating-linear-gradient(45deg, #16a34a 0 5px, #facc15 5px 10px); }
 .socle-recap { margin-top: 6px; }
+
+/* ---------- Sas d'entrée : choix du profil obligatoire, plein écran ---------- */
+html.sas-actif, html.sas-actif body { overflow: hidden; }
+.sas {
+  position: fixed; inset: 0; z-index: 1000; overflow-y: auto; overscroll-behavior: contain;
+  padding: max(28px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgb(110 149 255 / .22), transparent 60%),
+    radial-gradient(80% 40% at 100% 100%, rgb(44 210 190 / .10), transparent 70%),
+    var(--fond);
+  color: var(--texte-1);
+  transition: opacity .36s ease, transform .36s ease;
+}
+.sas.se-replie { opacity: 0; transform: translateY(-3%) scale(.985); pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .sas { transition: none; } }
+.sas-contenu { max-width: 560px; margin: 0 auto; display: grid; gap: 14px; }
+.sas-marque { margin: 0; font: 700 12px/1.2 var(--mono); color: var(--lien); text-transform: uppercase; letter-spacing: .08em; }
+.sas-titre { margin: 0; font: 800 clamp(40px, 12vw, 56px)/1 var(--texte); letter-spacing: -.045em; }
+.sas-titre em { font-style: normal; color: var(--texte-2); }
+.sas-accroche { margin: 0; font: 700 20px/1.3 var(--texte); letter-spacing: -.01em; }
+.sas .bienvenue-intro p { font-size: 15px; color: var(--texte-2); margin: 0 0 6px; }
+.sas-choix { display: grid; gap: 12px; }
+.sas-choix .mode-profil { min-height: 96px; }
+.sas-choix .mode-profil.choisi { box-shadow: inset 0 0 0 2px var(--lien); }
+.sas-note { margin: 0; font-size: 13px; color: var(--texte-2); }
+
+/* Couleurs du profil sur l'accueil */
+:root[data-profil="debutant"] { --accent-profil: 255 170 60; }
+:root[data-profil="formation"] { --accent-profil: 90 130 255; }
+:root[data-profil="confirme"] { --accent-profil: 44 210 190; }
+.pastille-profil {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; margin: 4px 0 2px; border-radius: 999px;
+  background: rgb(var(--accent-profil, 110 149 255) / .14); box-shadow: inset 0 0 0 1px rgb(var(--accent-profil, 110 149 255) / .55);
+  color: var(--texte-1); font: 700 14px/1 var(--texte); text-decoration: none;
+}
+.pastille-profil-point { width: 10px; height: 10px; border-radius: 50%; background: rgb(var(--accent-profil, 110 149 255)); }
+:root[data-profil] .prochaine { box-shadow: inset 0 0 0 1px rgb(var(--accent-profil) / .6), 0 0 0 4px rgb(var(--accent-profil) / .10); }
+.sas:focus { outline: none; }

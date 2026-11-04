@@ -5,6 +5,7 @@ import { carteNiveau, TAILLE_SESSION } from './entrainement.js';
 import { statsMode } from './xp.js';
 import { themeActuel, changerTheme, appliquerTheme } from './theme.js';
 import { LEXIQUE } from './lexique.js';
+import { appliquerProfil } from './bienvenue.js';
 import { frontispice, titreSection, ligneEtat, deuxChiffres, typo } from './mise-en-page.js';
 import { enRevision } from './leitner.js';
 import { vitrine, verifierBadges } from './insignes.js';
@@ -185,6 +186,7 @@ export async function renderProfil({ vue, definirTitre }) {
 
   vue.querySelectorAll('[data-profil]').forEach(b => b.addEventListener('click', () => {
     stockage.modifier(e => { e.profil = b.dataset.profil; });
+    appliquerProfil(b.dataset.profil);
     renderProfil({ vue, definirTitre });
   }));
 
@@ -220,6 +222,7 @@ export async function renderProfil({ vue, definirTitre }) {
     if (!confirm('Effacer définitivement ta progression ? Pense à exporter avant.')) return;
     stockage.toutEffacer();
     appliquerTheme();
-    renderProfil({ vue, definirTitre });
+    // Plus de profil : le sas d'entrée revient aussitôt (et à chaque rechargement tant qu'il n'y a pas de choix).
+    location.hash = '#/entrainement';
   });
 }

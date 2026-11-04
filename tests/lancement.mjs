@@ -23,9 +23,9 @@ export default async function ({ t, url: U, navigateur }) {
     const phrases = intro.split(/(?<=[.!?])\s+(?=[A-ZÉÈ])/);
     t.ok(phrases.length === 2 && /simulateur|terrain/.test(intro) && intro.includes('hors connexion') && intro.includes('sans compte'),
       'premier lancement : l\'objectif du simulateur en 2 phrases (terrain, hors connexion, sans compte)');
-    t.ok(await p.locator('.mode-profil[data-profil]').count() === 2 && await p.locator('.choix-entre-deux').count() === 1
-      && net(await p.textContent('main')).includes('12 questions') && net(await p.textContent('main')).includes('4 piliers'),
-      'puis « Où en es-tu ? » : deux grands choix (socle des 4 piliers / test de 12 questions) et « Entre les deux » discret');
+    t.ok(await p.locator('#sas .mode-profil[data-profil]').count() === 3
+      && net(await p.textContent('#sas')).includes('12 questions') && net(await p.textContent('#sas')).includes('4 piliers'),
+      'sas « Choisis ton point de départ » : 3 grands choix (socle des 4 piliers / formation / test de 12 questions)');
     await contexte.close();
   }
 

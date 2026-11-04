@@ -18,6 +18,7 @@ const SUITES = {
   'apprentissage': { fichier: './apprentissage.mjs', navigateur: true, titre: 'Rappels d\'erreurs dans les séances et examen blanc (navigateur iPhone 13)' },
   'debutant': { fichier: './debutant.mjs', navigateur: true, titre: 'Grands débutants : lexique, « Je ne sais pas encore », examen calibré (navigateur iPhone 13)' },
   'terrain': { fichier: './terrain.mjs', navigateur: true, titre: 'Accessibilité et terrain : couleurs, sauvegarde, banc libre, schéma touchable (navigateur iPhone 13)' },
+  'sas': { fichier: './sas.mjs', navigateur: true, titre: 'Sas d\'entrée : verrouillé sans profil (navigateur iPhone 13)' },
   'socle': { fichier: './socle.mjs', navigateur: true, titre: 'Premier lancement, socle des 4 piliers et mini-quiz (navigateur iPhone 13)' },
   'insignes': { fichier: './insignes.mjs', navigateur: true, titre: 'Insignes de terrain et séries (navigateur iPhone 13)' },
   'lancement': { fichier: './lancement.mjs', navigateur: true, titre: 'Prêt pour le lancement : prise en main, données locales, ergonomie iPhone' },

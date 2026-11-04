@@ -8,7 +8,7 @@ import { DIFFICULTES } from './difficulte.js';
 import { esc } from './util.js';
 import { DOMAINES, puceDomaine } from './domaines.js';
 import * as stockage from './storage.js';
-import { prochaineSeance, ordreModes, conseilBanc } from './parcours.js';
+import { prochaineSeance, ordreModes, conseilBanc, PROFILS } from './parcours.js';
 import { aReviser } from './leitner.js';
 import { recommandation } from './guidage.js';
 import { indicateurSerie, verifierBadges, vibrer } from './insignes.js';
@@ -100,6 +100,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
   vue.innerHTML = `
     <header class="salut">
       <p class="salut-date">${esc(jour)}</p>
+      ${(p => p ? `<a class="pastille-profil" href="#/profil" aria-label="Ton profil : ${esc(p.nom)} (modifiable dans le Carnet)"><span class="pastille-profil-point" aria-hidden="true"></span>${esc(p.nom)}</a>` : '')(PROFILS.find(x => x.id === etat.profil))}
       ${indicateurSerie(etat)}
       <h2 class="salut-titre">${mot}, <em>${esc(n.nom.toLowerCase())}.</em></h2>
       <p class="devise">Simulateur de terrain de l'électricien</p>

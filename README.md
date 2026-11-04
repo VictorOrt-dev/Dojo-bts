@@ -51,7 +51,7 @@ js/sauvegarde.js        contrôle strict des données (import refusé à la moin
 js/profil.js            progression, export/import, remise à zéro
 js/entrainement.js      accueil : « Ta prochaine séance », modes dans l'ordre du profil, carte de l'opérateur ; en-tête de séance, rapport, toast
 js/parcours.js          parcours guidé, logique pure : profils, prochaine séance, mentions « Conseillé après… », règle du positionnement
-js/bienvenue.js         premier lancement : « Où en es-tu ? » (Grand débutant, Confirmé / Pro ; « Entre les deux » discret)
+js/bienvenue.js         sas d'entrée : choix du profil obligatoire, plein écran (Grand débutant, En formation, Confirmé / Pro)
 js/socle.js             le socle : 4 piliers manipulables (tension, courant, résistance, phase / neutre / terre) et mini-quiz de 3 questions
 js/positionnement.js    test de positionnement (12 questions : reconnaissance, calculs, cas de panne ; sans XP)
 js/examen.js            Bilan · examen blanc (15 questions et calculs chronométrés, calibrés sur le niveau, sans aide, bilan par compétence)
@@ -119,6 +119,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/apprentissage.mjs` | **Q** : une erreur d'il y a 4 jours revient en 6e question d'une séance de niveau II, marquée « Rappel d'erreur » ; une erreur de 12 h n'y revient pas ; calculs rappelés avec de nouvelles valeurs ; filtre de domaine respecté. **R** : examen blanc joué au doigt (chronomètre, ni verdict ni fiche pendant l'épreuve, 10/15 → 13,5/20, bilan par compétence, corrigé, erreurs en révision, record à l'accueil, arrêt au bout du temps) |
 | `tests/debutant.mjs` | **S** : lexique (mots touchables sans doublon ni bouton imbriqué, bulle, page, section du Carnet, banc), « Je ne sais pas encore » en reconnaissance et en calculs (réponse, fiche dépliée, pas d'XP perdu, révision), examen calibré (aucun niveau III pour un débutant, examen complet au choix, pas de lexique pendant l'épreuve), sigles de l'accueil en clair |
 | `tests/terrain.mjs` | **T** : couleurs écrites sous l'image du câble, rappel de sauvegarde (affichage, export, « Plus tard », une fois par mois, rien pour un nouvel utilisateur), banc libre (pas de chrono ni de rapport ni de statistiques, idées, retour), pointes posées en touchant le schéma des 3 circuits, nouvelles fiches et cas |
+| `tests/sas.mjs` | **V** : sans profil, 7 entrées verrouillées (sas plein écran, aucun écran rendu, en-tête / écran / onglets inertes), seulement 3 choix ≥ 44 px, Échap et onglets sans effet ; au toucher, profil enregistré tout de suite, repli, page demandée ouverte aux couleurs du profil, pastille ; rechargement sans sas ; « Tout effacer » le fait revenir ; avec profil, jamais de sas |
 | `tests/socle.mjs` | **O** : premier lancement en deux grands choix, socle joué au doigt (4 manipulations, valeurs affichées), mini-quiz (erreur sans pénalité, révision, score), accueil puis examen calibré, carte « socle » si quitté en route, Confirmé / Pro direct, retour du choix après « Tout effacer », « Entre les deux » |
 | `tests/banc.mjs` | **I** : les pannes des 3 circuits du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
 
@@ -558,11 +559,17 @@ la cause, la démarche d'un pro et le piège du cas.
 
 ## Premier lancement et socle des 4 piliers (`js/bienvenue.js`, `js/socle.js`)
 
-- **« Où en es-tu ? »**, écran sobre (moins d'une hauteur d'écran et demie) : deux grands choix, **Grand débutant**
-  (les bases, sans jargon) et **Confirmé / Pro** (modes avancés et banc en premier, test de 12 questions proposé).
-  « Entre les deux ? » reste possible en option discrète (profil « En formation » : CAP, Bac Pro, BTS, alternance),
-  pour ne pas forcer un élève en formation à choisir entre deux extrêmes. Mémorisé dans `profil` ; il revient après
-  « Tout effacer ».
+- **Sas d'entrée** (`ouvrirSas`) : tant qu'aucun profil n'est enregistré, quel que soit le lien d'arrivée (accueil,
+  banc, examen, Carnet, ancien lien), le routeur ne rend aucun écran et un sas plein écran recouvre tout
+  (`role="dialog"`, `aria-modal`) : « Bienvenue sur le chantier. Choisis ton point de départ pour adapter
+  l'expérience. » En-tête, écran et onglets sont inertes (`inert`, `aria-hidden`) ; ni croix, ni « Plus tard », ni
+  Échap. Trois grands blocs (≥ 96 px) : **Grand débutant**, **En formation** (CAP, Bac Pro, BTS, alternance),
+  **Confirmé / Pro**. Au toucher : profil enregistré aussitôt, le sas se replie (fondu de 0,36 s, instantané si
+  « réduire les animations »), puis l'app s'ouvre sur la page demandée, le grand débutant sur le socle. Un ancien
+  utilisateur sans profil passe une fois par le sas, sa progression est gardée. « Tout effacer » fait revenir le sas
+  aussitôt, et à chaque rechargement tant qu'aucun choix n'est fait.
+- **Couleurs du profil** (`html[data-profil]`) : ambre pour le grand débutant, bleu en formation, turquoise pour le
+  confirmé ; pastille du profil en tête de l'accueil (vers le Carnet) et liseré de la carte « Ta prochaine séance ».
 - **Le socle** (`#/entrainement/socle`), pour le grand débutant juste après son choix : les 4 piliers, chacun avec son
   unité, une image simple (pression, débit, frein, aller / retour / sortie de secours), un texte de 50 mots au plus,
   « À retenir », et une **manipulation** :
@@ -680,6 +687,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Grands débutants : lexique tactile, « Je ne sais pas encore », niveau socle, prédiction au banc, examen calibré, accueil en clair
 - [x] Accessibilité et terrain : couleurs en toutes lettres, rappel de sauvegarde mensuel, banc libre, pointes posées sur le schéma, IRVE, photovoltaïque, LED, variateurs, vérifications d'installation
 - [x] Premier lancement en deux grands choix et socle des 4 piliers avec mini-quiz
+- [x] Sas d'entrée obligatoire : choix du profil avant tout accès, couleurs du profil
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)

@@ -9,7 +9,7 @@ import { renderReco } from './quiz.js';
 import { renderCalcul } from './calcul.js';
 import { renderPanne } from './panne.js';
 import { renderBanc } from './banc.js';
-import { renderBienvenue } from './bienvenue.js';
+import { ouvrirSas, appliquerProfil } from './bienvenue.js';
 import { renderPositionnement } from './positionnement.js';
 import { renderRevision } from './revision.js';
 import { renderIsolement } from './isolement.js';
@@ -62,7 +62,21 @@ function renderErreur(err, vue) {
   console.error(err);
 }
 
+// Aller vers une route, même si c'est déjà celle de la barre d'adresse (le hashchange ne partirait pas).
+function aller(hash) {
+  if (location.hash === hash) router(); else location.hash = hash;
+}
+
 async function router() {
+  // Sas d'entrée : sans profil, aucun écran n'est rendu. Le sas recouvre tout jusqu'au choix.
+  if (premierLancement(stockage.lire())) {
+    ouvrirSas(profil => {
+      if (profil === 'debutant') return aller('#/entrainement/socle');
+      const h = location.hash;
+      aller(!h || h.startsWith('#/bienvenue') ? '#/entrainement' : h);
+    });
+    return;
+  }
   nettoyages.forEach(f => f());
   nettoyages = [];
 
@@ -81,10 +95,8 @@ async function router() {
   const ctx = { vue: ecran, definirTitre, id, params, auNettoyage: f => nettoyages.push(f) };
   try {
     switch (page) {
-      case 'bienvenue': renderBienvenue(ctx); break;
+      case 'bienvenue': location.replace('#/entrainement'); break;   // le choix du profil se fait dans le sas
       case 'entrainement':
-        // Premier lancement : « Où en es-tu ? » avant l'accueil.
-        if (!id && premierLancement(stockage.lire())) { location.replace('#/bienvenue'); break; }
         if (!id) await renderEntrainement(ctx);
         else if (id === 'positionnement') await renderPositionnement(ctx);
         else if (id === 'revision') await renderRevision(ctx);
@@ -126,6 +138,7 @@ window.addEventListener('hashchange', () => {
 });
 
 appliquerTheme();
+appliquerProfil();
 stockage.demanderPersistance();
 brancherLexique();
 router();
