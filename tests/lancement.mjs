@@ -10,7 +10,7 @@ const net = x => String(x).replace(/[\s  ]+/g, ' ').trim();
 const ECRANS = ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=1', '#/entrainement/calcul?n=2', '#/entrainement/panne',
   '#/entrainement/panne?c=moteur-grogne', '#/entrainement/banc?panne=fu1-fondu', '#/entrainement/banc?circuit=eclairage', '#/entrainement/isolement',
   '#/entrainement/isolement?s=iso-moteur-variateur', '#/entrainement/revision', '#/entrainement/memos', '#/entrainement/positionnement', '#/profil',
-  '#/entrainement/banc?circuit=etoile-triangle', '#/entrainement/isolement?s=iso-moteur-vernis', '#/entrainement/examen', '#/entrainement/banc?tuto=1', '#/entrainement/lexique'];
+  '#/entrainement/banc?circuit=etoile-triangle', '#/entrainement/isolement?s=iso-moteur-vernis', '#/entrainement/examen', '#/entrainement/banc?tuto=1', '#/entrainement/lexique', '#/entrainement/banc?libre=1'];
 
 export default async function ({ t, url: U, navigateur }) {
   t.section('P. Lancement : première prise en main, 3 blocs, données locales, ergonomie iPhone');

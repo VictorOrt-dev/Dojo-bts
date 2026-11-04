@@ -11,9 +11,9 @@ import { frontispice } from './mise-en-page.js';
 export const LEXIQUE = [
   { id: 'tension', terme: 'Tension', motifs: [{ re: 'tensions?', i: true }], def: 'Différence de « pression » électrique entre deux points, en volts (V). C\'est elle qui pousse le courant.' },
   { id: 'courant', terme: 'Courant', motifs: [{ re: 'courants?', i: true }, { re: 'intensités?', i: true }], def: 'Électricité qui circule dans un circuit fermé, en ampères (A). C\'est lui qui chauffe, brûle et électrise.' },
-  { id: 'phase', terme: 'Phase', motifs: [{ re: 'phases?', i: true }], def: 'Conducteur sous tension par rapport à la terre, marron, noir ou gris. Dangereux au toucher.' },
-  { id: 'neutre', terme: 'Neutre', motifs: [{ re: 'neutres?', i: true }], def: 'Conducteur bleu clair par où le courant revient. Proche de 0 V en temps normal, jamais touché sans VAT.' },
-  { id: 'pe', terme: 'PE (terre de protection)', motifs: [{ re: 'PE' }, { re: 'vert-jaune', i: true }, { re: 'terre de protection', i: true }], def: 'Conducteur vert-jaune relié aux carcasses métalliques : il évacue un courant de défaut vers la terre.' },
+  { id: 'phase', terme: 'Phase', motifs: [{ re: 'phases?', i: true }], def: 'Conducteur sous tension par rapport à la terre : marron (BN), noir (BK) ou gris (GY). Dangereux au toucher.' },
+  { id: 'neutre', terme: 'Neutre', motifs: [{ re: 'neutres?', i: true }], def: 'Conducteur bleu clair (BU) par où le courant revient. Proche de 0 V, jamais touché sans VAT.' },
+  { id: 'pe', terme: 'PE (terre de protection)', motifs: [{ re: 'PE' }, { re: 'vert-jaune', i: true }, { re: 'terre de protection', i: true }], def: 'Conducteur vert-jaune (GNYE) relié aux carcasses métalliques : il évacue un courant de défaut vers la terre.' },
   { id: 'multimetre', terme: 'Multimètre', motifs: [{ re: 'multimètres?', i: true }], def: 'Appareil qui mesure tension (V), courant (A) et résistance (Ω). Pointe rouge sur le point testé, COM en référence.' },
   { id: 'loz', terme: 'LoZ', motifs: [{ re: 'LoZ' }], def: 'Fonction basse impédance du multimètre : une tension fantôme tombe à 0 V, une vraie tension reste.' },
   { id: 'fantome', terme: 'Tension fantôme', motifs: [{ re: 'tensions? fantômes?', i: true }, { re: 'fantômes?', i: true }], def: 'Tension lue sur un fil coupé ou en l\'air, captée des fils voisins. Elle disparaît en LoZ.' },
@@ -43,6 +43,9 @@ export const LEXIQUE = [
   { id: 'bornier', terme: 'Bornier', motifs: [{ re: 'borniers?', i: true }], def: 'Rangée de bornes repérées (X1 : 1, X1 : 2…) où arrivent les câbles : un point de mesure idéal.' },
   { id: 'variateur', terme: 'Variateur', motifs: [{ re: 'variateurs?', i: true }], def: 'Électronique qui règle la vitesse d\'un moteur. Ses condensateurs restent chargés après la coupure.' },
   { id: 'court-circuit', terme: 'Court-circuit', motifs: [{ re: 'courts?-circuits?', i: true }], def: 'Contact direct entre deux conducteurs : courant énorme, arc, la protection doit couper aussitôt.' },
+  { id: 'irve', terme: 'IRVE (borne de recharge)', motifs: [{ re: 'IRVE' }, { re: 'bornes? de recharge', i: true }], def: 'Infrastructure de recharge de véhicules électriques. Au-delà de 3,7 kW, posée par un installateur qualifié IRVE.' },
+  { id: 'pv', terme: 'Photovoltaïque (PV)', motifs: [{ re: 'PV' }, { re: 'photovoltaïques?', i: true }], def: 'Panneaux qui produisent du courant continu dès qu\'il fait jour, même onduleur coupé.' },
+  { id: 'onduleur', terme: 'Onduleur', motifs: [{ re: 'onduleurs?', i: true }], def: 'Transforme le courant continu (panneaux, batterie) en alternatif 230 / 400 V pour le réseau.' },
   { id: 'surcharge', terme: 'Surcharge', motifs: [{ re: 'surcharges?', i: true }], def: 'Courant un peu trop fort mais durable (trop d\'appareils, moteur freiné) : le câble chauffe lentement.' }
 ];
 

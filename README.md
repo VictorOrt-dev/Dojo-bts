@@ -54,6 +54,8 @@ js/parcours.js          parcours guidé, logique pure : profils, prochaine séan
 js/bienvenue.js         premier lancement : « Où en es-tu ? » (3 profils)
 js/positionnement.js    test de positionnement (12 questions : reconnaissance, calculs, cas de panne ; sans XP)
 js/examen.js            Bilan · examen blanc (15 questions et calculs chronométrés, calibrés sur le niveau, sans aide, bilan par compétence)
+js/couleurs.js          couleurs en toutes lettres (daltonisme) : légende BN / BU / GNYE… sous les images colorées
+js/rappel-sauvegarde.js rappel mensuel d'export de la sauvegarde (bandeau de l'accueil)
 js/lexique.js           lexique tactile : 35 termes définis en 20 mots au plus, mots touchables sur tous les écrans, page Lexique
 js/normes.js            éditions des normes citées, ajoutées d'elles-mêmes à la ligne « Réf. »
 js/mise-a-jour.js       enregistrement du service worker, bandeau « Nouvelle version prête »
@@ -108,13 +110,14 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, prédiction, geste courant, surbrillance, écarts rattrapés). **U14** : débutants (lexique, recherche des termes, couverture du niveau I, reclassements, niveau socle, examen calibré) |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, prédiction, geste courant, surbrillance, écarts rattrapés). **U14** : débutants (lexique, recherche des termes, couverture du niveau I, reclassements, niveau socle, examen calibré). **U15** : couleurs en toutes lettres, rappel de sauvegarde, points des schémas, nouveaux contenus |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, aides du multimètre, volets en accordéon, appareil mémorisé, guide « Première intervention » joué au doigt de bout en bout (déclenchement au premier accès, surbrillances, fin, bouton « ? Guide du banc », « Quitter le guide »), aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
 | `tests/service-worker.mjs` | **K** : service worker en conditions de production (version injectée) : ouverture depuis le cache avec un réseau à 8 s par requête, hors ligne, mise à jour en arrière-plan avec bandeau, ancien cache supprimé |
 | `tests/apprentissage.mjs` | **Q** : une erreur d'il y a 4 jours revient en 6e question d'une séance de niveau II, marquée « Rappel d'erreur » ; une erreur de 12 h n'y revient pas ; calculs rappelés avec de nouvelles valeurs ; filtre de domaine respecté. **R** : examen blanc joué au doigt (chronomètre, ni verdict ni fiche pendant l'épreuve, 10/15 → 13,5/20, bilan par compétence, corrigé, erreurs en révision, record à l'accueil, arrêt au bout du temps) |
 | `tests/debutant.mjs` | **S** : lexique (mots touchables sans doublon ni bouton imbriqué, bulle, page, section du Carnet, banc), « Je ne sais pas encore » en reconnaissance et en calculs (réponse, fiche dépliée, pas d'XP perdu, révision), examen calibré (aucun niveau III pour un débutant, examen complet au choix, pas de lexique pendant l'épreuve), sigles de l'accueil en clair |
+| `tests/terrain.mjs` | **T** : couleurs écrites sous l'image du câble, rappel de sauvegarde (affichage, export, « Plus tard », une fois par mois, rien pour un nouvel utilisateur), banc libre (pas de chrono ni de rapport ni de statistiques, idées, retour), pointes posées en touchant le schéma des 3 circuits, nouvelles fiches et cas |
 | `tests/banc.mjs` | **I** : les pannes des 3 circuits du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
@@ -576,6 +579,33 @@ la cause, la démarche d'un pro et le piège du cas.
 - **Accueil en clair** : les 3 blocs et les modes écrivent les sigles en toutes lettres (très basse tension, haute
   tension HTA 20 000 V, monophasé 230 V, vérification d'absence de tension).
 
+## Accessibilité, sauvegarde et terrain
+
+- **Couleurs en toutes lettres** (`js/couleurs.js`) : toute image dont les couleurs portent l'information reçoit sous
+  le visuel la légende de ses couleurs avec le code IEC 60757 (« Fil du haut : Marron (BN) », « Bleu clair (BU) »,
+  « Vert-jaune (GNYE) », « Noir (BK) »…) : câble, capteur 3 fils, arrêt d'urgence, témoins et boutons rouges. La
+  légende suit l'image (`IMAGES_COULEURS`) : séance, révision, examen blanc et positionnement l'affichent. Le lexique
+  et la fiche « Tension, courant, phase, neutre, terre » donnent aussi les codes. L'audit refuse une image qui porte
+  une teinte signifiante (`TEINTES_SIGNIFIANTES`) sans légende.
+- **Rappel de sauvegarde mensuel** (`js/rappel-sauvegarde.js`) : s'il y a une progression à perdre et que ni export,
+  ni rappel, ni début d'activité ne datent de moins de 30 jours, l'accueil affiche un bandeau discret : « Exporter
+  maintenant » (le même export JSON que le Carnet) ou « Plus tard ». Le rappel montré est daté
+  (`preferences.rappelSauvegarde`) : il ne revient pas avant un mois. Une ancienne sauvegarde sans aucune date commence
+  à compter sans bandeau.
+- **Banc libre** (`#/entrainement/banc?libre=1`, bouton « Banc libre, sans panne ») : le circuit choisi, sain ; ni
+  chrono, ni compteur d'alertes, ni rapport, ni statistiques ; un essai réussi ne clôt rien. « Une idée ? » remplace
+  l'indice et propose 6 pistes d'exploration. « Quitter le banc libre » revient à une panne cachée.
+- **Pointes posées sur le schéma** : à côté de chaque pointe, un viseur (46 px) ouvre le schéma en grand ; toucher le
+  dessin pose la pointe sur le point de mesure le plus proche (à 32 px près), les pointes déjà posées sont montrées.
+  Coordonnées dans chaque circuit (`schemaTaille`, `schemaPoints`, unités du viewBox). Les listes restent disponibles
+  (clavier, lecteur d'écran).
+- **Contenus du bâtiment** : 5 questions (borne de recharge et qualification IRVE, différentiel type B d'une borne,
+  photovoltaïque toujours sous tension côté continu, alimentation de LED, différentiel en amont d'un variateur), avec
+  leurs visuels ; fiches « Bornes de recharge (IRVE) et photovoltaïque » et « Vérifier une installation : PE,
+  différentiel, terre » ; 3 calculs (continuité du PE, seuil d'un différentiel en % de IΔn, tension de contact sur une
+  terre mesurée) et 2 cas (continuité du PE à la mise en service, test d'un différentiel 30 mA) ; lexique : IRVE,
+  photovoltaïque, onduleur.
+
 ## XP et niveaux (`js/xp.js`)
 
 | Action | XP |
@@ -616,6 +646,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Enrichissement terrain : banc étoile-triangle (4 pannes), mégohmmètre à 1 minute avec DAR et indice de polarisation, rappels d'erreurs dans les séances, Bilan · examen blanc
 - [x] Banc pour non-initié : guide « Première intervention » en 4 étapes, volets en accordéon, aides du multimètre, appareil mémorisé
 - [x] Grands débutants : lexique tactile, « Je ne sais pas encore », niveau socle, prédiction au banc, examen calibré, accueil en clair
+- [x] Accessibilité et terrain : couleurs en toutes lettres, rappel de sauvegarde mensuel, banc libre, pointes posées sur le schéma, IRVE, photovoltaïque, LED, variateurs, vérifications d'installation
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)

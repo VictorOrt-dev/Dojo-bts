@@ -2619,5 +2619,171 @@
       "risque": "Un réenclenchement sur court-circuit provoque un arc qui projette du métal en fusion : brûlures graves pour quiconque est devant le coffret, incendie, et parfois déclenchement de tout le site.",
       "norme": "NF C 18-510 · NF C 15-100 (§ 434) · IEC 60947-2"
     }
+  },
+  {
+    "id": "verif-continuite-pe",
+    "niveau": 1,
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "titre": "Mise en service : la continuité du conducteur de protection",
+    "contexte": "Circuit de six prises neuf, dans un atelier. Avant de le mettre sous tension, tu contrôles le conducteur de protection (PE, vert-jaune) au contrôleur d'installation.",
+    "etapes": [
+      {
+        "situation": "Le circuit est consigné. Ton contrôleur d'installation est réglé en continuité (courant d'essai 200 mA).",
+        "question": "Où mesures-tu la continuité du PE ?",
+        "choix": [
+          {
+            "texte": "De la barrette de terre à la borne PE de chaque prise",
+            "verdict": "bon",
+            "explication": "On vérifie chaque point d'utilisation, de la barrette de terre du tableau jusqu'à la borne de terre de la prise : c'est ce chemin qui évacuera un défaut."
+          },
+          {
+            "texte": "Entre la phase et le neutre de chaque prise du circuit",
+            "verdict": "mauvais",
+            "explication": "Entre phase et neutre, on ne contrôle rien du conducteur de protection : il n'est pas dans la boucle mesurée."
+          },
+          {
+            "texte": "Sous tension, au multimètre en Ω, sur chaque prise",
+            "verdict": "danger",
+            "explication": "Jamais d'ohmmètre sous tension : la mesure est fausse et l'appareil peut griller dans tes mains. La continuité se mesure circuit consigné."
+          }
+        ]
+      },
+      {
+        "situation": "Les cinq premières prises lisent environ 0,3 Ω. La sixième, au bout du circuit, affiche OL.",
+        "question": "Que conclus-tu ?",
+        "choix": [
+          {
+            "texte": "Le PE est coupé vers la sixième prise : reprendre la connexion",
+            "verdict": "bon",
+            "explication": "OL veut dire circuit ouvert : le PE n'arrive pas jusqu'à la sixième prise. Connexion desserrée ou oubliée à la cinquième ou à la sixième : on la reprend."
+          },
+          {
+            "texte": "C'est normal : la sixième prise est simplement la plus loin",
+            "verdict": "mauvais",
+            "explication": "Quelques mètres de plus ajoutent quelques centièmes d'ohm, pas un circuit ouvert. OL signale une coupure."
+          },
+          {
+            "texte": "On met sous tension : le différentiel protégera de toute façon",
+            "verdict": "danger",
+            "explication": "Sans PE, un défaut sur un appareil branché à cette prise ne fait pas de fuite vers la terre : le différentiel ne voit rien, et la carcasse reste sous tension."
+          }
+        ]
+      },
+      {
+        "situation": "Connexion reprise : environ 0,35 Ω sur les six prises.",
+        "question": "Que fais-tu avant la remise en service ?",
+        "choix": [
+          {
+            "texte": "Noter les valeurs, puis tester le différentiel du circuit",
+            "verdict": "bon",
+            "explication": "On garde une trace des valeurs mesurées pour les comparer plus tard, puis on vérifie que le différentiel déclenche bien au bon seuil."
+          },
+          {
+            "texte": "Rien de plus : une bonne continuité garantit tout le reste",
+            "verdict": "mauvais",
+            "explication": "La continuité ne dit rien de l'isolement ni du différentiel : chaque vérification a son rôle."
+          },
+          {
+            "texte": "Mesurer l'isolement tout de suite, circuit remis sous tension",
+            "verdict": "danger",
+            "explication": "Le mégohmmètre injecte 500 V continus : il ne se pose jamais sur un circuit sous tension."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Une connexion du conducteur de protection oubliée ou desserrée vers la dernière prise : le circuit marche, mais la dernière prise n'est plus reliée à la terre.",
+      "remede": "Mesurer la continuité du PE prise par prise, circuit consigné, au contrôleur d'installation ; reprendre toute connexion qui donne OL ou plusieurs ohms ; noter les valeurs.",
+      "lecon": "Un circuit qui fonctionne ne prouve rien sur sa terre : seule la mesure de continuité, prise par prise, le prouve.",
+      "piege": "La dernière prise est souvent la seule à ne pas être contrôlée « parce que les autres sont bonnes » : c'est justement celle du bout de la chaîne qui saute.",
+      "risque": "Un PE coupé est invisible : au premier défaut d'un appareil branché sur cette prise, la carcasse reste sous 230 V et c'est la personne qui la touche qui fait la liaison à la terre.",
+      "norme": "IEC 60364-6 · IEC 61557-4"
+    }
+  },
+  {
+    "id": "verif-differentiel",
+    "niveau": 2,
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "titre": "Vérification périodique : tester un différentiel 30 mA",
+    "contexte": "Contrôle annuel d'un tableau d'atelier. Deux interrupteurs différentiels 30 mA protègent les circuits de prises. Tu as un contrôleur d'installation avec la fonction différentiel.",
+    "etapes": [
+      {
+        "situation": "Tu appuies sur le bouton « T » du premier différentiel : il déclenche.",
+        "question": "Est-ce suffisant pour dire qu'il protège bien ?",
+        "choix": [
+          {
+            "texte": "Non : mesurer son seuil et son temps au contrôleur",
+            "verdict": "bon",
+            "explication": "Le bouton test vérifie que le mécanisme bouge. Seul le contrôleur, branché sur une prise, mesure le courant et le temps de déclenchement réels."
+          },
+          {
+            "texte": "Oui : le bouton test contrôle tout l'appareil en une fois",
+            "verdict": "mauvais",
+            "explication": "Le bouton test crée une fuite interne fixe : il ne mesure ni le seuil réel ni le temps de déclenchement."
+          },
+          {
+            "texte": "Oui, s'il déclenche trois fois de suite sans faiblir",
+            "verdict": "mauvais",
+            "explication": "Répéter le bouton test ne mesure toujours ni seuil ni temps : on ne sait pas à quel courant il déclencherait sur une personne."
+          }
+        ]
+      },
+      {
+        "situation": "Au contrôleur, sur une prise : déclenchement à 21 mA au test de rampe, et en 25 ms à 30 mA.",
+        "question": "Ce différentiel est-il conforme ?",
+        "choix": [
+          {
+            "texte": "Oui : seuil entre 50 et 100 % de IΔn, coupure rapide",
+            "verdict": "bon",
+            "explication": "21 mA, c'est 70 % de 30 mA : dans la plage normale (il ne doit pas couper sous 15 mA, il doit couper à 30 mA). 25 ms à IΔn, c'est rapide."
+          },
+          {
+            "texte": "Non : un vrai 30 mA devrait déclencher sous 15 mA",
+            "verdict": "mauvais",
+            "explication": "C'est l'inverse : sous 50 % de IΔn (15 mA), il ne doit pas déclencher, pour éviter les coupures intempestives."
+          },
+          {
+            "texte": "Non : un 30 mA doit attendre au moins 300 ms avant",
+            "verdict": "mauvais",
+            "explication": "300 ms est un temps maximal, pas un minimum : plus il coupe vite à IΔn, mieux il protège."
+          }
+        ]
+      },
+      {
+        "situation": "Le second différentiel 30 mA ne déclenche qu'à 38 mA au test de rampe.",
+        "question": "Que fais-tu ?",
+        "choix": [
+          {
+            "texte": "Le remplacer : il coupe au-delà de son calibre 30 mA",
+            "verdict": "bon",
+            "explication": "Au-delà de 100 % de IΔn, il ne garantit plus la protection des personnes : on le remplace, on refait le test, on note les valeurs."
+          },
+          {
+            "texte": "Le garder : 38 mA reste bien assez proche de 30 mA",
+            "verdict": "mauvais",
+            "explication": "La limite de 30 mA n'est pas une moyenne : au-delà, le courant à travers le corps dépasse le seuil de protection prévu."
+          },
+          {
+            "texte": "Le shunter en attendant de recevoir la pièce neuve",
+            "verdict": "danger",
+            "explication": "Shunter un différentiel, c'est supprimer la protection des personnes sur tous les circuits qu'il couvre."
+          }
+        ]
+      }
+    ],
+    "conclusion": {
+      "cause": "Un différentiel vieilli, encrassé ou fatigué par les déclenchements finit par couper au-delà de son seuil : il ne protège plus les personnes, alors que son bouton test fonctionne encore.",
+      "remede": "Tester chaque différentiel au contrôleur (rampe et temps à IΔn), remplacer tout appareil qui déclenche au-delà de IΔn ou trop lentement, consigner les valeurs dans le registre.",
+      "lecon": "Le bouton test prouve que ça bouge ; le contrôleur prouve que ça protège.",
+      "piege": "Un seuil à 21 mA paraît « trop sensible » : il est pourtant normal. C'est un seuil au-delà de 30 mA qui doit alerter.",
+      "risque": "Un différentiel qui ne coupe qu'à 38 mA laisse traverser le corps un courant capable de bloquer la respiration avant de déclencher.",
+      "norme": "IEC 61008-1 · IEC 61557-6 · IEC 60364-6"
+    }
   }
 ]

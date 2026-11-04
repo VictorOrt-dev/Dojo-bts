@@ -15,7 +15,7 @@
         "kilovolts"
       ]
     },
-    "texte": "**Tension (V)** : la « pression » électrique entre deux points. Elle existe même quand rien ne fonctionne.\n\n**Courant (A)** : l'électricité qui circule, seulement si le circuit est fermé.\n\n- **Phase** (marron, noir, gris) : sous tension, dangereuse\n- **Neutre** (bleu clair) : ramène le courant\n- **Terre PE** (vert-jaune) : évacue un défaut\n\nMultimètre : **V~** pour une tension, **A** pour un courant, **Ω** hors tension. Rouge sur le point testé, noir sur **COM**.\n\n`1 kV = 1 000 V`\n\n> On repère à la couleur, on confirme toujours par une VAT."
+    "texte": "**Tension (V)** : la « pression » électrique entre deux points. Elle existe même quand rien ne fonctionne.\n\n**Courant (A)** : l'électricité qui circule, seulement si le circuit est fermé.\n\n- **Phase** marron (BN), noir (BK), gris (GY) : dangereuse\n- **Neutre** bleu clair (BU) : ramène le courant\n- **Terre PE** vert-jaune (GNYE) : évacue un défaut\n\nMultimètre : **V~** pour une tension, **A** pour un courant, **Ω** hors tension. Rouge sur le point testé, noir sur **COM**.\n\n`1 kV = 1 000 V`\n\n> On repère à la couleur, on confirme toujours par une VAT."
   },
   {
     "id": "contacts-no-nf",
@@ -377,7 +377,8 @@
       "reco": [
         "reco-commande-lampe",
         "reco-led-allumee",
-        "reco-couleur-neutre"
+        "reco-couleur-neutre",
+        "reco-driver-led"
       ],
       "panne": [
         "retour-lampe-neutre",
@@ -424,8 +425,41 @@
       "panne": [
         "variateur-surtension",
         "energie-residuelle-variateur"
+      ],
+      "reco": [
+        "reco-variateur-ddr"
       ]
     },
     "texte": "Variateur 400 V : bus continu vers **540 à 565 V**, derrière des milliers de µF.\n\n```\nW = ½ × C × U²       décharge quasi complète ≈ 5 × R × C\n```\n\n- **Afficheur éteint ≠ bus déchargé** : attendre le temps indiqué, puis **mesurer DC+ / DC−**\n- Défaut **surtension** à l'arrêt : le moteur freine **en générateur** → rampe plus longue ou résistance de freinage\n- Jamais de tournevis entre DC+ et DC− : arc et métal fondu"
+  },
+  {
+    "id": "irve-pv",
+    "titre": "Bornes de recharge (IRVE) et photovoltaïque",
+    "domaine": "mono-bt",
+    "cibles": {
+      "reco": [
+        "reco-irve-qualification",
+        "reco-irve-ddr",
+        "reco-pv-continu"
+      ]
+    },
+    "texte": "**Borne de recharge (IRVE)**\n\n- Plus de 3,7 kW : pose par un installateur **qualifié IRVE**\n- Circuit **dédié**, dimensionné pour des heures à pleine charge\n- Différentiel **30 mA type B**, ou type A + détection **6 mA DC** dans la borne\n\n**Photovoltaïque (PV)**\n\n- Au jour, les panneaux produisent **toujours** : des centaines de volts **continus**\n- Couper l'onduleur n'isole pas les câbles des panneaux\n- Jamais de connecteur débranché **en charge** : l'arc continu ne s'éteint pas\n\n> Deux sources de tension : on consigne les deux."
+  },
+  {
+    "id": "verifications-installation",
+    "titre": "Vérifier une installation : PE, différentiel, terre",
+    "domaine": "securite",
+    "cibles": {
+      "calcul": [
+        "continuite-pe",
+        "test-ddr",
+        "terre-mesuree"
+      ],
+      "panne": [
+        "verif-continuite-pe",
+        "verif-differentiel"
+      ]
+    },
+    "texte": "**Continuité du PE** : circuit consigné, contrôleur 200 mA, de la barrette de terre à chaque prise. `R ≈ ρ × L / S` ; **OL** = PE coupé.\n\n**Différentiel** : le bouton T ne suffit pas. Au contrôleur :\n\n- ne coupe **pas** sous **50 %** de IΔn\n- coupe **au plus tard** à **100 %** de IΔn\n\n**Terre (schéma TT)** : au telluromètre. Condition : `Ra × IΔn ≤ 50 V` (25 V en local mouillé).\n\n> On note chaque valeur : c'est la comparaison d'une année sur l'autre qui révèle la dérive."
   }
 ]

@@ -10,6 +10,7 @@ import { conseilNiveau, SEUIL } from './parcours.js';
 import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
+import { legendeCouleurs } from './couleurs.js';
 import { aReviser, rappelsPourSeance, intercaler } from './leitner.js';
 import { zoneMemo, remplirMemo } from './memos.js';
 import { esc } from './util.js';
@@ -84,6 +85,7 @@ export async function renderReco({ vue, definirTitre, params }) {
       ${enteteSession(session.index + 1, session.score, session.resultats, session.questions.length)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
         <div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>
+        ${legendeCouleurs(q.image)}
         <figcaption class="reco-legende">Planche ${deuxChiffres(session.index + 1)} · ${LEGENDES[q.type] ?? ''}</figcaption>
         <p class="reco-domaines">${pucesDomaines(q.domaines)}</p>
       </figure>

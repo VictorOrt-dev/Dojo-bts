@@ -12,6 +12,7 @@ import { etiquetteNiveau } from './difficulte.js';
 import { typo } from './mise-en-page.js';
 import { melanger, parmi } from './hasard.js';
 import { esc } from './util.js';
+import { legendeCouleurs } from './couleurs.js';
 import { COMPOSITION, PAR_NIVEAU, TOTAL_POSITIONNEMENT, REQUIS, resultatPositionnement } from './parcours.js';
 
 const NOMS = ['aucun', 'I', 'II', 'III'];
@@ -76,7 +77,7 @@ export async function renderPositionnement({ vue, definirTitre }) {
   const afficher = () => {
     const q = liste[partie.index];
     const visuel = q.mode === 'reco'
-      ? `<figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}"><div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div></figure>`
+      ? `<figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}"><div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>${legendeCouleurs(q.image)}</figure>`
       : q.mode === 'panne'
         ? `<p class="titre-cas-test">${esc(typo(q.titre))}</p><p class="situation">${esc(typo(q.contexte))}</p><p class="situation">${esc(typo(q.situation))}</p>`
         : `<p class="titre-cas-test">${esc(typo(q.titre))}</p>`;

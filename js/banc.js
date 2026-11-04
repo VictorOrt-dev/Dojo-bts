@@ -56,6 +56,60 @@ function ouvrirSchema(banc) {
   d.showModal();
 }
 
+// Banc libre : une « panne » qui ne coupe rien.
+const panneSaine = banc => ({ id: 'libre', niveau: 1, ouvre: [], pistes: [], reference: 0, domaines: banc.domaines, symptome: 'Rien : le circuit est sain. À toi de l\'explorer.' });
+
+// Idées d'exploration du banc libre (bouton « Une idée ? »).
+const IDEES_LIBRE = [
+  'Même paire de points en V~ puis en V~ LoZ : sur un circuit sain, la valeur ne bouge pas. Si elle s\'effondre en LoZ, c\'était une tension fantôme.',
+  'Suis le courant : COM sur la référence (0 V ou neutre), et promène la pointe rouge de la source vers le récepteur. Partout, la tension doit être là.',
+  'Touche le petit viseur à côté d\'une pointe : tu la poses directement sur le schéma.',
+  'Essaie l\'ohmmètre sans consigner : l\'appareil t\'arrête. Ici rien ne compte : c\'est fait pour apprendre le bon réflexe.',
+  'Consigne, puis mesure en Ω une bobine ou un enroulement : tu lis sa résistance. Sur un contact fermé, tu lis presque 0 (continuité).',
+  'Onglet Pince : lance un essai pince en place. Tu lis le courant d\'un circuit sain : c\'est ta référence pour repérer une anomalie plus tard.'
+];
+
+// Poser une pointe en touchant le schéma : chaque point de mesure a ses coordonnées (schemaPoints, unités du viewBox).
+// Le toucher le plus proche d'un point (à 32 px près) le choisit : pas besoin de viser un rond minuscule.
+function choisirSurSchema(banc, pointe, mesure, label, choisir) {
+  let d = document.querySelector('.bulle-points');
+  if (!d) {
+    d = document.createElement('dialog');
+    d.className = 'bulle-points';
+    document.body.append(d);
+  }
+  const [w, h] = banc.schemaTaille;
+  const nom = pointe === 'rouge' ? 'la pointe rouge' : 'la pointe COM (noire)';
+  d.setAttribute('aria-label', `Poser ${nom} sur le schéma`);
+  d.innerHTML = `
+    <p class="bulle-surtitre">Poser ${esc(nom)}</p>
+    <p class="consigne-points">Touche le point du schéma où tu poses ${esc(nom)}.</p>
+    <div class="schema-interactif" style="width: min(100%, calc(66vh * ${w} / ${h})); aspect-ratio: ${w} / ${h}">
+      <img src="${esc(banc.schema)}" alt="Schéma : ${esc(banc.titre)}">
+      ${Object.entries(banc.schemaPoints).map(([id, [x, y]]) => `<button type="button" class="point-schema${id === mesure.rouge ? ' est-rouge' : ''}${id === mesure.noir ? ' est-com' : ''}" data-point="${esc(id)}" style="left: ${(x / w * 100).toFixed(2)}%; top: ${(y / h * 100).toFixed(2)}%" aria-label="${esc(label(id))}"></button>`).join('')}
+    </div>
+    <button type="button" class="btn" data-fermer>Annuler</button>`;
+  const zone = d.querySelector('.schema-interactif');
+  zone.addEventListener('click', ev => {
+    const direct = ev.target.closest('.point-schema');
+    let id = direct?.dataset.point;
+    if (!id) {
+      const r = zone.getBoundingClientRect();
+      let meilleur = null;
+      for (const [p, [x, y]] of Object.entries(banc.schemaPoints)) {
+        const dist = Math.hypot(r.left + x / w * r.width - ev.clientX, r.top + y / h * r.height - ev.clientY);
+        if (dist <= 32 && (!meilleur || dist < meilleur.dist)) meilleur = { p, dist };
+      }
+      id = meilleur?.p;
+    }
+    if (!id) return;
+    d.close();
+    choisir(id);
+  });
+  d.querySelector('[data-fermer]').addEventListener('click', () => d.close());
+  d.showModal();
+}
+
 let derniereCasse = null;          // évite de retomber deux fois de suite sur la même panne
 let interventionCourante = null;   // utilisée par les tests automatisés
 export const interventionEnCours = () => interventionCourante;
@@ -67,6 +121,11 @@ export async function renderBanc({ vue, definirTitre, params }) {
   // Tutoriel « Première intervention » : au tout premier passage au banc (sans circuit ni panne demandés), ou par le
   // bouton « ? Guide du banc ». Toujours le même cas de démonstration.
   const prefs = stockage.lire().preferences ?? {};
+  // Banc libre (?libre=1) : le circuit sain, sans panne ni chrono, pour manipuler l'appareil sans rien risquer.
+  if (params?.get('libre') === '1') {
+    const b = await chargerBanc(params?.get('circuit') ?? 'depart-moteur');
+    return demarrer(vue, b, panneSaine(b), { libre: true });
+  }
   if (params?.get('tuto') === '1' || (!voulu && !params?.get('circuit') && !prefs.tutoBanc && !prefs.visiteBanc)) {
     const b = await chargerBanc(T.CIRCUIT_TUTO);
     return demarrer(vue, b, b.pannes.find(p => p.id === T.PANNE_TUTO), { tuto: true });
@@ -81,9 +140,10 @@ export async function renderBanc({ vue, definirTitre, params }) {
   demarrer(vue, banc, panne);
 }
 
-function demarrer(vue, banc, panne, { tuto = false } = {}) {
+function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
   const P = PROFILS[banc.id];
   const etat = interventionCourante = {
+    libre,                                        // banc libre : circuit sain, rien n'est compté
     tuto: tuto ? { lu: false, vu: -1 } : null,   // tutoriel : bon lu, dernier geste affiché
     circuit: banc.id,
     tl: false,                     // éclairage : position du télérupteur (allumé / éteint)
@@ -246,6 +306,7 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
   };
 
   const afficher = () => {
+    if (etat.libre && etat.resolu) etat.resolu = false;   // banc libre : un essai réussi ne clôt rien
     if (etat.resolu || etat.abandon) return debrief();
     const { fonction, rouge, noir, lecture } = etat.mesure;
     const options = sel => {
@@ -288,16 +349,21 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
 
     vue.innerHTML = `
       <header class="frontispice frontispice-banc">
-        <p class="surtitre">${etat.tuto ? 'Guide du banc · première intervention' : `Banc de mesure · panne cachée ${etiquetteNiveau(panne.niveau, { long: true })}`}</p>
+        <p class="surtitre">${etat.tuto ? 'Guide du banc · première intervention' : etat.libre ? 'Banc libre · circuit sain, rien ne compte' : `Banc de mesure · panne cachée ${etiquetteNiveau(panne.niveau, { long: true })}`}</p>
         <h2 class="titre-chapitre">${banc.titreHtml}</h2>
       </header>
       ${etat.tuto ? '' : `<nav class="segments choix-circuit" aria-label="Circuit du banc">
-        ${CIRCUITS.map(c => `<a href="#/entrainement/banc?circuit=${c.id}"${c.id === banc.id ? ' aria-current="true"' : ''}>${esc(c.court)}</a>`).join('')}
+        ${CIRCUITS.map(c => `<a href="#/entrainement/banc?circuit=${c.id}${etat.libre ? '&libre=1' : ''}"${c.id === banc.id ? ' aria-current="true"' : ''}>${esc(c.court)}</a>`).join('')}
       </nav>`}
       <p class="reco-domaines">${pucesDomaines(banc.domaines)}</p>
-      <div class="mission-ligne">
-        <p class="mission"><strong>Ta mission :</strong> ${esc(P.mission)}</p>
+      <p class="mission">${etat.libre
+        ? '<strong>Banc libre :</strong> aucune panne, pas de chrono, rien n\'est compté. Mesure partout, change de fonction, consigne, lance des essais : c\'est fait pour comprendre.'
+        : `<strong>Ta mission :</strong> ${esc(P.mission)}`}</p>
+      <div class="banc-raccourcis">
         <a class="btn-guide" href="#/entrainement/banc?tuto=1&r=${Date.now()}" aria-label="Guide du banc : refaire la première intervention guidée"><span aria-hidden="true">?</span> Guide du banc</a>
+        ${etat.libre
+          ? `<a class="btn-libre" href="#/entrainement/banc?circuit=${banc.id}&r=${Date.now()}">Quitter le banc libre</a>`
+          : `<a class="btn-libre" href="#/entrainement/banc?libre=1&circuit=${banc.id}">Banc libre, sans panne</a>`}
       </div>
       <details class="approfondir mode-emploi volet-banc" name="volets-banc"><summary>Comment ça marche ?</summary>
         <ol class="etapes-banc">
@@ -317,10 +383,10 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
         </details>
       </div>
 
-      <div class="tableau-bord">
+      ${etat.libre ? '' : `<div class="tableau-bord">
         <p class="horloge"><span>Temps d'intervention</span><b class="mono">${horloge(etat.minutes)}</b></p>
         <p class="alertes ${etat.dangers.length ? 'actif' : ''}"><span>Alertes sécurité</span><b class="mono">${etat.dangers.length}</b></p>
-      </div>
+      </div>`}
 
       <ul class="etat-armoire">
         ${P.pastilles({ etat, lire })}
@@ -343,7 +409,7 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
             <span class="poignee-lecture mono">${lecture ? `${esc(lecture.valeur)} ${esc(lecture.unite)}` : ''}</span>
             <span class="poignee-sens">${etat.consoleOuverte ? 'Replier' : 'Ouvrir'}</span>
           </button>
-          <button type="button" class="bouton-indice">Indice</button>
+          <button type="button" class="bouton-indice">${etat.libre ? 'Une idée ?' : 'Indice'}</button>
         </div>
         <div id="corps-console" class="corps-console"${etat.consoleOuverte ? '' : ' hidden'}>
         <nav class="segments onglets-banc" aria-label="Instruments">
@@ -358,8 +424,8 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
             <p id="aide-fonction" class="aide-fonction${fonction === 'ohm' && !etat.consigne ? ' alerte' : ''}">${fonction === 'ohm' && !etat.consigne
               ? '⚠ Non consigné : consigne d\'abord (onglet Actions).'
               : esc(typo(fonctionActive.aide))}</p>
-            <label class="pointe rouge"><span>Rouge</span><select id="rouge" aria-label="Pointe rouge">${options(rouge)}</select></label>
-            <label class="pointe noire"><span>COM</span><select id="noir" aria-label="Pointe noire (COM)">${options(noir)}</select></label>
+            <div class="pointe-ligne"><label class="pointe rouge"><span>Rouge</span><select id="rouge" aria-label="Pointe rouge">${options(rouge)}</select></label>${banc.schemaPoints ? '<button type="button" class="pointe-schema" data-pointe-schema="rouge" aria-label="Poser la pointe rouge sur le schéma"></button>' : ''}</div>
+            <div class="pointe-ligne"><label class="pointe noire"><span>COM</span><select id="noir" aria-label="Pointe noire (COM)">${options(noir)}</select></label>${banc.schemaPoints ? '<button type="button" class="pointe-schema" data-pointe-schema="noir" aria-label="Poser la pointe COM sur le schéma"></button>' : ''}</div>
             <div class="lecture-ligne">
               <div class="nixie"><output id="lecture" class="nixie-valeur">${lecture ? esc(lecture.valeur) : ''}</output><span class="unite">${lecture ? esc(lecture.unite) : fonction === 'ohm' ? 'Ω' : 'V~'}</span></div>
               <button id="mesurer" class="btn principal" type="button">Mesurer</button>
@@ -391,7 +457,7 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
               <select id="piece" aria-label="Pièce à remplacer">${banc.composants.map(c => `<option value="${c.id}"${c.id === etat.selPiece ? ' selected' : ''}>${esc(c.libelle)} · ${c.duree} min</option>`).join('')}</select>
               <button class="btn" type="button" data-action="remplacer"${etat.suggestion === 'remplacer' ? ' data-suggere="true"' : ''}>Remplacer</button>
             </div>
-            <button class="btn danger" type="button" data-action="abandonner">Abandonner et voir la panne</button>
+            ${etat.libre ? '' : '<button class="btn danger" type="button" data-action="abandonner">Abandonner et voir la panne</button>'}
           </div>` : ''}
         </div>
       </section>`;
@@ -440,9 +506,18 @@ function demarrer(vue, banc, panne, { tuto = false } = {}) {
       afficher();
     });
     vue.querySelector('.bouton-indice').addEventListener('click', () => {
+      if (etat.libre) {
+        etat.idee = ((etat.idee ?? -1) + 1) % IDEES_LIBRE.length;
+        signaler(IDEES_LIBRE[etat.idee], 'indice', `Idée ${etat.idee + 1}/${IDEES_LIBRE.length}`);
+        return apres();
+      }
       if (!etat.consoleOuverte) { etat.consoleOuverte = true; animerOuverture = true; }
       indice(); apres();
     });
+    vue.querySelectorAll('[data-pointe-schema]').forEach(b => b.addEventListener('click', () => {
+      const cote = b.dataset.pointeSchema;
+      choisirSurSchema(banc, cote, etat.mesure, label, id => { etat.mesure[cote] = id; etat.mesure.lecture = null; afficher(); });
+    }));
     vue.querySelector('#fusible')?.addEventListener('change', ev => { etat.selFusible = ev.target.value; });
     vue.querySelector('#piece')?.addEventListener('change', ev => { etat.selPiece = ev.target.value; });
     vue.querySelectorAll('[data-onglet-banc]').forEach(a => a.addEventListener('click', ev => { ev.preventDefault(); etat.onglet = a.dataset.ongletBanc; afficher(); }));

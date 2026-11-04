@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { EDITIONS, annoterNorme } from '../js/normes.js';
 import { LEXIQUE, termePour } from '../js/lexique.js';
 import { GESTES } from '../js/tutoriel-banc.js';
+import { IMAGES_COULEURS, TEINTES_SIGNIFIANTES, COULEURS } from '../js/couleurs.js';
 
 const lire = f => JSON.parse(readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'));
 const RISQUE_MIN = 60;
@@ -63,6 +64,9 @@ export async function auditer() {
     const svg = (() => { try { return readFileSync(new URL(`../${q.image}`, import.meta.url), 'utf8'); } catch { return null; } })();
     verifier(l, svg !== null, `image ${q.image} introuvable`);
     if (svg) verifier(l, ![...svg.matchAll(/<text[^>]*>([^<]*)<\/text>/g)].some(m => !(q.image.includes('sym-moteur') && ['M', '3~'].includes(m[1]))), 'aucune réponse écrite dans l\'image');
+    // Daltonisme : une image dont les couleurs portent l'information a sa légende en toutes lettres.
+    const teintes = new Set((svg?.match(/#[0-9a-fA-F]{3,6}\b/g) ?? []).map(x => x.toLowerCase()));
+    if (svg && TEINTES_SIGNIFIANTES.some(x => teintes.has(x))) verifier(l, !!IMAGES_COULEURS[q.image], `couleurs de ${q.image} sans légende en toutes lettres (js/couleurs.js)`);
   }
 
   // ---------- Calculs ----------
@@ -143,6 +147,13 @@ export async function auditer() {
       verifier(l, k.cause.includes(`IP ${ip}`), `IP calculé ${ip} absent de la cause`);
     }
     verifier(l, !s.ipRequis || (s.absorption && s.cles.length > 0), 'IP exigé sans absorption ni mesure clé');
+  }
+
+  // ---------- Couleurs en toutes lettres ----------
+  for (const [image, liste] of Object.entries(IMAGES_COULEURS)) {
+    const l = ligne('Couleurs', image.split('/').pop(), null, '');
+    verifier(l, liste.length > 0 && liste.every(([c, ou]) => COULEURS[c] && ou), 'légende : couleurs connues (nom et code IEC 60757), position précisée');
+    verifier(l, reco.some(q => q.image === image), 'image utilisée par au moins une question');
   }
 
   // ---------- Lexique ----------

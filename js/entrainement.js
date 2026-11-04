@@ -14,6 +14,7 @@ import { recommandation } from './guidage.js';
 import { indicateurSerie, verifierBadges, vibrer } from './insignes.js';
 import { BLOCS } from './blocs.js';
 import { chargerPannes } from './panne.js';
+import { bandeauSauvegarde, brancherBandeau } from './rappel-sauvegarde.js';
 
 export const TAILLE_SESSION = 10;
 export const SEANCE_MIN_BONUS = 5; // bonus « sans faute » : seulement pour une séance d'au moins 5 questions
@@ -105,6 +106,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
       <p class="devise-sous">Conçu et éprouvé selon la réalité des armoires industrielles et la rigueur des normes en vigueur.</p>
     </header>
 
+    ${bandeauSauvegarde(etat)}
     ${carteProchaine(prochaine, reco)}
     ${(n => n ? `<a class="rappel-revision" href="#/entrainement/revision"><strong>À réviser :</strong> ${n} erreur${n > 1 ? 's' : ''} à revoir aujourd'hui →</a>` : '')(aReviser(etat).length)}
 
@@ -145,6 +147,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
         ${NIVEAUX.map(niv => `<tr><td>${esc(niv.nom)}</td><td>${niv.seuil} XP</td></tr>`).join('')}
       </table>
     </details>`;
+  brancherBandeau(vue);
 }
 
 // En-tête d'une séance : numéro, score, et le bornier (une borne par question).

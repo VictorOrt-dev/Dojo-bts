@@ -714,6 +714,85 @@ export const GENERATEURS = [
     }
   },
 
+  // Vérifications d'installation (mise en service, contrôle périodique)
+  {
+    id: 'continuite-pe',
+    niveau: 2,
+    titre: 'Continuité du conducteur de protection',
+    domaines: ['securite', 'mono-bt'],
+    norme: 'IEC 60364-6 · IEC 61557-4',
+    risque: "Un PE coupé ne se voit jamais en fonctionnement normal. Au premier défaut, la carcasse reste sous 230 V, le différentiel ne voit pas de fuite, et c'est la main de l'utilisateur qui ferme le circuit.",
+    creer() {
+      const L = parmi([15, 25, 40]);
+      const S = parmi([1.5, 2.5, 6]);
+      const R = 0.0225 * L / S;
+      return {
+        enonce: `Contrôle de continuité avant mise en service : conducteur vert-jaune (PE) de ${nb(S, 1)} mm², ${L} m entre la barrette de terre et la dernière prise. Résistance attendue ?`,
+        aide: 'R = ρ × L / S, cuivre ρ = 0,0225 Ω·mm²/m',
+        unite: 'Ω', reponse: R, donnees: { L, S },
+        solution: `R = 0,0225 × ${L} / ${nb(S, 1)} = ${nb(R, 3)} Ω`,
+        explication: 'On mesure le seul conducteur PE, de la barrette de terre à la borne de terre de la prise : R = ρ × L / S. Une lecture proche de cette valeur prouve la continuité ; OL ou plusieurs ohms signalent une connexion ouverte ou desserrée.',
+        piege: 'Mesure circuit consigné, au contrôleur d\'installation (200 mA) : un multimètre en Ω peut afficher une bonne valeur à travers une connexion qui ne tiendrait pas un courant de défaut.',
+        erreurs: [
+          { valeur: 2 * R, message: 'Pas d\'aller-retour ici : on mesure le seul conducteur PE, sur une longueur.' },
+          { valeur: 0.0225 * L * S, message: 'La section divise : plus le conducteur est gros, plus sa résistance est faible. R = ρ × L / S.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'test-ddr',
+    niveau: 2,
+    titre: 'Seuil de déclenchement d\'un différentiel',
+    domaines: ['securite', 'mono-bt'],
+    norme: 'IEC 61008-1 · IEC 61557-6',
+    risque: "Un différentiel 30 mA qui ne déclenche qu'à 45 mA, ou plus du tout, laisse passer à travers le corps un courant capable de bloquer la respiration. Le bouton test ne dit rien de son seuil réel.",
+    creer() {
+      const IdnMA = parmi([30, 30, 300]);
+      const I = Math.round(IdnMA * parmi([0.6, 0.7, 0.75, 0.8, 0.9]));
+      const pct = I / IdnMA * 100;
+      return {
+        enonce: `Test de rampe au contrôleur : un différentiel ${IdnMA} mA déclenche à ${I} mA. Seuil de déclenchement, en % de IΔn ?`,
+        aide: 'Seuil = I mesuré / IΔn × 100',
+        unite: '%', reponse: pct, donnees: { I, IdnMA },
+        solution: `${I} / ${IdnMA} × 100 = ${nb(pct, 1)} %`,
+        explication: 'Un différentiel conforme ne déclenche pas sous 50 % de IΔn, et déclenche au plus tard à 100 % de IΔn. Un seuil entre 50 et 100 % est donc normal ; au-delà de 100 %, il faut le remplacer.',
+        piege: 'Le bouton « T » prouve seulement que le mécanisme bouge. Seul le contrôleur, branché sur une prise, mesure le seuil et le temps de déclenchement.',
+        erreurs: [
+          { valeur: IdnMA / I * 100, message: 'Rapport inversé : on divise le courant mesuré par IΔn, pas l\'inverse.' },
+          { valeur: I / IdnMA, message: 'Il manque le × 100 : on veut un pourcentage de IΔn.' }
+        ]
+      };
+    }
+  },
+
+  {
+    id: 'terre-mesuree',
+    niveau: 2,
+    titre: 'Résistance de terre mesurée',
+    domaines: ['securite', 'mono-bt'],
+    norme: 'IEC 60364-4-41 (§ 411.5, schéma TT) · IEC 61557-5',
+    risque: "Une terre trop résistante derrière un différentiel peu sensible laisse la carcasse en défaut monter au-delà de 50 V sans que rien ne coupe : la personne qui la touche est électrisée.",
+    creer() {
+      const Ra = parmi([40, 80, 120, 160]);
+      const IdnMA = parmi([300, 500]);
+      const Uc = Ra * IdnMA / 1000;
+      return {
+        enonce: `Au telluromètre, la prise de terre des masses mesure Ra = ${Ra} Ω. Différentiel de tête ${IdnMA} mA. Tension de contact au seuil de déclenchement (Ra × IΔn) ?`,
+        aide: 'Uc = Ra × IΔn, avec IΔn en ampères · limite 50 V en local sec',
+        unite: 'V', reponse: Uc, donnees: { Ra, IdnMA },
+        solution: `Uc = ${Ra} × ${nb(IdnMA / 1000, 1)} = ${nb(Uc, 0)} V ${Uc <= 50 ? '≤ 50 V : conforme' : '> 50 V : non conforme'}`,
+        explication: 'En schéma TT, au seuil de déclenchement du différentiel, la carcasse monte à Ra × IΔn. Il faut rester sous 50 V en local sec (25 V en local mouillé), sinon on améliore la terre ou on prend un différentiel plus sensible.',
+        piege: 'Une terre se mesure par temps sec comme par temps humide : elle varie avec les saisons. On note la date et les conditions pour comparer d\'une année sur l\'autre.',
+        erreurs: [
+          { valeur: Ra / (IdnMA / 1000), message: 'Tu as divisé : la tension de contact vaut Ra × IΔn.' },
+          { valeur: 50 / (IdnMA / 1000), message: 'Ça, c\'est la terre maximale admise (50 V / IΔn). On demande la tension de contact avec la terre mesurée.' }
+        ]
+      };
+    }
+  },
+
   // ---------------------------------------------------------------- Niveau III · Cas complexes
   {
     id: 'chute-tri',

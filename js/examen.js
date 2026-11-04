@@ -15,6 +15,7 @@ import { DIFFICULTES, difficulte, etiquetteNiveau } from './difficulte.js';
 import { deuxChiffres, frontispice, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
+import { legendeCouleurs } from './couleurs.js';
 import * as stockage from './storage.js';
 import { niveauAcquis } from './parcours.js';
 
@@ -165,7 +166,7 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
   const afficher = () => {
     const q = liste[examen.index];
     const visuel = q.mode === 'reco'
-      ? `<figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}"><div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div></figure>`
+      ? `<figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}"><div class="planche"><img src="${esc(q.image)}" alt="Image à identifier"></div>${legendeCouleurs(q.image)}</figure>`
       : `<p class="titre-cas-test">${esc(typo(q.titre))}</p>`;
     vue.innerHTML = `
       <div class="examen-entete" data-sans-lexique>

@@ -1149,6 +1149,7 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 
 /* ---------- Banc : guide « Première intervention », volets, aides du multimètre ---------- */
 .mission-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: start; margin: 10px 0 8px; }
+.frontispice-banc ~ .mission { margin-bottom: 8px; }
 .mission-ligne .mission { margin: 0; }
 .btn-guide {
   display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 12px;
@@ -1233,3 +1234,45 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .composition-examen { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet); }
 .composition-examen p { margin: 0 0 6px; }
 .lien-composition { display: inline-flex; align-items: center; min-height: 44px; color: var(--lien); font-weight: 700; }
+
+/* ---------- Banc : raccourcis, banc libre, pointes posées sur le schéma ---------- */
+.banc-raccourcis { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+.btn-libre {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 12px;
+  background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet-fort); color: var(--texte-1);
+  font: 700 14px/1 var(--texte); text-decoration: none; white-space: nowrap;
+}
+.pointe-ligne { display: grid; grid-template-columns: minmax(0, 1fr) 46px; gap: 6px; align-items: stretch; }
+.pointe-schema {
+  min-height: 44px; border: 0; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet-fort); cursor: pointer;
+  background-image: radial-gradient(circle, var(--texte-1) 0 3px, transparent 3.5px), radial-gradient(circle, transparent 0 9px, var(--texte-1) 9.5px 11px, transparent 11.5px);
+}
+.pointe-ligne:has(.rouge) .pointe-schema { background-image: radial-gradient(circle, #E5484D 0 3px, transparent 3.5px), radial-gradient(circle, transparent 0 9px, #E5484D 9.5px 11px, transparent 11.5px); }
+.bulle-points { width: min(96vw, 520px); max-height: 94vh; overflow: auto; margin: auto; padding: 12px; border: 0; border-radius: 18px; background: var(--surface-2); color: var(--texte-1); }
+.bulle-points[open] { display: grid; gap: 8px; }
+.bulle-points::backdrop { background: rgb(0 0 0 / .5); }
+.consigne-points { margin: 0; font-size: 15px; }
+.schema-interactif { position: relative; margin: 0 auto; border-radius: 10px; overflow: hidden; cursor: crosshair; }
+.schema-interactif img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.point-schema {
+  position: absolute; width: 12px; height: 12px; margin: 0; padding: 0; transform: translate(-50%, -50%);
+  border: 1.5px solid #B4642F; border-radius: 50%; background: rgb(255 255 255 / .55); pointer-events: none;   /* le toucher va au point le plus proche */
+}
+.point-schema.est-rouge { background: #E5484D; border-color: #8f1d22; }
+.point-schema.est-com { background: #1A120D; border-color: #1A120D; }
+
+/* ---------- Rappel de sauvegarde mensuel ---------- */
+.rappel-sauvegarde { margin: 0 0 14px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet-fort); font-size: 14px; line-height: 1.4; color: var(--texte-2); }
+.rappel-sauvegarde p { margin: 0 0 8px; }
+.rappel-sauvegarde-titre { color: var(--texte-1); font-weight: 800; font-size: 15px; }
+.rappel-sauvegarde-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.rappel-sauvegarde-actions .btn { min-height: 44px; font-size: 15px; }
+
+/* ---------- Couleurs en toutes lettres (daltonisme) ---------- */
+.legende-couleurs { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 8px 0 0; font-size: 14px; color: var(--texte-2); }
+.legende-couleurs .couleur { display: inline-flex; align-items: center; gap: 6px; }
+.legende-couleurs strong { color: var(--texte-1); }
+.echantillon { width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .25); }
+.ech-marron { background: #7c4a22; } .ech-bleu { background: #60a5fa; } .ech-noir { background: #111; } .ech-gris { background: #8d939a; }
+.ech-rouge { background: #dc2626; } .ech-jaune { background: #facc15; }
+.ech-vert-jaune { background: repeating-linear-gradient(45deg, #16a34a 0 4px, #facc15 4px 8px); }

@@ -2,18 +2,19 @@
 
 *Généré par `node outils/audit.mjs` (aussi exécuté par la CI à chaque envoi) : ne pas modifier à la main.*
 
-**185 éléments, 2896 contrôles automatiques, 0 anomalie.**
+**205 éléments, 3082 contrôles automatiques, 0 anomalie.**
 
 | Famille | Éléments | Contrôles | Anomalies |
 |---|---|---|---|
-| Reconnaissance | 65 | 628 | 0 |
-| Calcul | 34 | 318 | 0 |
-| Cas de panne | 28 | 472 | 0 |
+| Reconnaissance | 70 | 691 | 0 |
+| Calcul | 37 | 348 | 0 |
+| Cas de panne | 30 | 505 | 0 |
 | Banc · Départ moteur direct | 5 | 101 | 0 |
 | Banc · Éclairage de couloir par télérupteur | 5 | 101 | 0 |
 | Banc · Démarrage étoile-triangle | 4 | 79 | 0 |
 | Mesure d'isolement | 8 | 103 | 0 |
-| Lexique | 36 | 1094 | 0 |
+| Couleurs | 7 | 14 | 0 |
+| Lexique | 39 | 1140 | 0 |
 
 ## Ce qui est contrôlé
 
@@ -42,28 +43,28 @@
 | Reconnaissance | `sym-fusible` | I | IEC 60617 (base en ligne) · NF EN 60269 (série) | 10 | ✔ |
 | Reconnaissance | `sym-voyant` | I | NF EN 60204-1:2018 (§ 10.3) | 9 | ✔ |
 | Reconnaissance | `sym-transfo` | I | IEC 60617 (base en ligne) · NF EN 61558 (série) | 10 | ✔ |
-| Reconnaissance | `mat-disjoncteur-modulaire` | I | NF EN 60898-1:2019 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `mat-disjoncteur-modulaire` | I | NF EN 60898-1:2019 · NF C 15-100:2002 | 11 | ✔ |
 | Reconnaissance | `mat-contacteur` | I | IEC 60947-4-1:2018 | 9 | ✔ |
-| Reconnaissance | `mat-arret-urgence` | I | ISO 13850:2015 · NF EN 60204-1:2018 (§ 10.7) | 10 | ✔ |
-| Reconnaissance | `mat-relais-thermique` | II | IEC 60947-4-1:2018 | 9 | ✔ |
+| Reconnaissance | `mat-arret-urgence` | I | ISO 13850:2015 · NF EN 60204-1:2018 (§ 10.7) | 11 | ✔ |
+| Reconnaissance | `mat-relais-thermique` | II | IEC 60947-4-1:2018 | 10 | ✔ |
 | Reconnaissance | `mat-disjoncteur-moteur` | II | IEC 60947-2:2016 · IEC 60947-4-1:2018 | 10 | ✔ |
 | Reconnaissance | `sym-sectionneur` | II | IEC 60617 (base en ligne) · NF C 18-510:2012+A1:2020 | 10 | ✔ |
 | Reconnaissance | `sym-disjoncteur` | II | IEC 60617 (base en ligne) · IEC 60947-2:2016 | 10 | ✔ |
 | Reconnaissance | `sym-bp-no` | II | IEC 60617 (base en ligne) · NF EN 60204-1:2018 (§ 10.2) | 10 | ✔ |
 | Reconnaissance | `sym-bp-nf` | II | IEC 60617 (base en ligne) · NF EN 60204-1:2018 | 10 | ✔ |
 | Reconnaissance | `sym-thermique` | II | IEC 60617 (base en ligne) · IEC 60947-4-1:2018 | 10 | ✔ |
-| Reconnaissance | `reco-thermique-bornes` | II | IEC 60947-4-1:2018 · IEC 60947-1:2020 | 10 | ✔ |
+| Reconnaissance | `reco-thermique-bornes` | II | IEC 60947-4-1:2018 · IEC 60947-1:2020 | 11 | ✔ |
 | Reconnaissance | `reco-contacteur-bobine` | II | IEC 60947-4-1:2018 | 9 | ✔ |
-| Reconnaissance | `reco-c16` | II | NF EN 60898-1:2019 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-c16` | II | NF EN 60898-1:2019 · NF C 15-100:2002 | 11 | ✔ |
 | Reconnaissance | `reco-no-bornes` | II | IEC 60947-1:2020 (repérage des bornes) | 9 | ✔ |
 | Reconnaissance | `reco-nf-bornes` | II | IEC 60947-1:2020 (repérage des bornes) | 9 | ✔ |
 | Reconnaissance | `reco-reglage-molette` | II | IEC 60947-4-1:2018 | 9 | ✔ |
-| Reconnaissance | `reco-au-categorie` | III | ISO 13850:2015 · NF EN 60204-1:2018 (§ 9.2.2) | 10 | ✔ |
+| Reconnaissance | `reco-au-categorie` | III | ISO 13850:2015 · NF EN 60204-1:2018 (§ 9.2.2) | 11 | ✔ |
 | Reconnaissance | `reco-moteur-81346` | III | IEC 81346-2:2019 | 9 | ✔ |
 | Reconnaissance | `reco-contacteur-protection` | III | IEC 60947-4-1:2018 (classes de déclenchement) · IEC 60269 (série) (fusibles aM) | 10 | ✔ |
 | Reconnaissance | `reco-sectionneur-charge` | III | IEC 60947-3:2020 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
 | Reconnaissance | `reco-icc-transfo` | III | NF C 15-100:2002 (§ 434) · IEC 60076-5:2006 | 10 | ✔ |
-| Reconnaissance | `reco-reglage-thermique` | III | IEC 60947-4-1:2018 · IEC 60034-1:2022 | 10 | ✔ |
+| Reconnaissance | `reco-reglage-thermique` | III | IEC 60947-4-1:2018 · IEC 60034-1:2022 | 11 | ✔ |
 | Reconnaissance | `reco-voyant-couleur` | II | NF EN 60204-1:2018 (§ 10.3.2) | 9 | ✔ |
 | Reconnaissance | `sym-alim-dc` | I | IEC 60617 (base en ligne) · NF EN 60204-1:2018 (§ 9.4.3) | 10 | ✔ |
 | Reconnaissance | `sym-diode-roue-libre` | II | IEC 60617 (base en ligne) | 9 | ✔ |
@@ -78,28 +79,33 @@
 | Reconnaissance | `reco-dgpt2` | II | NF C 13-100:2015 · NF EN 50216 (série) | 10 | ✔ |
 | Reconnaissance | `reco-fusible-percuteur` | II | IEC 62271-105:2021 (combinés interrupteur-fusibles) | 9 | ✔ |
 | Reconnaissance | `sym-terre-protection` | I | IEC 60417-5019 · NF EN 60204-1:2018 (§ 8.2) | 10 | ✔ |
-| Reconnaissance | `reco-epi-vat` | II | NF C 18-510:2012+A1:2020 · NF EN 60903:2003 (gants isolants) | 10 | ✔ |
-| Reconnaissance | `reco-prises-25` | II | NF C 15-100:2002 (partie 7-771, circuits de prises) | 9 | ✔ |
+| Reconnaissance | `reco-epi-vat` | II | NF C 18-510:2012+A1:2020 · NF EN 60903:2003 (gants isolants) | 11 | ✔ |
+| Reconnaissance | `reco-prises-25` | II | NF C 15-100:2002 (partie 7-771, circuits de prises) | 10 | ✔ |
 | Reconnaissance | `reco-sens-rotation` | I | IEC 60034-8:2007 (repérage des bornes et sens de rotation) | 9 | ✔ |
 | Reconnaissance | `reco-cat-marquage` | II | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
 | Reconnaissance | `reco-vat-appareil` | I | NF C 18-510:2012+A1:2020 · NF EN 61243-3:2014 | 10 | ✔ |
-| Reconnaissance | `reco-cadenas-pancarte` | I | NF C 18-510:2012+A1:2020 (consignation) | 9 | ✔ |
-| Reconnaissance | `reco-couleur-neutre` | I | IEC 60445:2021 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-cadenas-pancarte` | I | NF C 18-510:2012+A1:2020 (consignation) | 10 | ✔ |
+| Reconnaissance | `reco-couleur-neutre` | I | IEC 60445:2021 · NF C 15-100:2002 | 11 | ✔ |
 | Reconnaissance | `reco-decouverte-tension` | I | IEC 61010-1:2010 · NF C 15-100:2002 | 10 | ✔ |
 | Reconnaissance | `reco-decouverte-courant` | I | IEC 80000-6:2022 (grandeurs électriques) | 9 | ✔ |
-| Reconnaissance | `reco-decouverte-phase` | I | IEC 60445:2021 · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-decouverte-phase` | I | IEC 60445:2021 · NF C 15-100:2002 | 11 | ✔ |
 | Reconnaissance | `reco-decouverte-terre` | I | NF C 15-100:2002 · IEC 60445:2021 | 10 | ✔ |
 | Reconnaissance | `reco-decouverte-multimetre` | I | IEC 61010-1:2010 | 9 | ✔ |
 | Reconnaissance | `reco-cat-tgbt` | II | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
-| Reconnaissance | `reco-capteur-3fils` | II | IEC 60947-5-2:2019 | 9 | ✔ |
+| Reconnaissance | `reco-capteur-3fils` | II | IEC 60947-5-2:2019 | 10 | ✔ |
 | Reconnaissance | `reco-renvoi-folio` | II | IEC 61082-1:2014 (documents électrotechniques) | 9 | ✔ |
 | Reconnaissance | `reco-repere-bornier` | II | IEC 81346-2:2019 · IEC 61666:2010 | 10 | ✔ |
-| Reconnaissance | `reco-megohmmetre-prep` | II | IEC 61557-2:2019 · IEC 60364-6:2016 · NF C 18-510:2012+A1:2020 | 11 | ✔ |
+| Reconnaissance | `reco-megohmmetre-prep` | II | IEC 61557-2:2019 · IEC 60364-6:2016 · NF C 18-510:2012+A1:2020 | 12 | ✔ |
 | Reconnaissance | `reco-plaque-poles` | II | IEC 60034-1:2022 | 9 | ✔ |
 | Reconnaissance | `reco-cat-fusibles` | III | IEC 61010-2-030:2017 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
 | Reconnaissance | `reco-auto-maintien` | III | IEC 60617 (base en ligne) · NF EN 60204-1:2018 | 10 | ✔ |
-| Reconnaissance | `reco-au-deux-canaux` | III | ISO 13849-1:2023 · ISO 13850:2015 · NF EN 60204-1:2018 | 11 | ✔ |
+| Reconnaissance | `reco-au-deux-canaux` | III | ISO 13849-1:2023 · ISO 13850:2015 · NF EN 60204-1:2018 | 12 | ✔ |
 | Reconnaissance | `reco-ddr-type-f` | III | NF C 15-100:2002 · IEC 62423:2009 | 10 | ✔ |
+| Reconnaissance | `reco-irve-qualification` | I | Décret n° 2017-26 (qualification IRVE) · IEC 60364-7-722:2018 | 9 | ✔ |
+| Reconnaissance | `reco-irve-ddr` | II | IEC 60364-7-722:2018 (§ 722.531) · NF C 15-100:2002 | 10 | ✔ |
+| Reconnaissance | `reco-pv-continu` | II | UTE C 15-712-1:2013 · IEC 60364-7-712:2017 | 10 | ✔ |
+| Reconnaissance | `reco-driver-led` | I | IEC 61347-2-13:2014 | 9 | ✔ |
+| Reconnaissance | `reco-variateur-ddr` | II | IEC 61800-5-1:2022 · NF C 15-100:2002 | 10 | ✔ |
 | Calcul | `ohm` | I | IEC 80000-6:2022 (grandeurs et unités électriques) | 9 | ✔ |
 | Calcul | `puissance` | I | IEC 80000-6:2022 (puissance et énergie) | 9 | ✔ |
 | Calcul | `tension-attendue` | I | NF C 15-100:2002 (§ 525) | 9 | ✔ |
@@ -117,6 +123,9 @@
 | Calcul | `chute-24v` | II | IEC 61131-2:2017 · NF C 15-100:2002 (§ 525) | 10 | ✔ |
 | Calcul | `contact-tt` | II | IEC 60364-4-41:2005 (§ 411.5, schéma TT) · UL = 50 V en local sec | 9 | ✔ |
 | Calcul | `prise-transfo` | II | IEC 60076-1:2011 · NF C 18-510:2012+A1:2020 | 10 | ✔ |
+| Calcul | `continuite-pe` | II | IEC 60364-6:2016 · IEC 61557-4:2007 | 10 | ✔ |
+| Calcul | `test-ddr` | II | IEC 61008-1:2010 · IEC 61557-6:2019 | 10 | ✔ |
+| Calcul | `terre-mesuree` | II | IEC 60364-4-41:2005 (§ 411.5, schéma TT) · IEC 61557-5:2007 | 10 | ✔ |
 | Calcul | `chute-tri` | III | NF C 15-100:2002 (§ 525) | 9 | ✔ |
 | Calcul | `compensation` | III | IEC 60831-1:2014 | 9 | ✔ |
 | Calcul | `boucherot` | III | IEC 80000-6:2022 · NF C 15-100:2002 (bilan de puissance) | 10 | ✔ |
@@ -162,6 +171,8 @@
 | Cas de panne | `demarrage-intempestif-24v` | III | NF EN 60204-1:2018 (§ 9.4.3, défauts à la terre du circuit de commande) | 15 | ✔ |
 | Cas de panne | `pompe-thermique-rearme` | III | IEC 60947-4-1:2018 (relais thermiques) · NF EN 60204-1:2018 (§ 7.3, protection des moteurs) | 24 | ✔ |
 | Cas de panne | `tgbt-reenclenchement` | III | NF C 18-510:2012+A1:2020 · NF C 15-100:2002 (§ 434) · IEC 60947-2:2016 | 21 | ✔ |
+| Cas de panne | `verif-continuite-pe` | I | IEC 60364-6:2016 · IEC 61557-4:2007 | 16 | ✔ |
+| Cas de panne | `verif-differentiel` | II | IEC 61008-1:2010 · IEC 61557-6:2019 · IEC 60364-6:2016 | 17 | ✔ |
 | Banc · Départ moteur direct | `fu1-fondu` | I | NF EN 60204-1:2018 (§ 7.2.4) | 19 | ✔ |
 | Banc · Départ moteur direct | `contact-95-96` | II | IEC 60947-4-1:2018 | 19 | ✔ |
 | Banc · Départ moteur direct | `bobine-coupee` | I | NF EN 61243-3:2014 (VAT) | 20 | ✔ |
@@ -184,6 +195,13 @@
 | Mesure d'isolement | `iso-cable-vieillissant` | III | IEC 60364-6:2016 · IEC 61557-2:2019 | 12 | ✔ |
 | Mesure d'isolement | `iso-alternateur-humide` | II | IEC 60034-27-4:2018 · IEC 60364-6:2016 | 14 | ✔ |
 | Mesure d'isolement | `iso-moteur-vernis` | III | IEC 60034-27-4:2018 · IEC 60364-6:2016 | 14 | ✔ |
+| Couleurs | `mat-conducteurs.svg` | — |  | 2 | ✔ |
+| Couleurs | `mat-capteur.svg` | — |  | 2 | ✔ |
+| Couleurs | `mat-arret-urgence.svg` | — |  | 2 | ✔ |
+| Couleurs | `mat-disjoncteur-modulaire.svg` | — |  | 2 | ✔ |
+| Couleurs | `mat-relais-thermique.svg` | — |  | 2 | ✔ |
+| Couleurs | `mat-cadenas.svg` | — |  | 2 | ✔ |
+| Couleurs | `mat-megohmmetre.svg` | — |  | 2 | ✔ |
 | Lexique | `tension` | — |  | 3 | ✔ |
 | Lexique | `courant` | — |  | 3 | ✔ |
 | Lexique | `phase` | — |  | 3 | ✔ |
@@ -218,5 +236,8 @@
 | Lexique | `bornier` | — |  | 3 | ✔ |
 | Lexique | `variateur` | — |  | 3 | ✔ |
 | Lexique | `court-circuit` | — |  | 3 | ✔ |
+| Lexique | `irve` | — |  | 3 | ✔ |
+| Lexique | `pv` | — |  | 3 | ✔ |
+| Lexique | `onduleur` | — |  | 3 | ✔ |
 | Lexique | `surcharge` | — |  | 3 | ✔ |
-| Lexique | `couverture-niveau-I` | I |  | 989 | ✔ |
+| Lexique | `couverture-niveau-I` | I |  | 1026 | ✔ |

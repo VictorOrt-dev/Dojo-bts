@@ -1710,5 +1710,139 @@
     ],
     "norme": "NF C 15-100 · IEC 62423",
     "risque": "Un différentiel aveuglé ne déclenche pas sur un défaut réel : la carcasse de l'appareil reste sous tension, sans coupure."
+  },
+  {
+    "id": "reco-irve-qualification",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-borne-irve.svg",
+    "question": "Chez un particulier, on pose cette borne de recharge de 7,4 kW. Qui peut l'installer ?",
+    "nom": "Un installateur qualifié IRVE",
+    "faux": [
+      "Tout électricien habilité BR",
+      "Le vendeur de la voiture",
+      "Le client, en suivant la notice"
+    ],
+    "pourquoiPas": {
+      "Tout électricien habilité BR": "L'habilitation BR autorise des interventions électriques, mais la pose d'une borne de plus de 3,7 kW exige en plus la qualification IRVE.",
+      "Le vendeur de la voiture": "Le concessionnaire peut conseiller, mais l'installation doit être faite par un professionnel qualifié IRVE.",
+      "Le client, en suivant la notice": "Une borne de 7,4 kW demande un circuit dédié, une protection adaptée et un installateur qualifié : pas d'auto-installation."
+    },
+    "explication": "En France, une infrastructure de recharge (IRVE) de plus de 3,7 kW doit être posée par un installateur qualifié IRVE : circuit dédié, protection différentielle adaptée, mise en service contrôlée.",
+    "reperage": "Borne murale (wallbox) de 7,4 kW en monophasé 32 A ou 11 / 22 kW en triphasé, sur un circuit dédié depuis le tableau.",
+    "role": "Recharger un véhicule électrique plusieurs heures à forte puissance : le circuit doit tenir ce courant en continu.",
+    "domaines": [
+      "mono-bt",
+      "securite"
+    ],
+    "norme": "Décret n° 2017-26 (qualification IRVE) · IEC 60364-7-722",
+    "risque": "Une borne posée sur un circuit sous-dimensionné chauffe pendant des heures de charge : bornes qui noircissent, isolant qui fond, départ de feu dans le garage, la nuit."
+  },
+  {
+    "id": "reco-irve-ddr",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-borne-irve.svg",
+    "question": "Cette borne n'intègre aucune détection de fuite en courant continu. Quel différentiel en amont ?",
+    "nom": "Un 30 mA de type B",
+    "faux": [
+      "Un 30 mA de type AC",
+      "Un 300 mA de type A",
+      "Un 500 mA de type AC"
+    ],
+    "pourquoiPas": {
+      "Un 30 mA de type AC": "Un type AC ne voit que les fuites en alternatif pur. Le chargeur du véhicule peut produire une fuite continue qui l'aveugle.",
+      "Un 300 mA de type A": "300 mA ne protège pas les personnes : la recharge exige 30 mA, et le type A seul ne suffit pas sans détection du continu.",
+      "Un 500 mA de type AC": "Ni la sensibilité ni le type ne conviennent : 30 mA et une détection des fuites continues sont exigés."
+    },
+    "explication": "Chaque point de recharge est protégé par un différentiel 30 mA. Contre les fuites en courant continu du chargeur, il faut un type B, ou un type A complété par une détection 6 mA DC intégrée à la borne.",
+    "reperage": "Différentiel marqué « B » (symbole alternatif + continu lissé) dans le coffret de la borne ou au tableau.",
+    "role": "Couper une fuite à travers une personne, même quand l'électronique du chargeur la rend en partie continue.",
+    "domaines": [
+      "securite",
+      "mono-bt"
+    ],
+    "norme": "IEC 60364-7-722 (§ 722.531) · NF C 15-100",
+    "risque": "Une fuite continue sature un différentiel AC ou A : il ne déclenche plus. La personne qui touche la carcasse du véhicule en défaut n'est alors plus protégée."
+  },
+  {
+    "id": "reco-pv-continu",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-panneau-pv.svg",
+    "question": "Panneaux au soleil, onduleur coupé : les câbles côté continu sont-ils hors tension ?",
+    "nom": "Non : les panneaux produisent toujours",
+    "faux": [
+      "Oui : l'onduleur coupé isole tout",
+      "Oui, sauf en plein midi d'été",
+      "Oui : le continu est sans danger"
+    ],
+    "pourquoiPas": {
+      "Oui : l'onduleur coupé isole tout": "Couper l'onduleur isole le côté alternatif. En amont, les panneaux restent reliés aux câbles et produisent dès qu'il y a de la lumière.",
+      "Oui, sauf en plein midi d'été": "Un panneau produit sa pleine tension dès qu'il fait jour, même par temps couvert : la tension change peu avec l'ensoleillement.",
+      "Oui : le continu est sans danger": "Plusieurs centaines de volts en continu sont dangereux, et un arc en continu ne s'éteint pas tout seul."
+    },
+    "explication": "Une chaîne de panneaux en série produit plusieurs centaines de volts continus dès qu'il fait jour. Seul le sectionneur côté continu, ouvert, isole les câbles de l'onduleur ; les câbles des panneaux restent sous tension.",
+    "reperage": "Étiquettes « Attention : deux sources de tension » et « Ne pas manœuvrer en charge » sur le coffret DC.",
+    "role": "Ouvrir le sectionneur DC, puis travailler comme si les câbles des panneaux étaient toujours sous tension.",
+    "domaines": [
+      "tbt-cc",
+      "securite"
+    ],
+    "norme": "UTE C 15-712-1 · IEC 60364-7-712",
+    "risque": "Débrancher un connecteur en charge côté continu crée un arc qui ne s'éteint pas : brûlures, et un départ de feu dans la toiture si le connecteur fond."
+  },
+  {
+    "id": "reco-driver-led",
+    "niveau": 1,
+    "type": "materiel",
+    "image": "img/reco/mat-driver-led.svg",
+    "question": "Ce boîtier alimente un panneau LED. Que fournit-il aux LED ?",
+    "nom": "Un courant continu régulé",
+    "faux": [
+      "Du 230 V alternatif direct",
+      "Une fréquence de 50 Hz fixe",
+      "Du 400 V entre deux phases"
+    ],
+    "pourquoiPas": {
+      "Du 230 V alternatif direct": "Le 230 V arrive à l'entrée du driver. Les LED, elles, ne supportent pas l'alternatif : le driver le transforme.",
+      "Une fréquence de 50 Hz fixe": "La fréquence est celle du réseau, à l'entrée. Les LED ont besoin d'un courant continu, pas d'une fréquence.",
+      "Du 400 V entre deux phases": "Un luminaire LED s'alimente entre phase et neutre ; jamais 400 V sur les LED."
+    },
+    "explication": "Une LED s'allume grâce à un courant continu bien dosé. Le driver (alimentation) reçoit le 230 V alternatif et fournit un courant continu régulé, par exemple 350 ou 700 mA.",
+    "reperage": "Étiquette du driver : entrée 220-240 V ~, sortie en mA (courant constant) ou en V (tension constante, rubans 12 / 24 V).",
+    "role": "Un panneau LED éteint ou qui clignote : on vérifie d'abord le 230 V à l'entrée du driver, puis sa sortie.",
+    "domaines": [
+      "tbt-cc",
+      "mono-bt"
+    ],
+    "norme": "IEC 61347-2-13",
+    "risque": "Ouvrir un luminaire sans couper : l'entrée du driver est en 230 V. Et un driver de remplacement au mauvais courant fait griller les LED en quelques heures."
+  },
+  {
+    "id": "reco-variateur-ddr",
+    "niveau": 2,
+    "type": "materiel",
+    "image": "img/reco/mat-variateur.svg",
+    "question": "Le différentiel 30 mA en amont de ce variateur déclenche à la mise sous tension. Cause probable ?",
+    "nom": "Les fuites du filtre CEM du variateur",
+    "faux": [
+      "Un court-circuit franc dans le moteur",
+      "Un défaut du neutre dans le tableau",
+      "Une surtension sur le réseau public"
+    ],
+    "pourquoiPas": {
+      "Un court-circuit franc dans le moteur": "Un court-circuit ferait déclencher le disjoncteur, pas seulement le différentiel, et pas au seul instant de la mise sous tension.",
+      "Un défaut du neutre dans le tableau": "Un neutre défaillant donne des tensions anormales, pas un déclenchement différentiel systématique à la mise sous tension.",
+      "Une surtension sur le réseau public": "Une surtension se répète rarement à chaque mise sous tension, et ce n'est pas une fuite vers la terre."
+    },
+    "explication": "Le filtre CEM d'un variateur envoie à la terre des courants de fuite par ses condensateurs, surtout à la mise sous tension. On choisit un différentiel adapté (type B ou F, souvent 300 mA en usage industriel) et on vérifie la notice.",
+    "reperage": "Notice du variateur : courant de fuite du filtre, type de différentiel recommandé, cavalier de mise à la terre du filtre.",
+    "role": "Distinguer une vraie fuite d'isolement d'une fuite normale du filtre, avant de remplacer quoi que ce soit.",
+    "domaines": [
+      "tri"
+    ],
+    "norme": "IEC 61800-5-1 · NF C 15-100",
+    "risque": "Supprimer le différentiel pour « que ça tienne » : plus rien ne protège les personnes contre un vrai défaut d'isolement du moteur."
   }
 ]

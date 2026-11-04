@@ -137,6 +137,11 @@ export function controler(donnees) {
       if (MATIERES.includes(donnees.preferences.matiere)) etat.preferences.matiere = donnees.preferences.matiere;
       else anomalies.push(`preferences.matiere doit valoir ${MATIERES.join(' ou ')}`);
     }
+    const rs = estObjet(donnees.preferences) ? donnees.preferences.rappelSauvegarde : undefined;
+    if (rs !== undefined && rs !== null) {
+      if (estHorodatage(rs)) etat.preferences.rappelSauvegarde = rs;
+      else anomalies.push('preferences.rappelSauvegarde doit être une date (horodatage)');
+    }
     for (const cle of ['visiteBanc', 'tutoBanc', 'consoleBanc']) {
       if (!estObjet(donnees.preferences) || donnees.preferences[cle] === undefined) continue;
       if (typeof donnees.preferences[cle] === 'boolean') etat.preferences[cle] = donnees.preferences[cle];

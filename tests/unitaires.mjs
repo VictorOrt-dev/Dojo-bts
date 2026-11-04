@@ -30,6 +30,7 @@ export default async function ({ t }) {
   await examenBlanc(t);
   await guideDuBanc(t);
   await ouvertureAuxDebutants(t);
+  await accessibiliteEtTerrain(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -639,4 +640,59 @@ async function ouvertureAuxDebutants(t) {
       && ['tbt-cc', 'mono-bt', 'tri', 'securite', 'hta'].every(d => l.filter(e => e.domaine === d).length === 3);
   }
   t.ok(ok, 'débutant, 60 examens : aucun niveau III, 10 de niveau I, 3 par domaine');
+}
+
+// ---------- Couleurs en toutes lettres, rappel de sauvegarde, schéma interactif, contenu bâtiment ----------
+
+async function accessibiliteEtTerrain(t) {
+  t.section('U15. Daltonisme, rappel de sauvegarde, points du schéma, contenu IRVE / PV / vérifications');
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const K = await import('../js/couleurs.js');
+  const leg = K.legendeCouleurs('img/reco/mat-conducteurs.svg');
+  t.ok(['Fil du haut : <strong>Marron (BN)', 'Fil du milieu : <strong>Bleu clair (BU)', 'Fil du bas : <strong>Vert-jaune (GNYE)'].every(x => leg.includes(x)) && K.legendeCouleurs('img/reco/sym-fusible.svg') === '',
+    'câble : « Marron (BN) », « Bleu clair (BU) », « Vert-jaune (GNYE) » écrits sous l\'image ; rien sous un symbole en noir et blanc');
+  t.ok(K.legendeCouleurs('img/reco/mat-capteur.svg').includes('Noir (BK)') && K.legendeCouleurs('img/reco/mat-arret-urgence.svg').includes('Rouge (RD)'),
+    'capteur 3 fils (BN, BU, BK) et arrêt d\'urgence (rouge sur jaune) légendés aussi');
+
+  const R = await import('../js/rappel-sauvegarde.js');
+  const J = 86_400_000, now = Date.UTC(2026, 10, 4, 12);
+  const jour = d => new Date(now - d * J).toISOString().slice(0, 10);
+  const progres = { xp: 120, stats: { reco: { sessions: 2 } } };
+  t.ok(!R.rappelDu({}, now) && !R.rappelDu({ activite: { jours: [jour(90)] } }, now), 'aucune progression : pas de rappel');
+  t.ok(R.rappelDu({ ...progres, activite: { jours: [jour(40)] } }, now) && !R.rappelDu({ ...progres, activite: { jours: [jour(10)] } }, now),
+    'progression commencée il y a 40 jours, jamais exportée : rappel ; il y a 10 jours : pas encore');
+  t.ok(!R.rappelDu({ ...progres, activite: { jours: [jour(90)] }, derniereSauvegarde: now - 10 * J }, now)
+    && R.rappelDu({ ...progres, activite: { jours: [jour(90)] }, derniereSauvegarde: now - 45 * J }, now)
+    && !R.rappelDu({ ...progres, activite: { jours: [jour(90)] }, derniereSauvegarde: now - 45 * J, preferences: { rappelSauvegarde: now - 3 * J } }, now),
+    'export de moins d\'un mois : rien ; de plus d\'un mois : rappel, sauf si le rappel a été montré récemment (une fois par mois)');
+  t.ok(controler({ version: 1, preferences: { rappelSauvegarde: now } }).anomalies.length === 0 && controler({ version: 1, preferences: { rappelSauvegarde: 'hier' } }).anomalies.length > 0,
+    'sauvegarde : date du dernier rappel contrôlée');
+
+  for (const f of ['depart-moteur', 'eclairage', 'etoile-triangle']) {
+    const b = JSON.parse(fs.readFileSync(path.join(RACINE, `data/banc-${f}.json`), 'utf8'));
+    const [w, h] = b.schemaTaille;
+    const svg = fs.readFileSync(path.join(RACINE, b.schema), 'utf8');
+    const libres = b.noeuds.filter(n => !n.interne).map(n => n.id);
+    const pts = Object.entries(b.schemaPoints);
+    t.ok(svg.includes(`viewBox="0 0 ${w} ${h}"`) && pts.every(([id, [x, y]]) => libres.includes(id) && x > 0 && x < w && y > 0 && y < h) && pts.length >= libres.length - 1,
+      `schéma ${f} : ${pts.length} points touchables sur ${libres.length}, dans le cadre du dessin, sur des nœuds réels`);
+  }
+
+  const reco = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/reconnaissance.json'), 'utf8'));
+  const cas = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/pannes.json'), 'utf8'));
+  const memos = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/memos.json'), 'utf8'));
+  const { GENERATEURS } = await import('../js/calcul.js');
+  const ids = ['reco-irve-qualification', 'reco-irve-ddr', 'reco-pv-continu', 'reco-driver-led', 'reco-variateur-ddr'];
+  t.ok(ids.every(id => reco.some(q => q.id === id)) && ['continuite-pe', 'test-ddr', 'terre-mesuree'].every(id => GENERATEURS.some(g => g.id === id))
+    && ['verif-continuite-pe', 'verif-differentiel'].every(id => cas.some(c => c.id === id)),
+    'contenu : IRVE, photovoltaïque, driver LED, variateur ; calculs continuité PE, test différentiel, terre ; 2 cas de vérification');
+  const couvert = (mode, id) => memos.some(m => m.cibles?.[mode]?.includes(id));
+  t.ok(ids.every(id => couvert('reco', id)) && ['continuite-pe', 'test-ddr', 'terre-mesuree'].every(id => couvert('calcul', id)) && ['verif-continuite-pe', 'verif-differentiel'].every(id => couvert('panne', id)),
+    'chaque nouvel élément a sa fiche mémo (« Bornes de recharge et photovoltaïque », « Vérifier une installation »…)');
+  const X = await import('../js/lexique.js');
+  t.ok(X.termePour('IRVE') === 'irve' && X.termePour('photovoltaïque') === 'pv' && X.termePour('onduleur') === 'onduleur', 'lexique : IRVE, photovoltaïque et onduleur définis');
+  const ddr = GENERATEURS.find(g => g.id === 'test-ddr');
+  let ok = true;
+  for (let i = 0; i < 200; i++) { const e = ddr.creer(); ok &&= e.reponse >= 50 && e.reponse <= 100; }
+  t.ok(ok, 'test différentiel : les seuils tirés restent entre 50 et 100 % de IΔn (différentiel conforme)');
 }
