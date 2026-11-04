@@ -4,6 +4,7 @@ export const BLOCS = [
   {
     id: 'bases', titre: 'Bases & monophasé', desc: 'Tension et courant, symboles, appareils, loi d\'Ohm, et la consignation : couper et cadenasser avant d\'intervenir.',
     liens: [
+      { libelle: 'Le socle : 4 piliers', href: '#/entrainement/socle' },
       { libelle: 'Reconnaissance I', href: '#/entrainement/reco?n=1' },
       { libelle: 'Calculs en monophasé (230 V)', href: '#/entrainement/calcul?n=1&d=mono-bt' },
       { libelle: 'Cas sécurité', href: '#/entrainement/panne?d=securite' }

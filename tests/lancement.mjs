@@ -10,7 +10,7 @@ const net = x => String(x).replace(/[\s  ]+/g, ' ').trim();
 const ECRANS = ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=1', '#/entrainement/calcul?n=2', '#/entrainement/panne',
   '#/entrainement/panne?c=moteur-grogne', '#/entrainement/banc?panne=fu1-fondu', '#/entrainement/banc?circuit=eclairage', '#/entrainement/isolement',
   '#/entrainement/isolement?s=iso-moteur-variateur', '#/entrainement/revision', '#/entrainement/memos', '#/entrainement/positionnement', '#/profil',
-  '#/entrainement/banc?circuit=etoile-triangle', '#/entrainement/isolement?s=iso-moteur-vernis', '#/entrainement/examen', '#/entrainement/banc?tuto=1', '#/entrainement/lexique', '#/entrainement/banc?libre=1'];
+  '#/entrainement/banc?circuit=etoile-triangle', '#/entrainement/isolement?s=iso-moteur-vernis', '#/entrainement/examen', '#/entrainement/banc?tuto=1', '#/entrainement/lexique', '#/entrainement/banc?libre=1', '#/entrainement/socle', '#/bienvenue'];
 
 export default async function ({ t, url: U, navigateur }) {
   t.section('P. Lancement : première prise en main, 3 blocs, données locales, ergonomie iPhone');
@@ -23,25 +23,25 @@ export default async function ({ t, url: U, navigateur }) {
     const phrases = intro.split(/(?<=[.!?])\s+(?=[A-ZÉÈ])/);
     t.ok(phrases.length === 2 && /simulateur|terrain/.test(intro) && intro.includes('hors connexion') && intro.includes('sans compte'),
       'premier lancement : l\'objectif du simulateur en 2 phrases (terrain, hors connexion, sans compte)');
-    t.ok(await p.locator('.bienvenue-blocs li').count() === 3 && net(await p.textContent('.bienvenue-blocs')).includes('Armoire & banc')
-      && await p.locator('[data-profil]').count() === 3 && net(await p.textContent('main')).includes('12 questions'),
-      'puis le parcours en 3 blocs et « Où en es-tu ? » (3 profils, test de 12 questions)');
+    t.ok(await p.locator('.mode-profil[data-profil]').count() === 2 && await p.locator('.choix-entre-deux').count() === 1
+      && net(await p.textContent('main')).includes('12 questions') && net(await p.textContent('main')).includes('4 piliers'),
+      'puis « Où en es-tu ? » : deux grands choix (socle des 4 piliers / test de 12 questions) et « Entre les deux » discret');
     await contexte.close();
   }
 
-  // ---------- Les 3 blocs : 9 raccourcis, chacun ouvre le bon écran ----------
+  // ---------- Les 3 blocs : 10 raccourcis (dont le socle), chacun ouvre le bon écran ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur);
     await p.goto(U + '#/entrainement'); await p.waitForSelector('.blocs-parcours');
     const liens = await p.$$eval('.bloc-liens a', l => l.map(a => ({ href: a.getAttribute('href'), texte: a.textContent.trim() })));
-    const attendu = { reco: '.choix-btn', calcul: '.exercice', panne: '.ligne-panne', banc: '.tableau-bord', isolement: '.ligne-isolement' };
+    const attendu = { reco: '.choix-btn', calcul: '.exercice', panne: '.ligne-panne', banc: '.tableau-bord', isolement: '.ligne-isolement', socle: '.socle-jeu' };
     const ko = [];
     for (const l of liens) {
       await p.goto(U + '#/x'); await p.goto(U + l.href);
       const mode = l.href.split('/')[2].split('?')[0];
       try { await p.waitForSelector(attendu[mode], { timeout: 5000 }); } catch { ko.push(l.texte); }
     }
-    t.ok(liens.length === 9 && ko.length === 0, `accueil › Le parcours en 3 blocs : ${liens.length} raccourcis, chacun ouvre son écran` + (ko.length ? ' — en échec : ' + ko.join(', ') : ''));
+    t.ok(liens.length === 10 && ko.length === 0, `accueil › Le parcours en 3 blocs : ${liens.length} raccourcis, chacun ouvre son écran` + (ko.length ? ' — en échec : ' + ko.join(', ') : ''));
     await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?circuit=eclairage'); await p.waitForSelector('.tuto-carte');
     await p.click('#tuto-quitter'); await p.waitForFunction(() => document.querySelector('.titre-chapitre')?.textContent.includes('télérupteur'));
     t.ok(!(await p.$('.tuto-carte')) && p.url().includes('circuit=eclairage'),
@@ -104,7 +104,7 @@ export default async function ({ t, url: U, navigateur }) {
         const touches = [], textes = [];
         const visible = e => { const st = getComputedStyle(e); return st.display !== 'none' && st.visibility !== 'hidden' && e.getClientRects().length && !e.closest('[hidden]'); };
         // Les mots du lexique sont des cibles intégrées au texte : exception de taille du WCAG 2.5.8 (vérifiés à part).
-        for (const e of document.querySelectorAll('a[href], button:not(.terme), summary, select, [role="button"]')) {
+        for (const e of document.querySelectorAll('a[href], button:not(.terme), summary, select, [role="button"]:not(.terme)')) {
           if (!visible(e)) continue;
           const st = getComputedStyle(e);
           if (st.display === 'inline' && e.closest('p, li, dd, td')) continue;   // lien dans une phrase

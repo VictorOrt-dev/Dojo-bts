@@ -105,7 +105,7 @@ export async function renderProfil({ vue, definirTitre }) {
       ${titreSection('04', 'Lexique')}
       <div class="corps">
         <p class="discret">${LEXIQUE.length} mots du métier expliqués en une phrase : LoZ, VAT, consignation, contacteur, HTA… Partout dans l'app, un mot souligné en pointillé se touche pour voir sa définition.</p>
-        <div class="actions"><a class="btn" href="#/entrainement/lexique">Ouvrir le lexique</a></div>
+        <div class="actions"><a class="btn" href="#/entrainement/lexique">Ouvrir le lexique</a><a class="btn" href="#/entrainement/socle">Le socle : 4 piliers</a></div>
       </div>
     </section>
 

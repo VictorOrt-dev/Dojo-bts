@@ -11,11 +11,12 @@ export default async function ({ t, url: U, navigateur }) {
 
   // Premier lancement : stockage vide → « Où en es-tu ? »
   await p.goto(U); await p.waitForSelector('[data-profil]');
-  t.ok(p.url().endsWith('#/bienvenue') && await p.locator('[data-profil]').count() === 3
-    && (await p.textContent('main')).includes('Débutant total') && (await p.textContent('main')).includes('Technicien confirmé'),
-    'premier lancement : écran « Où en es-tu ? » à 3 choix');
-  await p.click('[data-profil="debutant"]'); await p.waitForSelector('.prochaine');
-  t.ok((await etat()).profil === 'debutant' && p.url().endsWith('#/entrainement'), 'choix « Débutant total » enregistré, retour à l\'accueil');
+  t.ok(p.url().endsWith('#/bienvenue') && await p.locator('.mode-profil[data-profil]').count() === 2 && await p.locator('.choix-entre-deux[data-profil="formation"]').count() === 1
+    && (await p.textContent('main')).includes('Grand débutant') && (await p.textContent('main')).includes('Confirmé / Pro'),
+    'premier lancement : « Où en es-tu ? » en deux grands choix (Grand débutant, Confirmé / Pro), « Entre les deux » en option discrète');
+  await p.click('[data-profil="debutant"]'); await p.waitForSelector('.socle-jeu');
+  t.ok((await etat()).profil === 'debutant' && p.url().endsWith('#/entrainement/socle'), 'choix « Grand débutant » enregistré, direction le socle des 4 piliers');
+  await p.goto(U + '#/entrainement'); await p.waitForSelector('.prochaine');
 
   // Accueil débutant : carte prioritaire en tête, ordre des modes
   const prochaine = await p.evaluate(() => { const a = document.querySelector('.prochaine'); const m = document.querySelector('.modes'); return { href: a.getAttribute('href'), avant: !!(a.compareDocumentPosition(m) & Node.DOCUMENT_POSITION_FOLLOWING), texte: a.textContent }; });

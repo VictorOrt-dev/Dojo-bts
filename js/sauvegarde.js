@@ -27,6 +27,7 @@ export function etatParDefaut() {
     preferences: { matiere: 'auto', visiteBanc: false, tutoBanc: false, consoleBanc: false },
     profil: null,            // 'debutant' | 'formation' | 'confirme' ; null = premier lancement pas encore fait
     positionnement: null,    // { niveau: 0 à 3, score: 0 à 12, date, niveaux?: { reco, calcul, panne } } : test de positionnement
+    socle: null,             // { fait, score: 0 à 3, date } : les 4 piliers et leur mini-quiz (grand débutant)
     activite: { jours: [] }, // jours d'entraînement (« AAAA-MM-JJ », heure locale) : séries
     jalons: { memosApresErreur: 0, isolementPropre: [] },   // accomplissements suivis pour les insignes
     badges: {}               // insignes obtenus : { id: date d'obtention }
@@ -164,6 +165,13 @@ export function controler(donnees) {
       etat.positionnement = { niveau: p.niveau, score: p.score, date: p.date };
       if (p.niveaux) etat.positionnement.niveaux = { reco: p.niveaux.reco ?? 0, calcul: p.niveaux.calcul ?? 0, panne: p.niveaux.panne ?? 0 };
     } else anomalies.push('positionnement : attendu { niveau 0 à 3, score 0 à 12, date, niveaux { reco, calcul, panne } ≤ niveau }');
+  }
+
+  if (donnees.socle !== undefined && donnees.socle !== null) {
+    const c = donnees.socle;
+    if (estObjet(c) && typeof c.fait === 'boolean' && Number.isSafeInteger(c.score) && c.score >= 0 && c.score <= 3 && estHorodatage(c.date)) {
+      etat.socle = { fait: c.fait, score: c.score, date: c.date };
+    } else anomalies.push('socle : attendu { fait (vrai / faux), score 0 à 3, date }');
   }
 
   // Jours d'entraînement (séries) : dates « AAAA-MM-JJ », au plus 400.

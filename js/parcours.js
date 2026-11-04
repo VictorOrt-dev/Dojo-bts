@@ -5,9 +5,9 @@
 // liste des cas de panne) : tests/unitaires.mjs les vérifie sans navigateur.
 
 export const PROFILS = [
-  { id: 'debutant', court: 'Débutant', nom: 'Débutant total', desc: 'Je découvre l\'électricité.', parcours: 'Débutant' },
-  { id: 'formation', court: 'En formation', nom: 'En formation', desc: 'BTS, Bac Pro, alternance.', parcours: 'Formation' },
-  { id: 'confirme', court: 'Confirmé', nom: 'Technicien confirmé', desc: 'Je veux m\'entraîner, tester des cas.', parcours: 'Confirmé' }
+  { id: 'debutant', court: 'Grand débutant', nom: 'Grand débutant', desc: 'Je découvre l\'électricité : les bases, sans jargon.', parcours: 'Débutant' },
+  { id: 'formation', court: 'En formation', nom: 'En formation', desc: 'CAP, Bac Pro, BTS ou alternance.', parcours: 'Formation' },
+  { id: 'confirme', court: 'Confirmé / Pro', nom: 'Confirmé / Pro', desc: 'Accès direct aux modes avancés et au banc.', parcours: 'Confirmé' }
 ];
 
 export const SEUIL = 8;  // un niveau est acquis à 8/10 (80 %) sur une séance « tous domaines »

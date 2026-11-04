@@ -82,7 +82,7 @@ export function termePour(fragment) {
 
 // Là où un mot ne doit pas devenir touchable : commandes (un bouton dans un bouton est interdit), listes, afficheurs,
 // schémas, et les épreuves sans aide (examen blanc, positionnement : [data-sans-lexique]).
-const EXCLUS = 'button, a, select, option, summary, label, input, textarea, svg, code, pre, dialog, .terme, .nixie, .tabbar, .topbar, .puce-domaine, .bilan-score, [data-sans-lexique]';
+const EXCLUS = 'button, a, select, option, summary, label, input, textarea, svg, code, pre, dialog, .terme, .nixie, .tabbar, .topbar, .puce-domaine, .bilan-score, [data-sans-lexique], .frontispice, .titre-chapitre';
 
 // Texte invisible pour l'instant : dans un volet replié ou une zone masquée. On attend qu'il s'ouvre.
 const cache = el => !!el.closest('[hidden]') || [...ancetres(el)].some(a => a.tagName === 'DETAILS' && !a.open && !el.closest('summary'));
@@ -102,8 +102,11 @@ export function annoter(racine) {
     while (deja.size < LEXIQUE.length && (r = trouver(n.nodeValue, deja))) {
       const mot = n.splitText(r.debut);
       const suite = mot.splitText(r.fin - r.debut);
-      const b = document.createElement('button');
-      b.type = 'button';
+      // Un vrai élément de texte (pas un bouton, qui se comporte en bloc dans la ligne et laisserait la ponctuation
+      // partir à la ligne suivante), touchable et accessible au clavier.
+      const b = document.createElement('span');
+      b.setAttribute('role', 'button');
+      b.tabIndex = 0;
       b.className = 'terme';
       b.dataset.terme = r.id;
       b.setAttribute('aria-haspopup', 'dialog');
@@ -145,6 +148,12 @@ export function brancherLexique() {
   document.addEventListener('click', ev => {
     const b = ev.target.closest?.('.terme');
     if (!b) return;
+    ev.preventDefault();
+    ouvrirTerme(b.dataset.terme);
+  });
+  document.addEventListener('keydown', ev => {
+    const b = ev.target.closest?.('.terme');
+    if (!b || (ev.key !== 'Enter' && ev.key !== ' ')) return;
     ev.preventDefault();
     ouvrirTerme(b.dataset.terme);
   });

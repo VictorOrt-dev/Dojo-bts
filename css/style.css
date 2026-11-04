@@ -1283,3 +1283,44 @@ code { font-size: .85em; padding: 1px 6px; border-radius: 6px; background: var(-
 .ech-marron { background: #7c4a22; } .ech-bleu { background: #60a5fa; } .ech-noir { background: #111; } .ech-gris { background: #8d939a; }
 .ech-rouge { background: #dc2626; } .ech-jaune { background: #facc15; }
 .ech-vert-jaune { background: repeating-linear-gradient(45deg, #16a34a 0 4px, #facc15 4px 8px); }
+
+/* ---------- Premier lancement : deux grands choix ; le socle des 4 piliers ---------- */
+.choix-entre-deux {
+  display: block; width: 100%; min-height: 48px; margin: 4px 0 0; padding: 10px 14px; border: 0; border-radius: var(--rayon);
+  background: none; box-shadow: inset 0 0 0 1px var(--filet-fort); color: var(--texte-2); font: 500 15px/1.4 var(--texte); text-align: left; cursor: pointer;
+}
+.choix-entre-deux strong { color: var(--texte-1); }
+.carte-socle {
+  display: grid; gap: 4px; margin: 0 0 14px; padding: 14px 16px; border-radius: var(--rayon); text-decoration: none; color: var(--texte-1);
+  background: rgb(110 149 255 / .12); box-shadow: inset 0 0 0 1px rgb(110 149 255 / .45);
+}
+.carte-socle-surtitre { font: 700 12px/1.2 var(--mono); color: var(--lien); text-transform: uppercase; letter-spacing: .06em; }
+.carte-socle-titre { font: 800 19px/1.2 var(--texte); }
+.carte-socle-desc { font-size: 14px; color: var(--texte-2); }
+.socle-progression { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 4px 0 14px; padding: 0; list-style: none; }
+.socle-progression li { display: grid; place-items: center; height: 30px; border-radius: 10px; background: var(--surface-2); color: var(--texte-2); font: 700 13px/1 var(--mono); box-shadow: inset 0 0 0 1px var(--filet); }
+.socle-progression li.fait { background: var(--juste); color: var(--fond); }
+.socle-progression li.en-cours { background: var(--lien); color: var(--fond); }
+.socle-unite { margin: 0 0 8px; color: var(--texte-2); }
+.socle-unite strong { color: var(--texte-1); }
+.socle-texte { margin: 0 0 14px; font-size: 1.05rem; line-height: 1.5; }
+.socle-jeu { display: grid; gap: 10px; margin: 0 0 14px; padding: 14px; border-radius: var(--rayon); background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--filet); }
+.socle-consigne { margin: 0; font-size: 14px; color: var(--texte-2); }
+.socle-sources { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.socle-sources .btn { min-height: 48px; font-size: 15px; }
+.socle-sources .btn[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--lien); }
+.socle-verdict { margin: 0; font-size: 15px; line-height: 1.45; }
+.socle-verdict.danger strong:first-child { color: var(--attention); }
+.socle-circuit svg { width: 100%; max-width: 280px; justify-self: center; color: var(--texte-1); }
+.socle-curseur { display: grid; gap: 6px; font-size: 15px; }
+.socle-curseur input { width: 100%; min-height: 44px; accent-color: var(--lien); }
+.socle-fil { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 52px; padding: 8px 12px; border: 0; border-radius: 12px;
+  background: var(--surface); box-shadow: inset 0 0 0 1px var(--filet-fort); color: var(--texte-1); font: inherit; text-align: left; cursor: pointer; }
+.socle-fil[aria-expanded="true"] { box-shadow: inset 0 0 0 2px var(--lien); }
+.socle-fil strong { display: block; }
+.fil-couleur { display: block; font-size: 14px; color: var(--texte-2); }
+.fil-trait { height: 10px; border-radius: 5px; }
+.fil-phase .fil-trait { background: #7c4a22; }
+.fil-neutre .fil-trait { background: #60a5fa; }
+.fil-terre .fil-trait { background: repeating-linear-gradient(45deg, #16a34a 0 5px, #facc15 5px 10px); }
+.socle-recap { margin-top: 6px; }

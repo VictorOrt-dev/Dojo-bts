@@ -51,7 +51,8 @@ js/sauvegarde.js        contrôle strict des données (import refusé à la moin
 js/profil.js            progression, export/import, remise à zéro
 js/entrainement.js      accueil : « Ta prochaine séance », modes dans l'ordre du profil, carte de l'opérateur ; en-tête de séance, rapport, toast
 js/parcours.js          parcours guidé, logique pure : profils, prochaine séance, mentions « Conseillé après… », règle du positionnement
-js/bienvenue.js         premier lancement : « Où en es-tu ? » (3 profils)
+js/bienvenue.js         premier lancement : « Où en es-tu ? » (Grand débutant, Confirmé / Pro ; « Entre les deux » discret)
+js/socle.js             le socle : 4 piliers manipulables (tension, courant, résistance, phase / neutre / terre) et mini-quiz de 3 questions
 js/positionnement.js    test de positionnement (12 questions : reconnaissance, calculs, cas de panne ; sans XP)
 js/examen.js            Bilan · examen blanc (15 questions et calculs chronométrés, calibrés sur le niveau, sans aide, bilan par compétence)
 js/couleurs.js          couleurs en toutes lettres (daltonisme) : légende BN / BU / GNYE… sous les images colorées
@@ -110,7 +111,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, prédiction, geste courant, surbrillance, écarts rattrapés). **U14** : débutants (lexique, recherche des termes, couverture du niveau I, reclassements, niveau socle, examen calibré). **U15** : couleurs en toutes lettres, rappel de sauvegarde, points des schémas, nouveaux contenus. **U16** : audit reproductible (deux exécutions, même détail ; hasard normal rétabli) |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, prédiction, geste courant, surbrillance, écarts rattrapés). **U14** : débutants (lexique, recherche des termes, couverture du niveau I, reclassements, niveau socle, examen calibré). **U15** : couleurs en toutes lettres, rappel de sauvegarde, points des schémas, nouveaux contenus. **U16** : audit reproductible (deux exécutions, même détail ; hasard normal rétabli). **U17** : socle (piliers, loi d'Ohm, quiz, révision, sauvegarde) |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, aides du multimètre, volets en accordéon, appareil mémorisé, guide « Première intervention » joué au doigt de bout en bout (déclenchement au premier accès, surbrillances, fin, bouton « ? Guide du banc », « Quitter le guide »), « ? Guide du banc » réellement touchable (rien ne le recouvre) dans 13 états du banc et du guide, déclenchement du guide selon le point d'entrée, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
@@ -118,6 +119,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 | `tests/apprentissage.mjs` | **Q** : une erreur d'il y a 4 jours revient en 6e question d'une séance de niveau II, marquée « Rappel d'erreur » ; une erreur de 12 h n'y revient pas ; calculs rappelés avec de nouvelles valeurs ; filtre de domaine respecté. **R** : examen blanc joué au doigt (chronomètre, ni verdict ni fiche pendant l'épreuve, 10/15 → 13,5/20, bilan par compétence, corrigé, erreurs en révision, record à l'accueil, arrêt au bout du temps) |
 | `tests/debutant.mjs` | **S** : lexique (mots touchables sans doublon ni bouton imbriqué, bulle, page, section du Carnet, banc), « Je ne sais pas encore » en reconnaissance et en calculs (réponse, fiche dépliée, pas d'XP perdu, révision), examen calibré (aucun niveau III pour un débutant, examen complet au choix, pas de lexique pendant l'épreuve), sigles de l'accueil en clair |
 | `tests/terrain.mjs` | **T** : couleurs écrites sous l'image du câble, rappel de sauvegarde (affichage, export, « Plus tard », une fois par mois, rien pour un nouvel utilisateur), banc libre (pas de chrono ni de rapport ni de statistiques, idées, retour), pointes posées en touchant le schéma des 3 circuits, nouvelles fiches et cas |
+| `tests/socle.mjs` | **O** : premier lancement en deux grands choix, socle joué au doigt (4 manipulations, valeurs affichées), mini-quiz (erreur sans pénalité, révision, score), accueil puis examen calibré, carte « socle » si quitté en route, Confirmé / Pro direct, retour du choix après « Tout effacer », « Entre les deux » |
 | `tests/banc.mjs` | **I** : les pannes des 3 circuits du banc résolues au doigt dans l'interface : mesures, alertes de sécurité, pièce inutile, réarmement, rapport (avec risque et norme) ; chaque panne résolue en suivant seulement les indices, lectures en clair |
 
 **Intégration continue.** GitHub relance toute la suite à chaque push sur `main` (Ubuntu 24.04, Node 22, Playwright 1.63.0 figés dans
@@ -554,6 +556,31 @@ la cause, la démarche d'un pro et le piège du cas.
 - Les réponses sont enregistrées comme en séance (XP du niveau, révision espacée) ; `stats.examen` garde le nombre
   d'examens et le meilleur score, affiché sur la carte de l'accueil.
 
+## Premier lancement et socle des 4 piliers (`js/bienvenue.js`, `js/socle.js`)
+
+- **« Où en es-tu ? »**, écran sobre (moins d'une hauteur d'écran et demie) : deux grands choix, **Grand débutant**
+  (les bases, sans jargon) et **Confirmé / Pro** (modes avancés et banc en premier, test de 12 questions proposé).
+  « Entre les deux ? » reste possible en option discrète (profil « En formation » : CAP, Bac Pro, BTS, alternance),
+  pour ne pas forcer un élève en formation à choisir entre deux extrêmes. Mémorisé dans `profil` ; il revient après
+  « Tout effacer ».
+- **Le socle** (`#/entrainement/socle`), pour le grand débutant juste après son choix : les 4 piliers, chacun avec son
+  unité, une image simple (pression, débit, frein, aller / retour / sortie de secours), un texte de 50 mots au plus,
+  « À retenir », et une **manipulation** :
+  1. **Tension** : toucher une source (pile 1,5 V, batterie 12 V, prise 230 V, poste HTA 20 000 V) → sa tension et
+     son danger ;
+  2. **Courant** : ouvrir / fermer l'interrupteur d'une lampe → 230 V dans les deux cas, 0 A puis 0,26 A ;
+  3. **Résistance** : choisir 12, 24 ou 230 V et faire glisser R → I = U / R en direct (« ça chauffe fort » au-delà
+     de 10 A) ;
+  4. **Phase, neutre, terre** : toucher un conducteur → couleurs en toutes lettres (BN / BK / GY, BU, GNYE), rôle et
+     danger.
+- **Mini-quiz de 3 questions** (tension / courant, loi d'Ohm, conducteur dangereux), correction immédiate, sans
+  pénalité ni XP : une erreur affiche « Presque : voici l'idée », l'explication et « Revoir le pilier », et
+  l'élément correspondant rejoint la révision espacée. Pas de lexique touchable pendant le quiz. Fin : score,
+  `socle = { fait, score, date }`, puis « Commencer mon parcours » vers l'accueil standard (profil débutant :
+  parcours guidé, examen blanc calibré 10 / 5).
+- Un débutant qui quitte le socle en route le retrouve en tête de l'accueil (« Le socle : 4 piliers en 3 minutes ») ;
+  il reste accessible depuis le bloc « Bases & monophasé » et le Carnet.
+
 ## Grands débutants (audit débutant, `docs/audit-debutant-2026-11.md`)
 
 - **Lexique tactile** (`js/lexique.js`) : 35 termes fondamentaux (tension, courant, phase, neutre, PE, LoZ, VAT,
@@ -652,6 +679,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Banc pour non-initié : guide « Première intervention » en 4 étapes, volets en accordéon, aides du multimètre, appareil mémorisé
 - [x] Grands débutants : lexique tactile, « Je ne sais pas encore », niveau socle, prédiction au banc, examen calibré, accueil en clair
 - [x] Accessibilité et terrain : couleurs en toutes lettres, rappel de sauvegarde mensuel, banc libre, pointes posées sur le schéma, IRVE, photovoltaïque, LED, variateurs, vérifications d'installation
+- [x] Premier lancement en deux grands choix et socle des 4 piliers avec mini-quiz
 - [ ] Banc : VAT faite par l'élève, nouveaux circuits (inverseur, différentiel)
 
 ## Renommer le dépôt (facultatif)

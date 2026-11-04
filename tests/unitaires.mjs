@@ -32,6 +32,7 @@ export default async function ({ t }) {
   await ouvertureAuxDebutants(t);
   await accessibiliteEtTerrain(t);
   await auditReproductible(t);
+  await socleDesPiliers(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -101,6 +102,7 @@ function controleDesSauvegardes(t) {
     preferences: { matiere: 'porcelaine', visiteBanc: true, tutoBanc: true, consoleBanc: false },
     profil: 'formation',
     positionnement: { niveau: 2, score: 8, date: 1761900000000, niveaux: { reco: 2, calcul: 1, panne: 0 } },
+    socle: { fait: true, score: 3, date: 1761900000000 },
     activite: { jours: ['2026-10-30', '2026-10-31', '2026-11-01'] },
     jalons: { memosApresErreur: 4, isolementPropre: ['iso-prises-neuves'] },
     badges: { 'habilite-banc': 1761900000000 }
@@ -707,4 +709,26 @@ async function auditReproductible(t) {
   const empreinte = r => JSON.stringify(r.lignes.map(l => [l.famille, l.id, l.controles, l.anomalies]));
   t.ok(a.controles === b.controles && empreinte(a) === empreinte(b), `deux audits de suite : ${a.controles} contrôles, détail identique ligne à ligne`);
   t.ok(Math.random === hasard && Math.random() !== Math.random(), 'après l\'audit, le hasard normal est rétabli pour le reste de l\'app');
+}
+
+// ---------- Le socle des 4 piliers ----------
+
+async function socleDesPiliers(t) {
+  t.section('U17. Le socle : 4 piliers et mini-quiz (socle.js)');
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const S = await import('../js/socle.js');
+  t.ok(S.PILIERS.map(p => p.id).join() === 'tension,courant,resistance,conducteurs' && S.PILIERS.every(p => p.texte.split(/\s+/).length <= 50 && p.retenir && p.unite && p.image),
+    'les 4 piliers dans l\'ordre (tension, courant, résistance, phase / neutre / terre), chacun avec son unité, son image et « À retenir » ; 50 mots au plus');
+  t.ok(S.courant(230, 100) === 2.3 && S.courant(12, 4) === 3, 'loi d\'Ohm de la manipulation : I = U / R (230 V / 100 Ω = 2,3 A)');
+  t.ok(S.QUIZ.length === 3 && S.QUIZ.every(q => q.choix[q.bonne] && new Set(q.choix).size === q.choix.length && q.explication && S.PILIERS.some(p => p.id === q.pilier)),
+    'mini-quiz : 3 questions, une bonne réponse chacune, une explication et le pilier à revoir');
+  const ohm = S.QUIZ.find(q => q.id === 'q-ohm');
+  t.ok(ohm.choix[ohm.bonne] === '2,3 A' && S.corriger(ohm, ohm.bonne).juste && !S.corriger(ohm, 1).juste, 'la bonne réponse du calcul suit bien la loi d\'Ohm (230 / 100 = 2,3 A)');
+  const reco = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/reconnaissance.json'), 'utf8'));
+  const { GENERATEURS } = await import('../js/calcul.js');
+  t.ok(S.QUIZ.every(q => q.revision[0] === 'reco' ? reco.some(x => x.id === q.revision[1]) : GENERATEURS.some(g => g.id === q.revision[1])),
+    'chaque question alimente un élément réel de la révision (erreur → révision espacée)');
+  t.ok(S.CONDUCTEURS.every(c => /\((BN|BU|GNYE)\)/.test(c.couleurs)) && S.SOURCES.length === 4, 'phase, neutre, terre : couleurs écrites avec leur code ; 4 sources de tension, de la pile à la HTA');
+  t.ok(controler({ version: 1, socle: { fait: true, score: 2, date: 1 } }).anomalies.length === 0 && controler({ version: 1, socle: { fait: 'oui', score: 5, date: 1 } }).anomalies.length > 0,
+    'sauvegarde : socle contrôlé (fait vrai / faux, score 0 à 3, date)');
 }

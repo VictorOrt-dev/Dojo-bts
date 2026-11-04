@@ -107,6 +107,11 @@ export async function renderEntrainement({ vue, definirTitre }) {
     </header>
 
     ${bandeauSauvegarde(etat)}
+    ${etat.profil === 'debutant' && !etat.socle?.fait ? `<a class="carte-socle" href="#/entrainement/socle">
+      <span class="carte-socle-surtitre">Avant tout</span>
+      <span class="carte-socle-titre">Le socle : 4 piliers en 3 minutes</span>
+      <span class="carte-socle-desc">Tension, courant, résistance, phase / neutre / terre, puis 3 questions sans piège.</span>
+    </a>` : ''}
     ${carteProchaine(prochaine, reco)}
     ${(n => n ? `<a class="rappel-revision" href="#/entrainement/revision"><strong>À réviser :</strong> ${n} erreur${n > 1 ? 's' : ''} à revoir aujourd'hui →</a>` : '')(aReviser(etat).length)}
 

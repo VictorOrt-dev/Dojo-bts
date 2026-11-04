@@ -14,6 +14,7 @@ import { renderPositionnement } from './positionnement.js';
 import { renderRevision } from './revision.js';
 import { renderIsolement } from './isolement.js';
 import { renderExamen } from './examen.js';
+import { renderSocle } from './socle.js';
 import { brancherLexique, renderLexique } from './lexique.js';
 import { renderMemos } from './memos.js';
 import { premierLancement } from './parcours.js';
@@ -90,6 +91,7 @@ async function router() {
         else if (id === 'isolement') await renderIsolement(ctx);
         else if (id === 'examen') await renderExamen(ctx);
         else if (id === 'lexique') renderLexique(ctx);
+        else if (id === 'socle') renderSocle(ctx);
         else if (id === 'memos') await renderMemos(ctx);
         else if (id === 'reco') await renderReco(ctx);
         else if (id === 'calcul') renderCalcul(ctx);
