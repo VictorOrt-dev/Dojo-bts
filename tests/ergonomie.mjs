@@ -123,6 +123,65 @@ export default async function ({ t, url: U, navigateur }) {
     await c.close();
   }
 
+  // ---------- « ? Guide du banc » réellement touchable dans tous les états ----------
+  {
+    const { contexte: c, page: q } = await nouvellePage(navigateur);
+    q.on('dialog', d => d.accept());
+    // Un lanceur du guide ([data-guide]) est touchable s'il est à l'écran et que rien ne le recouvre au point touché.
+    // S'il n'y en a aucun à l'écran, on accepte de défiler jusqu'à l'un d'eux (rapports longs), toujours sans recouvrement.
+    const touchable = () => q.evaluate(() => {
+      const libre = el => { const r = el.getBoundingClientRect(); if (!r.width || r.top < 0 || r.bottom > innerHeight) return false;
+        const x = r.left + r.width / 2, y = r.top + r.height / 2; return !!document.elementFromPoint(x, y)?.closest('[data-guide]') && document.elementFromPoint(x, y).closest('[data-guide]') === el; };
+      const tous = [...document.querySelectorAll('[data-guide]')].filter(el => el.getClientRects().length);
+      let ok = tous.find(libre);
+      if (!ok) for (const el of tous) { el.scrollIntoView({ block: 'center' }); if (libre(el)) { ok = el; break; } }
+      return ok ? `${ok.className || ok.textContent.trim()} (${Math.round(ok.getBoundingClientRect().height)} px)` : null;
+    });
+    const etats = [];
+    const noter = async nom => { etats.push([nom, await touchable()]); };
+    await q.goto(U + '#/entrainement'); await q.goto(U + '#/entrainement/banc?circuit=eclairage'); await q.waitForSelector('.tuto-carte');
+    t.ok(true, 'nouvel utilisateur arrivé par « Banc · éclairage » : le guide démarre aussi (déclenchement quel que soit le point d\'entrée)');
+    await noter('guide, étape 1');
+    await q.click('#tuto-suivant'); await noter('guide, étape 2 (appareil déplié)');
+    await q.selectOption('#rouge', 'x1'); await q.click('#mesurer'); await q.selectOption('#rouge', 's11'); await q.click('#mesurer'); await noter('guide, étape 3');
+    await q.click('[data-fonction="loz"]'); await q.click('#mesurer'); await noter('guide, étape 4 (question)');
+    await q.click('[data-prediction="1"]'); await noter('guide, étape 4 (consigner, onglet Actions)');
+    await q.click('[data-action="consigner"]'); await q.click('[data-fonction="ohm"]'); await q.selectOption('#rouge', 'x1'); await q.selectOption('#noir', 's11'); await q.click('#mesurer');
+    await q.click('[data-action="remplacer"]'); await q.click('[data-action="consigner"]'); await q.click('[data-action="essai"]'); await q.waitForSelector('.bilan-tuto');
+    await noter('fin du guide');
+    const suite = await q.getAttribute('a.btn.principal:has-text("Ma première vraie panne")', 'href');
+    t.ok(suite.includes('circuit=eclairage'), `« Ma première vraie panne » ramène au circuit choisi (${suite})`);
+    await q.click('a.btn.principal:has-text("Ma première vraie panne")'); await q.waitForSelector('.tableau-bord');
+    if (await q.isVisible('#mesurer')) await q.click('.poignee-console');
+    await noter('vraie panne, appareil replié');
+    await q.click('.poignee-console'); await noter('vraie panne, appareil déplié');
+    await q.click('#mesurer'); await noter('vraie panne, après une mesure');
+    await q.click('[data-onglet-banc="actions"]'); await q.click('[data-action="consigner"]'); await noter('vraie panne, consignée, onglet Actions');
+    await q.click('[data-onglet-banc="pince"]'); await noter('vraie panne, onglet Pince');
+    await q.goto(U + '#/entrainement/banc?libre=1'); await q.waitForSelector('.poignee-console'); await noter('banc libre');
+    await q.goto(U + '#/entrainement/banc?circuit=etoile-triangle'); await q.waitForSelector('.tableau-bord');
+    if (!(await q.isVisible('#mesurer'))) await q.click('.poignee-console');
+    await q.click('[data-onglet-banc="actions"]'); await q.click('[data-action="abandonner"]'); await q.waitForSelector('.bilan');
+    await noter('rapport d\'intervention');
+    const rates = etats.filter(([, ok]) => !ok).map(([n]) => n);
+    t.ok(!rates.length, `« ? Guide du banc » touchable, sans rien qui le recouvre, dans les ${etats.length} états : ${etats.map(([n]) => n).join(' · ')}` + (rates.length ? ' — RECOUVERT : ' + rates.join(', ') : ''));
+    // Toucher le « ? » de la barre, appareil déplié, en pleine intervention : le guide repart de l'étape 1.
+    await q.goto(U + '#/entrainement/banc?circuit=depart-moteur'); await q.waitForSelector('.tableau-bord');
+    if (!(await q.isVisible('#mesurer'))) await q.click('.poignee-console');
+    const b = await q.locator('.poignee-ligne .guide-console').boundingBox();
+    t.ok(b.width >= 44 && b.height >= 44, `« ? » de la barre de l'appareil : ${Math.round(b.width)} × ${Math.round(b.height)} px`);
+    await q.click('.poignee-ligne .guide-console'); await q.waitForSelector('.tuto-carte');
+    t.ok((await q.textContent('.tuto-etape')).includes('Étape 1/4'), '« ? » de la barre, appareil déplié en pleine intervention : le guide repart de l\'étape 1');
+    t.ok(q.erreurs.length === 0, 'guide toujours à portée : aucune erreur dans la console' + (q.erreurs.length ? ' — ' + q.erreurs.join(' | ') : ''));
+    await c.close();
+  }
+  for (const [entree, attendu] of [['#/entrainement/banc?panne=fu1-fondu', false], ['#/entrainement/banc?libre=1', false], ['#/entrainement/banc?circuit=depart-moteur', true]]) {
+    const { contexte: c, page: q } = await nouvellePage(navigateur);
+    await q.goto(U + '#/entrainement'); await q.goto(U + entree); await q.waitForSelector('.poignee-console');
+    t.ok(!!(await q.$('.tuto-carte')) === attendu, `nouvel utilisateur, entrée ${entree.split('#')[1]} : guide ${attendu ? 'lancé' : 'non imposé (lien direct ou banc libre)'}`);
+    await c.close();
+  }
+
   // ---------- Aucun texte sous 12 px, sur 12 écrans (HTML et graduations du cadran) ----------
   const ecrans = ['#/entrainement', '#/entrainement/reco', '#/entrainement/reco?n=2', '#/entrainement/calcul?n=2', '#/entrainement/panne',
     '#/entrainement/panne?c=moteur-grogne', '#/entrainement/banc?panne=fu1-fondu', '#/profil', '#/entrainement/positionnement',

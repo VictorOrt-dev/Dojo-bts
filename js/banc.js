@@ -118,7 +118,8 @@ export async function renderBanc({ vue, definirTitre, params }) {
   definirTitre('Banc de mesure');
   // ?circuit=<id> choisit le circuit (départ moteur par défaut) ; ?panne=<id> force une panne précise (tests).
   const voulu = params?.get('panne');
-  // Tutoriel « Première intervention » : au tout premier passage au banc (sans circuit ni panne demandés), ou par le
+  // Tutoriel « Première intervention » : au tout premier passage au banc, quel que soit le point d'entrée (onglet,
+  // accueil, bloc, circuit choisi), sauf lien direct vers une panne précise et banc libre ; ou à tout moment par un
   // bouton « ? Guide du banc ». Toujours le même cas de démonstration.
   const prefs = stockage.lire().preferences ?? {};
   // Banc libre (?libre=1) : le circuit sain, sans panne ni chrono, pour manipuler l'appareil sans rien risquer.
@@ -126,9 +127,11 @@ export async function renderBanc({ vue, definirTitre, params }) {
     const b = await chargerBanc(params?.get('circuit') ?? 'depart-moteur');
     return demarrer(vue, b, panneSaine(b), { libre: true });
   }
-  if (params?.get('tuto') === '1' || (!voulu && !params?.get('circuit') && !prefs.tutoBanc && !prefs.visiteBanc)) {
+  if (params?.get('tuto') === '1' || (!voulu && !prefs.tutoBanc && !prefs.visiteBanc)) {
     const b = await chargerBanc(T.CIRCUIT_TUTO);
-    return demarrer(vue, b, b.pannes.find(p => p.id === T.PANNE_TUTO), { tuto: true });
+    // Après le guide, retour au circuit que l'apprenti avait choisi (sinon le départ moteur).
+    const retour = CIRCUITS.some(c => c.id === params?.get('circuit')) ? params.get('circuit') : T.CIRCUIT_TUTO;
+    return demarrer(vue, b, b.pannes.find(p => p.id === T.PANNE_TUTO), { tuto: true, retour });
   }
   let banc = await chargerBanc(params?.get('circuit') ?? 'depart-moteur');
   if (voulu && !banc.pannes.some(p => p.id === voulu)) {
@@ -140,11 +143,11 @@ export async function renderBanc({ vue, definirTitre, params }) {
   demarrer(vue, banc, panne);
 }
 
-function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
+function demarrer(vue, banc, panne, { tuto = false, libre = false, retour = null } = {}) {
   const P = PROFILS[banc.id];
   const etat = interventionCourante = {
     libre,                                        // banc libre : circuit sain, rien n'est compté
-    tuto: tuto ? { lu: false, vu: -1 } : null,   // tutoriel : bon lu, dernier geste affiché
+    tuto: tuto ? { lu: false, vu: -1, circuitRetour: retour ?? T.CIRCUIT_TUTO } : null,   // tutoriel : bon lu, dernier geste affiché
     circuit: banc.id,
     tl: false,                     // éclairage : position du télérupteur (allumé / éteint)
     appui: false,                  // éclairage : appui bref sur S1 pendant un essai
@@ -335,6 +338,7 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
       <div class="tuto-carte" role="region" aria-label="Guide du banc" aria-live="polite" data-geste="${gi}">
         <div class="tuto-tete">
           <p class="tuto-etape">Étape ${g.etape}/${T.NB_ETAPES} · ${esc(T.TITRES[g.etape - 1])}</p>
+          <a class="guide-console" data-guide href="#/entrainement/banc?tuto=1&r=${Date.now()}" aria-label="Recommencer le guide depuis l'étape 1" title="Recommencer le guide">?</a>
           <button type="button" id="tuto-quitter" class="tuto-quitter">Quitter le guide</button>
         </div>
         <ol class="tuto-progression" aria-hidden="true">${T.TITRES.map((_, i) => `<li class="${i + 1 < g.etape ? 'fait' : i + 1 === g.etape ? 'en-cours' : ''}"></li>`).join('')}</ol>
@@ -360,7 +364,7 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
         ? '<strong>Banc libre :</strong> aucune panne, pas de chrono, rien n\'est compté. Mesure partout, change de fonction, consigne, lance des essais : c\'est fait pour comprendre.'
         : `<strong>Ta mission :</strong> ${esc(P.mission)}`}</p>
       <div class="banc-raccourcis">
-        <a class="btn-guide" href="#/entrainement/banc?tuto=1&r=${Date.now()}" aria-label="Guide du banc : refaire la première intervention guidée"><span aria-hidden="true">?</span> Guide du banc</a>
+        <a class="btn-guide" data-guide href="#/entrainement/banc?tuto=1&r=${Date.now()}" aria-label="Guide du banc : refaire la première intervention guidée"><span aria-hidden="true">?</span> Guide du banc</a>
         ${etat.libre
           ? `<a class="btn-libre" href="#/entrainement/banc?circuit=${banc.id}&r=${Date.now()}">Quitter le banc libre</a>`
           : `<a class="btn-libre" href="#/entrainement/banc?libre=1&circuit=${banc.id}">Banc libre, sans panne</a>`}
@@ -410,6 +414,7 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
             <span class="poignee-sens">${etat.consoleOuverte ? 'Replier' : 'Ouvrir'}</span>
           </button>
           <button type="button" class="bouton-indice">${etat.libre ? 'Une idée ?' : 'Indice'}</button>
+          <a class="guide-console" data-guide href="#/entrainement/banc?tuto=1&r=${Date.now()}" aria-label="Guide du banc : refaire la première intervention guidée" title="Guide du banc">?</a>
         </div>
         <div id="corps-console" class="corps-console"${etat.consoleOuverte ? '' : ' hidden'}>
         <nav class="segments onglets-banc" aria-label="Instruments">
@@ -497,7 +502,7 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
     vue.querySelector('#tuto-schema')?.addEventListener('click', () => ouvrirSchema(banc));
     vue.querySelector('#tuto-quitter')?.addEventListener('click', () => {
       stockage.modifier(e => { e.preferences = { ...e.preferences, tutoBanc: true }; });
-      location.hash = `#/entrainement/banc?circuit=${T.CIRCUIT_TUTO}&r=${Date.now()}`;
+      location.hash = `#/entrainement/banc?circuit=${etat.tuto.circuitRetour}&r=${Date.now()}`;
     });
     vue.querySelector('.poignee-console').addEventListener('click', () => {
       etat.consoleOuverte = !etat.consoleOuverte;
@@ -637,8 +642,8 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
         <p>${esc(typo(`Les vraies pannes sont cachées et tirées au sort : niveau I d'abord, puis II et III, sur trois circuits. L'indice reste là si tu bloques, mais il coûte de l'XP. La maîtrise, c'est la panne réparée sans indice, sans alerte de sécurité et dans le temps d'un technicien confirmé (${horloge(panne.reference)} ici).`))}</p>
       </div>
       <div class="actions pousse-bas">
-        <a class="btn principal" href="#/entrainement/banc?circuit=${T.CIRCUIT_TUTO}&r=${Date.now()}">Ma première vraie panne</a>
-        <a class="btn" href="#/entrainement/banc?tuto=1&r=${Date.now()}">Refaire le guide</a>
+        <a class="btn principal" href="#/entrainement/banc?circuit=${etat.tuto.circuitRetour}&r=${Date.now()}">Ma première vraie panne</a>
+        <a class="btn" data-guide href="#/entrainement/banc?tuto=1&r=${Date.now()}">Refaire le guide</a>
       </div>`;
     window.scrollTo(0, 0);
   };
@@ -696,6 +701,7 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false } = {}) {
       </details>
       <div class="actions pousse-bas">
         <button id="autre" class="btn principal" type="button">Nouvelle panne cachée</button>
+        <a class="btn" data-guide href="#/entrainement/banc?tuto=1&r=${Date.now()}">? Guide du banc</a>
         <a class="btn" href="#/entrainement">Retour aux exercices</a>
       </div>`;
     vue.querySelector('#autre').addEventListener('click', () => {

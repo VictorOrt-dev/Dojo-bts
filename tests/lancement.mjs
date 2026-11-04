@@ -42,8 +42,10 @@ export default async function ({ t, url: U, navigateur }) {
       try { await p.waitForSelector(attendu[mode], { timeout: 5000 }); } catch { ko.push(l.texte); }
     }
     t.ok(liens.length === 9 && ko.length === 0, `accueil › Le parcours en 3 blocs : ${liens.length} raccourcis, chacun ouvre son écran` + (ko.length ? ' — en échec : ' + ko.join(', ') : ''));
-    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?circuit=eclairage'); await p.waitForSelector('.tableau-bord');
-    t.ok(net(await p.textContent('.titre-chapitre')).includes('télérupteur'), 'raccourci « Banc · éclairage » : le circuit d\'éclairage s\'ouvre directement');
+    await p.goto(U + '#/entrainement'); await p.goto(U + '#/entrainement/banc?circuit=eclairage'); await p.waitForSelector('.tuto-carte');
+    await p.click('#tuto-quitter'); await p.waitForFunction(() => document.querySelector('.titre-chapitre')?.textContent.includes('télérupteur'));
+    t.ok(!(await p.$('.tuto-carte')) && p.url().includes('circuit=eclairage'),
+      'raccourci « Banc · éclairage », première fois : le guide d\'abord ; « Quitter le guide » ouvre bien le circuit d\'éclairage');
     t.ok(p.erreurs.length === 0, 'navigation entre les blocs : aucune erreur dans la console' + (p.erreurs.length ? ' — ' + p.erreurs.join(' | ') : ''));
     await contexte.close();
   }

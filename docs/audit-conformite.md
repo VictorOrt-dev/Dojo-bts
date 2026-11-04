@@ -2,7 +2,7 @@
 
 *Généré par `node outils/audit.mjs` (aussi exécuté par la CI à chaque envoi) : ne pas modifier à la main.*
 
-**205 éléments, 3082 contrôles automatiques, 0 anomalie.**
+**205 éléments, 3084 contrôles automatiques, 0 anomalie.**
 
 | Famille | Éléments | Contrôles | Anomalies |
 |---|---|---|---|
@@ -14,7 +14,7 @@
 | Banc · Démarrage étoile-triangle | 4 | 79 | 0 |
 | Mesure d'isolement | 8 | 103 | 0 |
 | Couleurs | 7 | 14 | 0 |
-| Lexique | 39 | 1140 | 0 |
+| Lexique | 39 | 1142 | 0 |
 
 ## Ce qui est contrôlé
 
@@ -240,4 +240,4 @@
 | Lexique | `pv` | — |  | 3 | ✔ |
 | Lexique | `onduleur` | — |  | 3 | ✔ |
 | Lexique | `surcharge` | — |  | 3 | ✔ |
-| Lexique | `couverture-niveau-I` | I |  | 1026 | ✔ |
+| Lexique | `couverture-niveau-I` | I |  | 1028 | ✔ |

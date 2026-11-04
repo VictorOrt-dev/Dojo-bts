@@ -31,6 +31,7 @@ export default async function ({ t }) {
   await guideDuBanc(t);
   await ouvertureAuxDebutants(t);
   await accessibiliteEtTerrain(t);
+  await auditReproductible(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -695,4 +696,15 @@ async function accessibiliteEtTerrain(t) {
   let ok = true;
   for (let i = 0; i < 200; i++) { const e = ddr.creer(); ok &&= e.reponse >= 50 && e.reponse <= 100; }
   t.ok(ok, 'test différentiel : les seuils tirés restent entre 50 et 100 % de IΔn (différentiel conforme)');
+}
+
+// ---------- Audit reproductible ----------
+
+async function auditReproductible(t) {
+  t.section('U16. Audit reproductible : mêmes tirages, même rapport');
+  const hasard = Math.random;
+  const [a, b] = [await auditer(), await auditer()];
+  const empreinte = r => JSON.stringify(r.lignes.map(l => [l.famille, l.id, l.controles, l.anomalies]));
+  t.ok(a.controles === b.controles && empreinte(a) === empreinte(b), `deux audits de suite : ${a.controles} contrôles, détail identique ligne à ligne`);
+  t.ok(Math.random === hasard && Math.random() !== Math.random(), 'après l\'audit, le hasard normal est rétabli pour le reste de l\'app');
 }

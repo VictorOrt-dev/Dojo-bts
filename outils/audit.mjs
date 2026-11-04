@@ -11,6 +11,7 @@
 //   4. Sécurité   : « Le risque, en vrai » sur chaque élément ; « Le piège en armoire » sur chaque cas, panne, mesure, calcul.
 //   5. Structure  : une seule bonne démarche par étape, embranchements valides, pannes du banc réparables,
 //                   démarches de référence (pistes) qui citent des points et des pièces existants.
+//   Les tirages aléatoires suivent une graine fixe (GRAINE_AUDIT) : deux exécutions donnent le même rapport.
 //   6. Lexique    : définitions de 20 mots au plus ; chaque terme technique du contenu de niveau I (questions, calculs,
 //                   cas, pannes du banc, guide du banc) a sa définition dans js/lexique.js.
 // La fonction auditer() est aussi appelée par tests/unitaires.mjs : la CI échoue si le contenu dérive.
@@ -33,7 +34,27 @@ const connue = c => EDITIONS.some(e => c === e.code || (e.libre && c.startsWith(
 // Tension d'essai et seuil d'isolement minimal selon le circuit (IEC 60364-6, tableau 6A).
 const tableauIsolement = u => (u <= 50 ? { essai: 250, seuil: 0.5 } : u <= 500 ? { essai: 500, seuil: 1 } : { essai: 1000, seuil: 1 });
 
+// Tirages reproductibles : pendant l'audit, Math.random suit une suite pseudo-aléatoire à graine fixe (mulberry32).
+// Les mêmes calculs sont tirés à chaque exécution : le rapport docs/audit-conformite.md ne change que si le contenu change.
+export const GRAINE_AUDIT = 20261104;
+function aleaFixe(graine) {
+  let a = graine >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export async function auditer() {
+  const hasardNormal = Math.random;
+  Math.random = aleaFixe(GRAINE_AUDIT);
+  try { return await auditerContenu(); } finally { Math.random = hasardNormal; }
+}
+
+async function auditerContenu() {
   globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
   const { GENERATEURS, estJuste, TOLERANCE } = await import('../js/calcul.js');
   const reco = lire('data/reconnaissance.json');
