@@ -15,6 +15,7 @@ import * as stockage from './storage.js';
 import { entier, parmi, melanger } from './hasard.js';
 import { esc } from './util.js';
 import { typo } from './mise-en-page.js';
+import * as reprise from './reprise.js';
 
 export const TOLERANCE = 0.02;  // ±2 %
 const RACINE3 = Math.sqrt(3);
@@ -1448,12 +1449,34 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     return;
   }
 
-  const rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'calcul', {
+  let rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'calcul', {
     admis: id => GENERATEURS.some(g => g.id === id && g.niveau <= niveau && filtrerParDomaine([g], dom).length)
   });
   const session = sessionCourante = creerSession(niveau, dom, revision ? dus : null, rappels);
   let saisie = '';
   const exerciceCourant = () => session.exercices[session.index];
+
+  // Reprise : la série (avec ses valeurs tirées) est enregistrée après chaque réponse ; quittée en route, elle se reprend.
+  const cleSerie = reprise.cle('calcul', params?.toString());
+  const enCours = reprise.lire('calcul', cleSerie);
+  const lien = (() => { const p = new URLSearchParams(params ?? ''); p.delete('r'); p.set('reprendre', '1'); return `#/entrainement/calcul?${p}`; })();
+  const libelle = revision ? 'Révision · calculs' : `Calculs · niveau ${difficulte(niveau).romain}${dom ? ` · ${domaine(dom).nom.toLowerCase()}` : ''}`;
+  const sauverSerie = () => reprise.enregistrer('calcul', {
+    cle: cleSerie, href: lien, libelle, total: session.exercices.length,
+    exercices: session.exercices.map(({ generateur, termine, ...reste }) => ({ gid: generateur.id, ...reste })),
+    resultats: session.resultats, score: session.score, xp: session.xp, rappelsReussis: session.rappelsReussis ?? 0, rappels
+  });
+  const reprendre = s => {
+    const ex = (s.exercices ?? []).map(({ gid, ...reste }) => { const g = GENERATEURS.find(x => x.id === gid); return g && { generateur: g, ...reste }; });
+    if (!ex.length || ex.some(e => !e)) { reprise.effacer('calcul'); return false; }   // calculs modifiés depuis : on repart à zéro
+    Object.assign(session, { exercices: ex, index: s.resultats.length, score: s.score ?? 0, xp: s.xp ?? 0, resultats: [...s.resultats], rappelsReussis: s.rappelsReussis ?? 0 });
+    rappels = s.rappels ?? [];
+    return true;
+  };
+  const poursuivre = () => {
+    if (session.index >= session.exercices.length) { session.index = session.exercices.length - 1; return suivant(); }
+    afficherExercice();
+  };
 
   const taper = touche => {
     if (touche === '⌫') saisie = saisie.slice(0, -1);
@@ -1490,6 +1513,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     const ex = exerciceCourant();
     saisie = '';
     vue.innerHTML = `
+      ${enCours && !session.resultats.length ? reprise.bandeauReprise(enCours) : ''}
       <p class="niveau-seance">${revision ? `<span class="pastille-revision">Révision</span> ${etiquetteNiveau(exerciceCourant().generateur.niveau)}` : ex.rappel ? `<span class="pastille-revision" title="Un calcul raté il y a quelques jours, avec de nouvelles valeurs">Rappel d'erreur</span> ${etiquetteNiveau(ex.generateur.niveau)}` : etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
       ${enteteSession(session.index + 1, session.score, session.resultats, session.exercices.length)}
       <section class="exercice">
@@ -1519,6 +1543,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       vue.querySelector('.clavier .valider').addEventListener('click', valider);
     }
     vue.querySelector('#je-ne-sais-pas').addEventListener('click', () => terminer(ex, null));
+    vue.querySelector('#reprendre-serie')?.addEventListener('click', () => { if (reprendre(enCours)) poursuivre(); else afficherExercice(); });
     window.scrollTo(0, 0);
   };
 
@@ -1553,6 +1578,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       session.xp += gain;
       annoncerMontee(gagnerXP(gain));
     }
+    sauverSerie();
 
     const attendu = ex.choix ? ex.reponse : `${nb(ex.reponse)} ${ex.unite}`;
     const diagnostic = !juste && !decouverte && !ex.choix ? diagnostiquer(ex, valeur) : null;
@@ -1601,6 +1627,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     session.index++;
     if (session.index < session.exercices.length) return afficherExercice();
 
+    reprise.effacer('calcul');   // série terminée : plus rien à reprendre
     if (session.score === TAILLE_SESSION && TAILLE_SESSION >= SEANCE_MIN_BONUS) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
@@ -1618,5 +1645,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
     });
   };
 
-  afficherExercice();
+  // Depuis la carte « À reprendre » de l'accueil (?reprendre=1) : on reprend tout de suite.
+  if (enCours && params?.get('reprendre') === '1' && reprendre(enCours)) poursuivre();
+  else afficherExercice();
 }

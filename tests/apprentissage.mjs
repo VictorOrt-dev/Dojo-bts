@@ -84,11 +84,11 @@ export default async function ({ t, url: U, navigateur }) {
     await p.waitForSelector('.bilan-examen');
     t.ok(aides === 0, 'pendant l\'examen : ni verdict, ni correction, ni fiche mémo');
     const rapport = net(await p.textContent('main'));
-    t.ok(net(await p.textContent('.bilan-score')) === '10/15' && rapport.includes('13,5/20') && rapport.includes('Admissible, à consolider') && rapport.includes('1 sans réponse'),
-      'rapport : 10/15, 13,5/20, « Admissible, à consolider », 1 sans réponse');
+    t.ok(net(await p.textContent('.bilan-score')) === '10/15' && rapport.includes('13,5/20') && rapport.includes('Admissible, à consolider') && rapport.includes('1 passée'),
+      'rapport : 10/15, 13,5/20, « Admissible, à consolider », 1 question passée');
     t.ok(await p.locator('.competences .competence').count() >= 8 && await p.locator('.competence-verdict').first().isVisible(), 'bilan par compétence : 5 domaines, types et niveaux, avec un verdict chacun');
     await p.click('.corrige summary');
-    t.ok(await p.locator('.liste-corrige li').count() === 15 && await p.locator('.liste-corrige li.faux').count() === 5 && net(await p.textContent('.liste-corrige')).includes('Sans réponse'),
+    t.ok(await p.locator('.liste-corrige li').count() === 15 && await p.locator('.liste-corrige li.faux').count() === 5 && net(await p.textContent('.liste-corrige')).includes('Passée'),
       'corrigé après la fin : 15 questions, 5 erreurs avec la réponse attendue');
     const stock = await p.evaluate(() => JSON.parse(localStorage.getItem('elec-learning:v1')).stats);
     const fautes = liste.slice(10);
@@ -102,8 +102,8 @@ export default async function ({ t, url: U, navigateur }) {
     await p.click('#commencer-examen'); await p.waitForSelector('.choix-btn');
     await p.click('.choix-btn >> nth=0');
     await p.waitForSelector('.bilan-examen', { timeout: 6000 });
-    t.ok(net(await p.textContent('.bilan-xp')).includes('temps écoulé') && net(await p.textContent('.bilan-xp')).includes('14 sans réponse'),
-      'temps écoulé : l\'examen s\'arrête seul, les 14 questions restantes comptées sans réponse');
+    t.ok(net(await p.textContent('.bilan-xp')).includes('temps écoulé') && net(await p.textContent('.bilan-xp')).includes('14 non traitées'),
+      'temps écoulé : l\'examen s\'arrête seul, les 14 questions restantes « non traitées »');
     t.ok(p.erreurs.length === 0, 'examen blanc : aucune erreur dans la console' + (p.erreurs.length ? ' — ' + p.erreurs.join(' | ') : ''));
     await contexte.close();
   }

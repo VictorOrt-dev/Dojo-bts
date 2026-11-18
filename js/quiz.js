@@ -11,6 +11,7 @@ import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { legendeCouleurs } from './couleurs.js';
+import * as reprise from './reprise.js';
 import { aReviser, rappelsPourSeance, intercaler } from './leitner.js';
 import { zoneMemo, remplirMemo } from './memos.js';
 import { esc } from './util.js';
@@ -62,7 +63,7 @@ export async function renderReco({ vue, definirTitre, params }) {
   }
 
   // Séance ordinaire : les erreurs d'il y a quelques jours (même niveau ou plus bas, même domaine) y reviennent.
-  const rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'reco', {
+  let rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'reco', {
     admis: id => toutes.some(q => q.id === id && q.niveau <= niveau && filtrerParDomaine([q], dom).length)
   });
   const session = {
@@ -76,11 +77,34 @@ export async function renderReco({ vue, definirTitre, params }) {
     resultats: [] // vrai / faux pour chaque question jouée (bornier)
   };
 
+  // Reprise : la série est enregistrée après chaque réponse ; quittée en route, elle se reprend là où on l'a laissée.
+  const cleSerie = reprise.cle('reco', params?.toString());
+  const enCours = reprise.lire('reco', cleSerie);
+  const lien = (() => { const p = new URLSearchParams(params ?? ''); p.delete('r'); p.set('reprendre', '1'); return `#/entrainement/reco?${p}`; })();
+  const libelle = revision ? 'Révision · reconnaissance' : `Reconnaissance · niveau ${difficulte(niveau).romain}${dom ? ` · ${domaine(dom).nom.toLowerCase()}` : ''}`;
+  const sauverSerie = () => reprise.enregistrer('reco', {
+    cle: cleSerie, href: lien, libelle, total: session.questions.length,
+    ids: session.questions.map(q => ({ id: q.id, ...(q.rappel ? { rappel: true } : {}) })),
+    resultats: session.resultats, score: session.score, xp: session.xp, rappelsReussis: session.rappelsReussis ?? 0, rappels
+  });
+  const reprendre = s => {
+    const qs = (s.ids ?? []).map(({ id, rappel }) => { const q = toutes.find(x => x.id === id); return q && (rappel ? { ...q, rappel: true } : q); });
+    if (!qs.length || qs.some(q => !q)) { reprise.effacer('reco'); return false; }   // contenu modifié depuis : on repart à zéro
+    Object.assign(session, { questions: qs, index: s.resultats.length, score: s.score ?? 0, xp: s.xp ?? 0, resultats: [...s.resultats], rappelsReussis: s.rappelsReussis ?? 0 });
+    rappels = s.rappels ?? [];
+    return true;
+  };
+  const poursuivre = () => {
+    if (session.index >= session.questions.length) { session.index = session.questions.length - 1; return suivant(); }   // tout était répondu
+    afficherQuestion();
+  };
+
   const afficherQuestion = () => {
     const q = session.questions[session.index];
     const choix = melanger([q.nom, ...q.faux]);
 
     vue.innerHTML = `
+      ${enCours && !session.resultats.length ? reprise.bandeauReprise(enCours) : ''}
       <p class="niveau-seance">${revision ? `<span class="pastille-revision">Révision</span> ${etiquetteNiveau(q.niveau)}` : q.rappel ? `<span class="pastille-revision" title="Une erreur d'il y a quelques jours, glissée dans ta séance">Rappel d'erreur</span> ${etiquetteNiveau(q.niveau)}` : etiquetteNiveau(niveau, { long: true })}${dom ? ` ${pucesDomaines([dom])}` : ''}</p>
       ${enteteSession(session.index + 1, session.score, session.resultats, session.questions.length)}
       <figure class="reco-visuel ${q.type === 'symbole' ? 'symbole' : 'materiel'}">
@@ -99,6 +123,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     vue.querySelectorAll('.choix-btn').forEach((bouton, i) =>
       bouton.addEventListener('click', () => repondre(q, choix, i)));
     vue.querySelector('#je-ne-sais-pas').addEventListener('click', () => repondre(q, choix, null));
+    vue.querySelector('#reprendre-serie')?.addEventListener('click', () => { if (reprendre(enCours)) poursuivre(); else afficherQuestion(); });
     window.scrollTo(0, 0);
   };
 
@@ -126,6 +151,7 @@ export async function renderReco({ vue, definirTitre, params }) {
       session.xp += gain;
       annoncerMontee(gagnerXP(gain));
     }
+    sauverSerie();
 
     const lecon = `<div class="lecon"><p class="lecon-titre">Explication</p><p>${esc(typo(q.explication))}</p></div>`;
     const ficheTechnique = `
@@ -175,6 +201,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     session.index++;
     if (session.index < session.questions.length) return afficherQuestion();
 
+    reprise.effacer('reco');   // série terminée : plus rien à reprendre
     const total = session.questions.length;
     if (session.score === total && total >= SEANCE_MIN_BONUS) {
       session.xp += BAREME.sessionParfaite;
@@ -193,5 +220,7 @@ export async function renderReco({ vue, definirTitre, params }) {
     });
   };
 
-  afficherQuestion();
+  // Depuis la carte « À reprendre » de l'accueil (?reprendre=1) : on reprend tout de suite.
+  if (enCours && params?.get('reprendre') === '1' && reprendre(enCours)) poursuivre();
+  else afficherQuestion();
 }

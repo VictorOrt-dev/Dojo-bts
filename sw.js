@@ -54,6 +54,7 @@ const FICHIERS = [
   'js/rappel-sauvegarde.js',
   'js/couleurs.js',
   'js/socle.js',
+  'js/reprise.js',
   'js/banc-profils.js',
   'js/memos.js',
   'js/guidage.js',

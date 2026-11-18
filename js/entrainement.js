@@ -15,6 +15,7 @@ import { indicateurSerie, verifierBadges, vibrer } from './insignes.js';
 import { BLOCS } from './blocs.js';
 import { chargerPannes } from './panne.js';
 import { bandeauSauvegarde, brancherBandeau } from './rappel-sauvegarde.js';
+import { cartesReprise } from './reprise.js';
 
 export const TAILLE_SESSION = 10;
 export const SEANCE_MIN_BONUS = 5; // bonus « sans faute » : seulement pour une séance d'au moins 5 questions
@@ -113,6 +114,7 @@ export async function renderEntrainement({ vue, definirTitre }) {
       <span class="carte-socle-titre">Le socle : 4 piliers en 3 minutes</span>
       <span class="carte-socle-desc">Tension, courant, résistance, phase / neutre / terre, puis 3 questions sans piège.</span>
     </a>` : ''}
+    ${cartesReprise()}
     ${carteProchaine(prochaine, reco)}
     ${(n => n ? `<a class="rappel-revision" href="#/entrainement/revision"><strong>À réviser :</strong> ${n} erreur${n > 1 ? 's' : ''} à revoir aujourd'hui →</a>` : '')(aReviser(etat).length)}
 

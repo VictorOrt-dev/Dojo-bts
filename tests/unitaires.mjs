@@ -33,6 +33,7 @@ export default async function ({ t }) {
   await accessibiliteEtTerrain(t);
   await auditReproductible(t);
   await socleDesPiliers(t);
+  await repriseDesSeries(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -546,7 +547,7 @@ async function examenBlanc(t) {
   t.ok(b.score === 10 && b.total === 15 && b.sur20 === 13.5 && b.sansReponse === 1 && b.mention === 'Admissible, à consolider',
     `10/15 : ${b.sur20}/20, « ${b.mention} », 1 sans réponse`);
   t.ok(b.parDomaine.tri.verdict === 'acquis' && b.parDomaine.securite.verdict === 'a-consolider' && b.parDomaine.hta.verdict === 'a-retravailler'
-    && b.parType.reco.total === 10 && b.parType.calcul.justes === 3 && b.parNiveau[3].justes === 3,
+    && b.parType.reco.total === 9 && b.nonTraitees === 1 && b.parType.calcul.justes === 3 && b.parNiveau[3].justes === 3,
     'bilan par compétence : domaine acquis (3/3), à consolider (1/3), à retravailler (0/3) ; par type et par niveau');
   t.ok(E.bilanExamen(reponses.map(r => ({ ...r, juste: true }))).mention === 'Prêt pour l\'examen' && E.bilanExamen(reponses.slice(0, 8).concat(reponses.slice(9).map(r => ({ ...r, juste: false })))).mention === 'À retravailler',
     'mentions : ≥ 80 % « Prêt pour l\'examen », < 60 % « À retravailler »');
@@ -732,4 +733,25 @@ async function socleDesPiliers(t) {
   t.ok(S.CONDUCTEURS.every(c => /\((BN|BU|GNYE)\)/.test(c.couleurs)) && S.SOURCES.length === 4, 'phase, neutre, terre : couleurs écrites avec leur code ; 4 sources de tension, de la pile à la HTA');
   t.ok(controler({ version: 1, socle: { fait: true, score: 2, date: 1 } }).anomalies.length === 0 && controler({ version: 1, socle: { fait: 'oui', score: 5, date: 1 } }).anomalies.length > 0,
     'sauvegarde : socle contrôlé (fait vrai / faux, score 0 à 3, date)');
+}
+
+// ---------- Reprise des séries ----------
+
+async function repriseDesSeries(t) {
+  t.section('U18. Reprise des séries et examen : rien de non joué compté comme faux (reprise.js, examen.js)');
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const R = await import('../js/reprise.js');
+  const E = await import('../js/examen.js');
+  t.ok(R.cle('reco', 'n=1&d=tri') === R.cle('reco', 'd=tri&n=1&r=123&reprendre=1') && R.cle('reco', 'n=1') !== R.cle('reco', 'n=2') && R.cle('reco', 'n=1') !== R.cle('calcul', 'n=1'),
+    'signature d\'une série : mode et réglages (niveau, domaine), sans les paramètres techniques');
+  const s = { cle: 'reco?n=1', total: 10, resultats: [true, false, true], date: Date.now() };
+  t.ok(R.estValide(s) && !R.estValide({ ...s, resultats: [] }) && !R.estValide({ ...s, date: Date.now() - 8 * 86_400_000 }) && !R.estValide({ ...s, resultats: Array(11).fill(true) }) && !R.estValide(null),
+    `série reprenable : au moins une réponse, pas plus que le total, moins de ${R.DUREE_REPRISE_JOURS} jours`);
+  const rep = (domaine, mode, juste, etat) => ({ domaine, mode, niveau: 1, juste, repondu: etat === 'repondu', passe: etat === 'passe' });
+  const b = E.bilanExamen([
+    rep('tri', 'reco', true, 'repondu'), rep('tri', 'calcul', false, 'repondu'), rep('tri', 'reco', false, 'passe'),
+    ...['hta', 'hta', 'hta', 'securite'].map(d => rep(d, 'reco', false, 'temps'))
+  ]);
+  t.ok(b.score === 1 && b.total === 7 && b.passees === 1 && b.nonTraitees === 4 && b.parDomaine.tri.total === 3 && !b.parDomaine.hta && !b.parDomaine.securite,
+    'examen : la note compte les 7 questions, mais seules les questions vues (répondues ou passées) jugent une compétence ; les non traitées n\'en jugent aucune');
 }

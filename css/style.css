@@ -1362,3 +1362,13 @@ html.sas-actif, html.sas-actif body { overflow: hidden; }
 .pastille-profil-point { width: 10px; height: 10px; border-radius: 50%; background: rgb(var(--accent-profil, 110 149 255)); }
 :root[data-profil] .prochaine { box-shadow: inset 0 0 0 1px rgb(var(--accent-profil) / .6), 0 0 0 4px rgb(var(--accent-profil) / .10); }
 .sas:focus { outline: none; }
+
+/* ---------- Reprise d'une série quittée en route ---------- */
+.bandeau-reprise { display: grid; gap: 10px; margin: 0 0 14px; padding: 12px 14px; border-radius: var(--rayon); background: rgb(110 149 255 / .12); box-shadow: inset 0 0 0 1px rgb(110 149 255 / .45); font-size: 15px; line-height: 1.4; }
+.bandeau-reprise p { margin: 0; }
+.bandeau-reprise .btn { min-height: 44px; }
+.reprises { display: grid; gap: 10px; margin: 0 0 14px; }
+.carte-reprise { display: grid; gap: 4px; padding: 14px 16px; border-radius: var(--rayon); text-decoration: none; color: var(--texte-1); background: var(--surface-2); box-shadow: inset 0 0 0 1px rgb(110 149 255 / .5); }
+.carte-reprise-surtitre { font: 700 12px/1.2 var(--mono); color: var(--lien); text-transform: uppercase; letter-spacing: .06em; }
+.carte-reprise-titre { font: 800 18px/1.2 var(--texte); }
+.carte-reprise-desc { font-size: 14px; color: var(--texte-2); }

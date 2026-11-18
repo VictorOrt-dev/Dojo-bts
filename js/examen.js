@@ -16,6 +16,7 @@ import { deuxChiffres, frontispice, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
 import { esc } from './util.js';
 import { legendeCouleurs } from './couleurs.js';
+import * as reprise from './reprise.js';
 import * as stockage from './storage.js';
 import { niveauAcquis } from './parcours.js';
 
@@ -83,9 +84,11 @@ const LIBELLES_VERDICT = { acquis: 'Acquis', 'a-consolider': 'À consolider', 'a
 export function bilanExamen(reponses) {
   const total = reponses.length;
   const score = reponses.filter(r => r.juste).length;
+  // Une question non traitée (temps écoulé) vaut 0 dans la note, mais ne juge aucune compétence : on ne l'a pas vue.
+  const vues = reponses.filter(r => r.repondu || r.passe);
   const grouper = cle => {
     const g = {};
-    for (const r of reponses) {
+    for (const r of vues) {
       const x = (g[r[cle]] ??= { total: 0, justes: 0 });
       x.total++; if (r.juste) x.justes++;
     }
@@ -97,6 +100,8 @@ export function bilanExamen(reponses) {
     score, total, taux,
     sur20: Math.round(taux * 20 * 2) / 2,
     sansReponse: reponses.filter(r => !r.repondu).length,
+    passees: reponses.filter(r => r.passe).length,
+    nonTraitees: reponses.filter(r => !r.repondu && !r.passe).length,
     mention: taux >= 0.8 ? 'Prêt pour l\'examen' : taux >= 0.6 ? 'Admissible, à consolider' : 'À retravailler',
     parDomaine: grouper('domaine'),
     parType: grouper('mode'),
@@ -117,6 +122,8 @@ export async function renderExamen({ vue, definirTitre, params, auNettoyage }) {
   const questions = await chargerQuestions();
   const duree = Number(params?.get('duree')) > 0 ? Number(params.get('duree')) : DUREE_EXAMEN;   // ?duree= : tests
   const compo = compositionExamen(stockage.lire(), { complet: params?.get('complet') === '1' });
+  const enCours = reprise.lire('examen');
+  if (enCours && params?.get('reprendre') === '1') return commencer({ vue, questions, duree: enCours.duree, auNettoyage, etat: enCours });
   const repartition = Object.entries(compo.quotas).filter(([, n]) => n).map(([niv, n]) => `${n} de niveau ${DIFFICULTES.find(d => d.n === Number(niv)).romain}`).join(', ');
 
   vue.innerHTML = `
@@ -132,12 +139,17 @@ export async function renderExamen({ vue, definirTitre, params, auNettoyage }) {
       <li><span>Aides</span><span class="mono">aucune</span></li>
       <li><span>Correction</span><span class="mono">à la fin</span></li>
     </ul>
-    <p class="discret espace">Une question passée compte comme une erreur. Au bout du temps, l'examen s'arrête et les questions restantes sont comptées sans réponse. Chaque erreur rejoint ensuite ta révision espacée.</p>
+    <p class="discret espace">Une question passée compte comme une erreur et rejoint ta révision. Si le temps s'écoule, les questions restantes valent 0, sans être comptées comme des erreurs. Le chrono s'arrête quand tu quittes l'écran ou l'appli : tu reprendras là où tu en étais.</p>
+    ${enCours ? `<div class="bandeau-reprise" role="status">
+      <p><strong>Examen en cours</strong> · question ${enCours.resultats.length + 1} sur ${enCours.total}, ${minutes(Math.max(0, enCours.duree - enCours.ecoule))} restantes.</p>
+      <button id="reprendre-examen" class="btn principal" type="button">Reprendre l'examen</button>
+    </div>` : ''}
     <div class="actions pousse-bas">
-      <button id="commencer-examen" class="btn principal" type="button">Commencer l'examen</button>
+      <button id="commencer-examen" class="btn${enCours ? '' : ' principal'}" type="button">${enCours ? 'Commencer un nouvel examen' : 'Commencer l\'examen'}</button>
       <a class="btn" href="#/entrainement">Pas maintenant</a>
     </div>`;
-  vue.querySelector('#commencer-examen').addEventListener('click', () => commencer({ vue, questions, duree, auNettoyage, quotas: compo.quotas }));
+  vue.querySelector('#commencer-examen').addEventListener('click', () => { reprise.effacer('examen'); commencer({ vue, questions, duree, auNettoyage, quotas: compo.quotas }); });
+  vue.querySelector('#reprendre-examen')?.addEventListener('click', () => commencer({ vue, questions, duree: enCours.duree, auNettoyage, etat: enCours }));
 }
 
 function materialiser(e, questions) {
@@ -150,10 +162,24 @@ function materialiser(e, questions) {
   return { ...e, titre: g.titre, question: qcm.enonce, choix: melanger(qcm.choix), bonne: qcm.bonne, domaines: g.domaines };
 }
 
-function commencer({ vue, questions, duree, auNettoyage, quotas }) {
-  const liste = composerExamen(questions, GENERATEURS, { quotas }).map(e => materialiser(e, questions));
-  const examen = examenCourant = { liste, index: 0, reponses: [], debut: Date.now(), duree, fini: false };
-  const restant = () => Math.max(0, duree - Math.floor((Date.now() - examen.debut) / 1000));
+function commencer({ vue, questions, duree, auNettoyage, quotas, etat = null }) {
+  const liste = etat ? etat.liste : composerExamen(questions, GENERATEURS, { quotas }).map(e => materialiser(e, questions));
+  const reponses = etat ? [...etat.resultats] : [];
+  const examen = examenCourant = { liste, index: reponses.length, reponses, ecoule: etat?.ecoule ?? 0, repere: Date.now(), duree, fini: false };
+  // Le chrono ne compte que pendant que l'examen est à l'écran : quitter l'écran ou l'appli le met en pause.
+  const ecouleMaintenant = () => examen.ecoule + (examen.repere ? (Date.now() - examen.repere) / 1000 : 0);
+  const restant = () => Math.max(0, duree - Math.floor(ecouleMaintenant()));
+  const pause = () => { if (examen.repere) { examen.ecoule = ecouleMaintenant(); examen.repere = null; } };
+  const relancer = () => { if (!examen.repere && !examen.fini) examen.repere = Date.now(); };
+  const sauver = () => {
+    if (examen.fini || !examen.reponses.length) return;
+    reprise.enregistrer('examen', {
+      cle: 'examen', href: `#/entrainement/examen?reprendre=1`, libelle: 'Examen blanc', total: liste.length,
+      resultats: examen.reponses, score: examen.reponses.filter(r => r.juste).length, liste, ecoule: Math.floor(ecouleMaintenant()), duree
+    });
+  };
+  const visibilite = () => { if (document.hidden) { pause(); sauver(); } else relancer(); };
+  document.addEventListener('visibilitychange', visibilite);
 
   const horloge = setInterval(() => {
     const s = restant();
@@ -161,7 +187,7 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
     if (el) { el.textContent = minutes(s); el.closest('.chrono')?.classList.toggle('presse', s <= Math.min(120, duree / 5)); }
     if (s <= 0) finir();
   }, 250);
-  auNettoyage(() => clearInterval(horloge));
+  auNettoyage(() => { clearInterval(horloge); document.removeEventListener('visibilitychange', visibilite); pause(); sauver(); });
 
   const afficher = () => {
     const q = liste[examen.index];
@@ -192,8 +218,9 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
   const repondre = (q, i) => {
     if (examen.fini) return;
     const choisi = i === null ? null : q.choix[i];
-    examen.reponses.push({ mode: q.mode, id: q.id, niveau: q.niveau, domaine: q.domaine, repondu: i !== null, choisi, juste: choisi === q.bonne });
+    examen.reponses.push({ mode: q.mode, id: q.id, niveau: q.niveau, domaine: q.domaine, repondu: i !== null, passe: i === null, choisi, juste: choisi === q.bonne });
     examen.index++;
+    sauver();
     if (examen.index < liste.length) afficher(); else finir();
   };
 
@@ -201,13 +228,16 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
     if (examen.fini) return;
     examen.fini = true;
     clearInterval(horloge);
-    const tempsPasse = Math.min(duree, Math.round((Date.now() - examen.debut) / 1000));
+    document.removeEventListener('visibilitychange', visibilite);
+    reprise.effacer('examen');
+    const tempsPasse = Math.min(duree, Math.round(ecouleMaintenant()));
+    // Temps écoulé : les questions jamais vues valent 0, mais ne sont pas des erreurs (ni révision, ni statistiques).
     for (const q of liste.slice(examen.reponses.length)) {
-      examen.reponses.push({ mode: q.mode, id: q.id, niveau: q.niveau, domaine: q.domaine, repondu: false, choisi: null, juste: false });
+      examen.reponses.push({ mode: q.mode, id: q.id, niveau: q.niveau, domaine: q.domaine, repondu: false, passe: false, choisi: null, juste: false });
     }
     const b = examen.bilan = bilanExamen(examen.reponses);
     let xp = 0;
-    examen.reponses.forEach(r => {
+    examen.reponses.filter(r => r.repondu || r.passe).forEach(r => {
       noterReponse(r.mode, r.id, r.juste);
       if (r.juste) xp += difficulte(r.niveau).xp;
     });
@@ -225,7 +255,8 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
     </li>`;
 
   const rapport = (b, tempsPasse, xp) => {
-    const horsTemps = tempsPasse >= duree && b.sansReponse;
+    const horsTemps = tempsPasse >= duree && b.nonTraitees;
+    const nonEvalues = DOMAINES.filter(d => !b.parDomaine[d.id]);
     // Pour un domaine à retravailler : séance ciblée sur le type et le niveau de la première erreur.
     const lienDomaine = d => {
       const x = b.parDomaine[d];
@@ -239,13 +270,14 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
         <p class="bilan-score">${deuxChiffres(b.score)}<small>/${deuxChiffres(b.total)}</small></p>
         <p class="bilan-note mono">${nb(b.sur20)}/20</p>
         <p class="bilan-message mention-${verdictTaux(b.taux)}">${b.mention}</p>
-        <p class="bilan-xp">${xp ? `+${xp} XP` : 'Pas d\'XP cette fois'} · ${horsTemps ? 'temps écoulé' : `terminé en ${minutes(tempsPasse)}`}${b.sansReponse ? ` · ${b.sansReponse} sans réponse` : ''}</p>
+        <p class="bilan-xp">${xp ? `+${xp} XP` : 'Pas d\'XP cette fois'} · ${horsTemps ? 'temps écoulé' : `terminé en ${minutes(tempsPasse)}`}${b.passees ? ` · ${b.passees} passée${b.passees > 1 ? 's' : ''}` : ''}${b.nonTraitees ? ` · ${b.nonTraitees} non traitée${b.nonTraitees > 1 ? 's' : ''}` : ''}</p>
       </section>
 
       <h3 class="surtitre espace">Bilan par compétence</h3>
       <ul class="competences" aria-label="Réussite par domaine">
         ${DOMAINES.filter(d => b.parDomaine[d.id]).map(d => ligneCompetence(esc(d.nom), b.parDomaine[d.id], lienDomaine(d.id))).join('')}
       </ul>
+      ${nonEvalues.length ? `<p class="discret">Pas évalué, faute de temps : ${nonEvalues.map(d => esc(d.nom)).join(', ')}.</p>` : ''}
       <ul class="competences competences-types" aria-label="Réussite par type et par niveau">
         ${Object.entries(NOMS_TYPE).filter(([m]) => b.parType[m]).map(([m, nom]) => ligneCompetence(nom, b.parType[m])).join('')}
         ${DIFFICULTES.filter(d => b.parNiveau[d.n]).map(d => ligneCompetence(`Niveau ${d.romain}`, b.parNiveau[d.n])).join('')}
@@ -258,12 +290,12 @@ function commencer({ vue, questions, duree, auNettoyage, quotas }) {
             const r = examen.reponses[i];
             return `<li class="${r.juste ? 'juste' : 'faux'}">
               <p class="corrige-question">${esc(typo(q.mode === 'calcul' ? `${q.titre} — ${q.question}` : q.question))}</p>
-              <p class="corrige-reponses">${r.juste ? `<strong>${esc(typo(q.bonne))}</strong> ✓` : `${r.repondu ? `Ta réponse : ${esc(typo(r.choisi))}` : 'Sans réponse'} · attendu : <strong>${esc(typo(q.bonne))}</strong>`}</p>
+              <p class="corrige-reponses">${r.juste ? `<strong>${esc(typo(q.bonne))}</strong> ✓` : `${r.repondu ? `Ta réponse : ${esc(typo(r.choisi))}` : r.passe ? 'Passée' : 'Non traitée (temps écoulé)'} · attendu : <strong>${esc(typo(q.bonne))}</strong>`}</p>
             </li>`;
           }).join('')}
         </ol>
       </details>
-      <p class="discret espace">Les erreurs rejoignent ta révision : elles reviendront dans « À réviser », puis dans tes séances quelques jours plus tard.</p>
+      <p class="discret espace">Les erreurs et les questions passées rejoignent ta révision : elles reviendront dans « À réviser », puis dans tes séances quelques jours plus tard.${b.nonTraitees ? ` Les ${b.nonTraitees > 1 ? `${b.nonTraitees} questions non traitées ne comptent` : 'question non traitée ne compte'} pas comme des erreurs.` : ''}</p>
       <div class="actions pousse-bas">
         <a class="btn principal" href="#/entrainement/examen?r=${Date.now()}">Nouvel examen blanc</a>
         <a class="btn" href="#/entrainement/revision">Voir « À réviser »</a>

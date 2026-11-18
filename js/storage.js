@@ -160,5 +160,25 @@ export async function importer(fichier) {
 
 export function toutEffacer() {
   etat = etatParDefaut();
+  effacerSeriesEnCours();
   return enregistrer();
+}
+
+// ---------- Séries en cours (reprise après une sortie) ----------
+// Une clé à part : ce n'est pas de la progression (ni exportée, ni importée, ni contrôlée par sauvegarde.js), juste de
+// quoi reprendre une série là où on l'a laissée. Illisible ou abîmée : on l'ignore.
+const CLE_EN_COURS = 'elec-learning:en-cours';
+const lireTout = () => {
+  try { const t = JSON.parse(localStorage.getItem(CLE_EN_COURS) || '{}'); return t && typeof t === 'object' && !Array.isArray(t) ? t : {}; }
+  catch { return {}; }
+};
+export const lireSeriesEnCours = () => lireTout();
+export function ecrireSerieEnCours(mode, donnees) {
+  try { const t = lireTout(); t[mode] = donnees; localStorage.setItem(CLE_EN_COURS, JSON.stringify(t)); } catch { /* stockage plein ou bloqué : pas de reprise */ }
+}
+export function effacerSerieEnCours(mode) {
+  try { const t = lireTout(); delete t[mode]; localStorage.setItem(CLE_EN_COURS, JSON.stringify(t)); } catch { /* rien à faire */ }
+}
+export function effacerSeriesEnCours() {
+  try { localStorage.removeItem(CLE_EN_COURS); } catch { /* rien à faire */ }
 }
