@@ -3,6 +3,13 @@
 // Rien n'est jamais verrouillé : un niveau ou un cas « en avance » reste ouvrable d'un toucher, il porte
 // seulement la mention « Conseillé après… ». Les fonctions de calcul sont pures (elles reçoivent l'état et la
 // liste des cas de panne) : tests/unitaires.mjs les vérifie sans navigateur.
+//
+// Validation d'un niveau : voir validation.js (règles) et seuils.js (seuils). Ici, un niveau est « franchi » pour le
+// parcours quand il est validé, ou quand le test de positionnement l'a placé au-dessus : le test fixe le point de
+// départ (étapes sautées, conseils levés) mais ne valide aucun niveau.
+
+import { SEUILS } from './seuils.js';
+import { etatNiveau, etatCas, etatBanc, niveauValide as regleValide, texteManque } from './validation.js';
 
 export const PROFILS = [
   { id: 'debutant', court: 'Grand débutant', nom: 'Grand débutant', desc: 'Je découvre l\'électricité : les bases, sans jargon.', parcours: 'Débutant' },
@@ -10,7 +17,8 @@ export const PROFILS = [
   { id: 'confirme', court: 'Confirmé / Pro', nom: 'Confirmé / Pro', desc: 'Accès direct aux modes avancés et au banc.', parcours: 'Confirmé' }
 ];
 
-export const SEUIL = 8;  // un niveau est acquis à 8/10 (80 %) sur une séance « tous domaines »
+// Score d'une séance de 10 qui la compte comme réussie (80 % : seuils.js).
+export const SEUIL = Math.ceil(SEUILS.niveau.taux * 10);
 
 // Ordre recommandé des étapes. R = Reconnaissance, C = Calculs, P = Cas de panne, B = Banc, T = test de positionnement.
 const ORDRES = {
@@ -33,9 +41,9 @@ export function premierLancement(etat) {
 const MODE_DE = { R: 'reco', C: 'calcul', P: 'panne' };
 const casNonHta = cas => cas.filter(c => !c.domaines?.includes('hta'));
 
-// Niveau validé d'office par le test de positionnement pour un mode. Le test pose des questions de reconnaissance,
-// de calcul et de cas de panne : chaque mode n'est validé que par ses propres questions. Un ancien résultat
-// (questions de reconnaissance seulement, sans `niveaux`) ne valide plus que la reconnaissance.
+// Niveau franchi au test de positionnement pour un mode (point de départ du parcours, pas une validation). Le test pose des questions de reconnaissance,
+// de calcul et de cas de panne : chaque mode n'est placé que par ses propres questions. Un ancien résultat
+// (questions de reconnaissance seulement, sans `niveaux`) ne place que la reconnaissance.
 export function niveauPositionnement(etat, mode) {
   const p = etat.positionnement;
   if (!p) return 0;
@@ -43,28 +51,44 @@ export function niveauPositionnement(etat, mode) {
   return mode === 'reco' ? p.niveau ?? 0 : 0;
 }
 
-// Un niveau est acquis par la pratique (80 % en séance, ou un cas sans faute) ou par le test de positionnement.
-export function niveauAcquis(etat, mode, n, tousLesCas = []) {
+// Niveau validé selon les règles de validation.js (sans le positionnement). contenu : la liste des cas (ancienne
+// signature) ou { reco, calcul, panne } ; à défaut, le contenu chargé (catalogue.js).
+export function niveauValide(etat, mode, n, contenu) {
   if (n <= 0) return true;
-  if (niveauPositionnement(etat, mode) >= n) return true;
-  const stats = etat.stats?.[mode];
-  if (!stats) return false;
-  if (mode === 'panne') return tousLesCas.some(c => c.niveau === n && stats.elements?.[c.id]?.reussites > 0);
-  return (stats.niveaux?.[n] ?? 0) >= SEUIL;
+  return regleValide(etat, mode, n, contenu);
+}
+
+// Niveau franchi pour le parcours, les conseils, le guidage et l'examen : validé, ou dépassé au test de positionnement.
+export function niveauAcquis(etat, mode, n, contenu) {
+  if (n <= 0) return true;
+  return niveauPositionnement(etat, mode) >= n || niveauValide(etat, mode, n, contenu);
+}
+
+// Ce qui manque pour valider le niveau n d'un mode (« 18/26 questions vues · 1 séance réussie sur 2 »), ou l'étape banc.
+export function progressionNiveau(etat, mode, n, contenu) {
+  const e = mode === 'banc' ? etatBanc(etat) : mode === 'panne' ? etatCas(etat, n, contenu) : etatNiveau(etat, mode, n, contenu);
+  return { ...e, texte: texteManque(e) };
 }
 
 function etapeAcquise(etat, code, tousLesCas) {
   if (code === 'T') return !!etat.positionnement;
-  // Banc : une panne réparée sans alerte de sécurité valide l'étape, indices compris (l'aide s'efface ensuite d'elle-même).
-  if (code === 'B') return Object.values(etat.stats?.banc?.elements ?? {}).some(e => e.reussites > 0);
+  // Banc : au moins 3 pannes différentes réparées sans alerte de sécurité (seuils.js).
+  if (code === 'B') return etatBanc(etat).valide;
   return niveauAcquis(etat, MODE_DE[code[0]], Number(code[1]), tousLesCas);
 }
 
 const NOMS_NIVEAU = ['', 'I', 'II', 'III'];
 
 function decrire(code, etat, tousLesCas) {
-  if (code === 'T') return { href: '#/entrainement/positionnement', titre: 'Test de positionnement', desc: '12 questions (reconnaissance, calculs, cas de panne), environ 6 minutes. Il valide d\'office ce que tu maîtrises déjà.' };
-  if (code === 'B') return { href: '#/entrainement/banc', titre: 'Banc de mesure', desc: 'Une panne cachée sur un départ moteur : mesure, consigne, répare.' };
+  const d = decrireEtape(code, etat, tousLesCas);
+  if (code === 'T') return d;
+  const p = code === 'B' ? progressionNiveau(etat, 'banc') : progressionNiveau(etat, MODE_DE[code[0]], Number(code[1]), tousLesCas);
+  return { ...d, manque: p.texte };
+}
+
+function decrireEtape(code, etat, tousLesCas) {
+  if (code === 'T') return { href: '#/entrainement/positionnement', titre: 'Test de positionnement', desc: '12 questions (reconnaissance, calculs, cas de panne), environ 6 minutes. Ton parcours saute ce que tu maîtrises déjà.' };
+  if (code === 'B') return { href: '#/entrainement/banc', titre: 'Banc de mesure', desc: `Une panne cachée : mesure, consigne, répare. ${SEUILS.banc.pannes} pannes différentes à réparer sans alerte.` };
   const n = Number(code[1]);
   if (code[0] === 'R') return { href: `#/entrainement/reco?n=${n}`, titre: `Reconnaissance · niveau\u00A0${NOMS_NIVEAU[n]}`, desc: n === 1 ? 'Les symboles et les appareils que tu croiseras dans toutes les armoires.' : 'Repérages, réglages, symboles moins courants.' };
   if (code[0] === 'C') return { href: `#/entrainement/calcul?n=${n}`, titre: `Calculs · niveau\u00A0${NOMS_NIVEAU[n]}`, desc: n === 1 ? 'Loi d\'Ohm, puissances, tensions : la valeur à lire avant de mesurer.' : 'Dimensionner, vérifier une mesure, repérer l\'anomalie.' };
@@ -99,19 +123,19 @@ export function conseilNiveau(etat, mode, n, { domaine = '', tousLesCas = [] } =
   if (n <= 1 || niveauAcquis(etat, mode, n - 1, tousLesCas)) return null;
   const precedent = NOMS_NIVEAU[n - 1];
   return mode === 'panne'
-    ? `Conseillé après un cas de niveau ${precedent} réussi sans faute`
-    : `Conseillé après ${SEUIL * 10} % au niveau ${precedent}`;
+    ? `Conseillé après la validation des cas de niveau ${precedent}`
+    : `Conseillé après la validation du niveau ${precedent}`;
 }
 
 // Un cas de panne : HTA et niveaux avancés portent une mention tant que les fondations ne sont pas acquises.
 export function conseilCas(etat, cas, tousLesCas) {
-  if (cas.domaines?.includes('hta') && !niveauAcquis(etat, 'panne', 2, tousLesCas)) return 'Domaine HTA : conseillé après un cas de niveau II réussi';
+  if (cas.domaines?.includes('hta') && !niveauAcquis(etat, 'panne', 2, tousLesCas)) return 'Domaine HTA : conseillé après la validation des cas de niveau II';
   return conseilNiveau(etat, 'panne', cas.niveau, { tousLesCas });
 }
 
 // Le banc : conseillé après un premier cas de panne réussi (pour qui démarre).
 export function conseilBanc(etat, tousLesCas) {
-  if (etat.profil === 'confirme' || niveauAcquis(etat, 'panne', 1, tousLesCas)) return null;
+  if (etat.profil === 'confirme' || niveauPositionnement(etat, 'panne') >= 1 || tousLesCas.some(c => etat.stats?.panne?.elements?.[c.id]?.reussites > 0)) return null;
   return 'Conseillé après un premier cas de panne réussi';
 }
 
@@ -145,7 +169,7 @@ export const TOTAL_POSITIONNEMENT = PAR_NIVEAU * 3;                             
 export const REQUIS = { 1: 3, 2: 3, 3: 3 };   // bonnes réponses sur 4 nécessaires pour valider chaque niveau
 
 // Niveau validé (0 à 3) : chaque niveau exige les précédents.
-export function niveauValide(scores) {
+export function niveauTest(scores) {
   let v = 0;
   for (const n of [1, 2, 3]) {
     if ((scores[n] ?? 0) >= REQUIS[n]) v = n; else break;
@@ -160,7 +184,7 @@ export function niveauValide(scores) {
 export function resultatPositionnement(resultats) {
   const scores = { 1: 0, 2: 0, 3: 0 };
   resultats.forEach(r => { if (r.juste) scores[r.niveau]++; });
-  const niveau = niveauValide(scores);
+  const niveau = niveauTest(scores);
   const niveaux = {};
   for (const mode of Object.keys(COMPOSITION)) {
     let v = 0;

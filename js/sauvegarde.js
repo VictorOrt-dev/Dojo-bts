@@ -8,8 +8,10 @@
 // de NETTOYER le contenu de localStorage au démarrage (l'app ne doit jamais planter sur des données abîmées).
 
 import { dateValide, joursValides } from './badges.js';
+import { SEUILS } from './seuils.js';
 
-export const VERSION = 1;
+// v2 : validation durcie (journal des séances, jours de réussite, acquis de l'ancienne règle : voir storage.migrer).
+export const VERSION = 2;
 export const MODES = ['reco', 'calcul', 'panne', 'banc', 'isolement', 'examen'];
 export const MATIERES = ['auto', 'bakelite', 'porcelaine'];   // auto = suit le réglage clair / sombre du téléphone
 export const PROFILS = ['debutant', 'formation', 'confirme'];
@@ -30,7 +32,8 @@ export function etatParDefaut() {
     socle: null,             // { fait, score: 0 à 3, date } : les 4 piliers et leur mini-quiz (grand débutant)
     activite: { jours: [] }, // jours d'entraînement (« AAAA-MM-JJ », heure locale) : séries
     jalons: { memosApresErreur: 0, isolementPropre: [] },   // accomplissements suivis pour les insignes
-    badges: {}               // insignes obtenus : { id: date d'obtention }
+    badges: {},              // insignes obtenus : { id: date d'obtention }
+    acquisAncienneRegle: null // migration v1 → v2 : { reco, calcul, casNiveaux: [niveaux], cas: [ids], banc } validés avant
   };
 }
 
@@ -69,6 +72,10 @@ function controlerElement(valeur, chemin, anomalies) {
     if (typeof valeur.recents === 'string' && /^[01]{0,10}$/.test(valeur.recents) && valeur.recents.length <= valeur.essais) base.recents = valeur.recents;
     else anomalies.push(`${chemin} : réponses récentes attendues (« 0 » / « 1 », 10 au plus)`);
   }
+  if (valeur.joursReussis !== undefined) {
+    const jours = controlerJours(valeur.joursReussis, `${chemin}.joursReussis`, anomalies);
+    if (jours?.length) base.joursReussis = jours;
+  }
   // Révision (Leitner) : boîte 1 à 5 et date de prochaine révision, toujours ensemble.
   if (valeur.boite === undefined && valeur.revoir === undefined) return base;
   if (!(Number.isSafeInteger(valeur.boite) && valeur.boite >= 1 && valeur.boite <= 5 && estHorodatage(valeur.revoir))) {
@@ -76,6 +83,22 @@ function controlerElement(valeur, chemin, anomalies) {
     return base;
   }
   return { ...base, boite: valeur.boite, revoir: valeur.revoir };
+}
+
+// Jours de réussite (cas de panne, banc) : dates réelles « AAAA-MM-JJ » ; seules les plus récentes sont gardées.
+function controlerJours(valeur, chemin, anomalies) {
+  if (Array.isArray(valeur) && valeur.length <= 1000 && valeur.every(dateValide)) return [...new Set(valeur)].slice(-SEUILS.journal.joursReussisMax);
+  anomalies.push(`${chemin} : jours de réussite attendus (dates « AAAA-MM-JJ »)`);
+  return undefined;
+}
+
+// Journal des séances complètes d'un niveau : [{ n: 1 à 3, t: date, score, total }].
+function controlerSeances(valeur, chemin, anomalies) {
+  const ok = s => estObjet(s) && [1, 2, 3].includes(s.n) && estHorodatage(s.t) && Number.isSafeInteger(s.total) && s.total >= 1 && s.total <= 100
+    && estEntierPositif(s.score) && s.score <= s.total;
+  if (Array.isArray(valeur) && valeur.length <= 1000 && valeur.every(ok)) return valeur.slice(-SEUILS.journal.seancesMax).map(s => ({ n: s.n, t: s.t, score: s.score, total: s.total }));
+  anomalies.push(`${chemin} : journal des séances attendu [{ n 1 à 3, t (date), score ≤ total }]`);
+  return undefined;
 }
 
 function controlerMode(m, chemin, anomalies) {
@@ -98,6 +121,10 @@ function controlerMode(m, chemin, anomalies) {
       if (!['1', '2', '3'].includes(c.split('.').pop()) || !estPositif(v)) { anomalies.push(`${c} : niveau 1 à 3 et score positif attendus`); return undefined; }
       return v;
     });
+  }
+  if (m.seances !== undefined) {
+    const seances = controlerSeances(m.seances, `${chemin}.seances`, anomalies);
+    if (seances) propre.seances = seances;
   }
   propre.elements = filtrerEntrees(m.elements, `${chemin}.elements`, anomalies, (v, c) => controlerElement(v, c, anomalies));
   return propre;
@@ -200,6 +227,17 @@ export function controler(donnees) {
       if (!estHorodatage(v)) { anomalies.push(`${c} : date d'obtention attendue`); return undefined; }
       return v;
     });
+  }
+
+  // Acquis de l'ancienne règle (migration v1 → v2).
+  if (donnees.acquisAncienneRegle !== undefined && donnees.acquisAncienneRegle !== null) {
+    const a = donnees.acquisAncienneRegle;
+    const niveaux = v => v === undefined || (Array.isArray(v) && v.length <= 3 && v.every(n => [1, 2, 3].includes(n)));
+    if (estObjet(a) && niveaux(a.reco) && niveaux(a.calcul) && niveaux(a.casNiveaux)
+      && (a.cas === undefined || (Array.isArray(a.cas) && a.cas.length <= 500 && a.cas.every(cleValide)))
+      && (a.banc === undefined || typeof a.banc === 'boolean')) {
+      etat.acquisAncienneRegle = { reco: [...new Set(a.reco ?? [])], calcul: [...new Set(a.calcul ?? [])], casNiveaux: [...new Set(a.casNiveaux ?? [])], cas: [...new Set(a.cas ?? [])], banc: a.banc ?? false };
+    } else anomalies.push('acquisAncienneRegle : attendu { reco, calcul, casNiveaux: [niveaux 1 à 3], cas: [identifiants], banc (vrai / faux) }');
   }
 
   return { etat, anomalies };

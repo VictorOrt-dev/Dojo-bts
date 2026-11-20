@@ -2,6 +2,7 @@
 // Toutes les données de l'utilisateur tiennent dans un seul objet, sous une seule clé.
 
 import { controler, etatParDefaut, VERSION, TAILLE_MAX } from './sauvegarde.js';
+import { acquisAncienneRegle } from './validation.js';
 
 const CLE = 'elec-learning:v1';
 const ANCIENNE_CLE = 'dojo:v1'; // nom de l'app avant « Elec learning » : migrée au premier lancement
@@ -10,8 +11,15 @@ const ANCIENNES_APPS = ['dojo-bts']; // sauvegardes exportées avant le changeme
 
 // Point unique pour faire évoluer le format : ajouter ici les conversions v1 → v2, etc., AVANT le contrôle.
 // Le contrôle (sauvegarde.js) reconstruit l'état champ par champ : rien de mal typé ne passe.
-function migrer(donnees) {
-  return controler(donnees);
+//
+// v1 → v2 (validation durcie) : ce qui était validé avec l'ancienne règle (un 8/10, un cas réussi, une panne réparée,
+// le test de positionnement) est gardé dans `acquisAncienneRegle` : aucun niveau acquis ne recule, et l'écran montre
+// ce qui manque pour la nouvelle règle. Toutes les réponses déjà enregistrées comptent (questions vues, cas réussis).
+export function migrer(donnees) {
+  const avantV2 = donnees !== null && typeof donnees === 'object' && !Array.isArray(donnees) && (donnees.version ?? 1) < 2;
+  const resultat = controler(donnees);
+  if (avantV2) resultat.etat.acquisAncienneRegle = acquisAncienneRegle(resultat.etat);
+  return resultat;
 }
 
 function charger() {

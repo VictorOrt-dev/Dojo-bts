@@ -5,6 +5,8 @@ import * as stockage from './storage.js';
 import { appliquerResultat } from './leitner.js';
 import { ajouterJour } from './badges.js';
 import { verifierBadges } from './insignes.js';
+import { SEUILS } from './seuils.js';
+import { jourDe } from './validation.js';
 
 export const NIVEAUX = [
   { nom: 'Apprenti', seuil: 0, icone: '🔰' },
@@ -57,14 +59,22 @@ export function noterReponse(mode, id, reussi) {
   stockage.modifier(e => {
     e.stats ??= {};
     const m = (e.stats[mode] ??= statsVides());
-    m.elements[id] = appliquerResultat(m.elements[id], reussi);   // compteurs + boîte de révision (revision.js)
+    const avant = m.elements[id];
+    m.elements[id] = appliquerResultat(avant, reussi);   // compteurs + boîte de révision (revision.js)
+    // Cas de panne et banc : les jours de réussite (règle « sur au moins 2 jours différents », validation.js).
+    const jours = avant?.joursReussis ?? [];
+    if (reussi && (mode === 'panne' || mode === 'banc')) {
+      m.elements[id].joursReussis = [...new Set([...jours, jourDe()])].slice(-SEUILS.journal.joursReussisMax);
+    } else if (jours.length) m.elements[id].joursReussis = jours;
     e.activite = { jours: ajouterJour(e.activite?.jours) };       // un jour d'entraînement de plus pour la série
   });
   verifierBadges();
 }
 
 // niveau (1, 2 ou 3) : garde aussi le meilleur score par niveau de difficulté.
-export function noterSession(mode, score, niveau) {
+// total : séance complète d'un niveau (tous domaines, hors révision) en reconnaissance ou en calculs → elle entre
+// dans le journal des séances, qui sert à la règle « 80 % sur 2 séances espacées d'au moins 24 h » (validation.js).
+export function noterSession(mode, score, niveau, total) {
   stockage.modifier(e => {
     e.stats ??= {};
     const m = (e.stats[mode] ??= statsVides());
@@ -74,6 +84,7 @@ export function noterSession(mode, score, niveau) {
     if (niveau) {
       m.niveaux ??= {};
       m.niveaux[niveau] = Math.max(m.niveaux[niveau] ?? 0, score);
+      if (total) m.seances = [...(m.seances ?? []), { n: niveau, t: Date.now(), score, total }].slice(-SEUILS.journal.seancesMax);
     }
   });
   verifierBadges();

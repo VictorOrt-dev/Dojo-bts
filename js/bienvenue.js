@@ -11,7 +11,7 @@ import { esc } from './util.js';
 const SUITE = {
   debutant: 'D\'abord les 4 piliers en 3 minutes (tension, courant, résistance, phase, neutre et terre), puis une séance à la fois.',
   formation: 'On consolide les fondations, puis calculs, cas de panne et banc de mesure.',
-  confirme: 'Un test de 12 questions valide d\'office ce que tu maîtrises ; le banc et les modes avancés sont ouverts.'
+  confirme: 'Un test de 12 questions place ton point de départ (les étapes que tu maîtrises sont sautées) ; le banc et les modes avancés sont ouverts.'
 };
 const ORDRE = ['debutant', 'formation', 'confirme'];
 const DUREE_REPLI = 360;   // ms, la transition CSS du sas

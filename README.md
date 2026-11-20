@@ -51,6 +51,9 @@ js/sauvegarde.js        contrôle strict des données (import refusé à la moin
 js/profil.js            progression, export/import, remise à zéro
 js/entrainement.js      accueil : « Ta prochaine séance », modes dans l'ordre du profil, carte de l'opérateur ; en-tête de séance, rapport, toast
 js/parcours.js          parcours guidé, logique pure : profils, prochaine séance, mentions « Conseillé après… », règle du positionnement
+js/seuils.js            TOUS les seuils de validation (80 %, 2 séances, 24 h, moitié des cas sur 2 jours, 3 pannes au banc)
+js/validation.js        règles de validation, logique pure : niveau, cas, banc, ce qui manque, tirage priorisé, acquis de l'ancienne règle
+js/catalogue.js         registre du contenu chargé (identifiant, niveau, domaines), pour la règle « tout le niveau vu »
 js/bienvenue.js         sas d'entrée : choix du profil obligatoire, plein écran (Grand débutant, En formation, Confirmé / Pro)
 js/reprise.js           reprise des séries quittées en route (reconnaissance, calculs, examen blanc)
 js/socle.js             le socle : 4 piliers manipulables (tension, courant, résistance, phase / neutre / terre) et mini-quiz de 3 questions
@@ -112,7 +115,7 @@ On peut lancer une seule suite : `node tests/lancer.mjs unitaires` (quelques sec
 |---|---|
 | `tests/lancer.mjs` | Point d'entrée : choisit les suites, démarre le serveur et Chromium, affiche le bilan |
 | `tests/outils.mjs` | Serveur statique, page iPhone 13 qui collecte les erreurs de console, compteur de vérifications |
-| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, prédiction, geste courant, surbrillance, écarts rattrapés). **U14** : débutants (lexique, recherche des termes, couverture du niveau I, reclassements, niveau socle, examen calibré). **U15** : couleurs en toutes lettres, rappel de sauvegarde, points des schémas, nouveaux contenus. **U16** : audit reproductible (deux exécutions, même détail ; hasard normal rétabli). **U17** : socle (piliers, loi d'Ohm, quiz, révision, sauvegarde). **U18** : reprise (signature, validité) et bilan d'examen sans les non traitées |
+| `tests/unitaires.mjs` | Sans navigateur. **U1** : solveur du banc (`circuit.js`), lectures attendues pour l'installation saine et chaque panne (tension fantôme, LoZ, fusible mesuré en place, retour de phase). **U2** : contrôle des sauvegardes (`sauvegarde.js`) : xp en texte, négatif, infini ou démesuré, compteurs incohérents, mode inconnu, profil et positionnement, `__proto__`, nettoyage au démarrage. **U3** : parcours guidé (`parcours.js`) : premier lancement, enchaînement des 10 étapes, mentions, règle du positionnement. **U0** : audit d'intégrité normatif et technique (`outils/audit.mjs`). **U4** : correction en deux temps : essentiel ≤ 70 mots sur tout le contenu. **U5** à **U9** : révision espacée, banc éclairage, guidage et fiches, insignes, corrections de l'audit 360°. **U10** : mégohmmètre dans le temps (lecture à 15 s, 1 min, IP et DAR, interprétation). **U11** : rappels d'erreurs dans les séances (délai, plafond, filtre, places dans la séance). **U12** : examen blanc (3 par domaine, note sur 20, mentions, bilan par compétence). **U13** : guide du banc (cas de démonstration cohérent avec le circuit, étapes, prédiction, geste courant, surbrillance, écarts rattrapés). **U14** : débutants (lexique, recherche des termes, couverture du niveau I, reclassements, niveau socle, examen calibré). **U15** : couleurs en toutes lettres, rappel de sauvegarde, points des schémas, nouveaux contenus. **U16** : audit reproductible (deux exécutions, même détail ; hasard normal rétabli). **U17** : socle (piliers, loi d'Ohm, quiz, révision, sauvegarde). **U18** : reprise (signature, validité) et bilan d'examen sans les non traitées. **U19** : validation durcie (tout voir, 2 séances à 80 % espacées de 24 h, cas sur 2 jours, 3 pannes au banc, tirage priorisé, seuils configurables) et migration v1 → v2 |
 | `tests/non-regression.mjs` | Dans le navigateur. **A** : chaque générateur × 300 tirages, valeur recalculée indépendamment, contenus (domaines, risque, norme sur chaque élément, les 5 domaines couverts), équilibre des réponses, images muettes. **B** Reconnaissance. **C** Calculs. **D** domaines (filtres, séances filtrées, niveaux vides grisés) et retrait du module Cours. **E** Cas de panne (chaque cas joué jusqu'au diagnostic final). **F** ancien nom. **G** hors connexion (`sw.js` doit lister exactement les fichiers de l'app). **H** import de sauvegarde par l'écran Carnet (fichiers trafiqués refusés, données intactes, stockage abîmé nettoyé) |
 | `tests/parcours.mjs` | **J** : premier lancement (« Où en es-tu ? »), « Ta prochaine séance », ordre des modes, mentions sans verrou, progression, test de positionnement, profil dans le Carnet |
 | `tests/ergonomie.mjs` | **L** : banc sous le pouce (console, « Mesurer » sans défilement), bon replié au premier geste, aides du multimètre, volets en accordéon, appareil mémorisé, guide « Première intervention » joué au doigt de bout en bout (déclenchement au premier accès, surbrillances, fin, bouton « ? Guide du banc », « Quitter le guide »), « ? Guide du banc » réellement touchable (rien ne le recouvre) dans 13 états du banc et du guide, déclenchement du guide selon le point d'entrée, aucun texte sous 12 px sur 12 écrans (graduations du cadran comprises), thème Auto qui suit le téléphone |
@@ -195,14 +198,27 @@ Sobre, élégante, « haut de gamme technique » : noir profond, surfaces graphi
   | En formation | R1 → C1 → R2 → C2 → P1 → B → P2 → R3 → C3 → P3 | idem |
   | Confirmé | T → B → P2 → C2 → P3 → C3 → R3 → … | Banc, Isolement, Cas, Calculs, Reconnaissance, Examen blanc |
 
-  Une étape est acquise à 80 % sur une séance « tous domaines » (Reconnaissance, Calculs), par un cas réussi sans faute
-  (Cas de panne), par une panne réparée sans alerte de sécurité, indices compris (Banc), ou par le test de positionnement.
+  **Validation d'un niveau** (`validation.js`, seuils dans `seuils.js`) :
+  - Reconnaissance et Calculs : tout le contenu du niveau vu au moins une fois (une réponse, même « Je ne sais pas
+    encore », en séance, en révision ou à l'examen) **et** au moins 80 % sur 2 séances complètes du niveau (10 questions,
+    tous domaines, hors révision) espacées d'au moins 24 h. Les séances tirent d'abord les questions jamais vues, puis
+    les erreurs à réviser, puis le reste.
+  - Cas de panne : au moins la moitié des cas du niveau réussis sans faute, sur au moins 2 jours différents.
+  - Banc : au moins 3 pannes différentes réparées sans alerte de sécurité (indices compris).
+  - Ce qui manque est affiché partout : cartes de niveau, « Ta prochaine séance », rapport de séance, liste des cas,
+    rapport du banc (« 18/26 questions vues · 1 séance réussie sur 2 »). Le tampon « Niveau validé » n'apparaît que sur
+    la séance qui fait basculer le niveau.
+  - Le test de positionnement fixe le **point de départ** (étapes sautées, mentions levées) mais ne valide aucun niveau.
+  - **Migration v1 → v2** (`storage.migrer`) : ce qui était validé avec l'ancienne règle (un 8/10, un cas réussi, une
+    panne réparée, le positionnement) reste acquis (`acquisAncienneRegle`), marqué « ancienne règle » avec ce qui manque
+    pour la nouvelle. Aucune réponse n'est perdue : elles comptent toutes pour « vu ».
 - **Déblocage souple, jamais de verrou.** Niveaux II et III, domaine HTA, et le Banc pour un débutant portent une mention
   « Conseillé après… » tant que le niveau précédent n'est pas acquis ; ils restent ouvrables d'un toucher.
 - **Test de positionnement** (12 questions, 4 par niveau : 2 reconnaissances, 1 calcul en QCM, 1 situation de cas de panne ;
-  sans XP). Un niveau est atteint à 3/4, chaque niveau exigeant les précédents. **Chaque mode n'est validé que par ses
-  propres questions** (`resultatPositionnement`) : réussir les symboles ne valide ni les calculs ni les cas. Un ancien
-  résultat (reconnaissance seule) ne valide plus que la reconnaissance. Proposé en premier aux confirmés.
+  sans XP). Un niveau est atteint à 3/4, chaque niveau exigeant les précédents. **Chaque mode n'est placé que par ses
+  propres questions** (`resultatPositionnement`) : réussir les symboles ne place ni les calculs ni les cas. Un ancien
+  résultat (reconnaissance seule) ne place que la reconnaissance. Il fixe le point de départ, sans valider de niveau.
+  Proposé en premier aux confirmés.
 
 ## Normes et audit d'intégrité (`js/normes.js`, `outils/audit.mjs`)
 
@@ -523,7 +539,7 @@ la cause, la démarche d'un pro et le piège du cas.
 - **Série** : jours consécutifs jusqu'à aujourd'hui (ou hier, tant que la journée n'est pas finie), affichée
   discrètement sur l'accueil (« Série : 3 jours ») et dans la vitrine avec la meilleure série.
 - **Retours visuels** : annonce « Insigne obtenu » dont l'icône se pose comme un tampon (jamais bloquante,
-  `pointer-events: none`), tampon « Niveau validé » sur le rapport d'une séance de niveau à 8/10 ou plus ; vibration
+  `pointer-events: none`), tampon « Niveau validé » sur le rapport de la séance qui valide le niveau ; vibration
   brève après un geste de l'utilisateur ; animations coupées si le téléphone demande moins de mouvement.
 
 ## À réviser : répétition espacée (`js/leitner.js`, `js/revision.js`)
@@ -697,6 +713,7 @@ le meilleur score par niveau dans `stats.reco.niveaux` / `stats.calcul.niveaux`.
 - [x] Phase 1 : prochaine étape guidée par domaine (lacunes), 23 fiches mémo sous les corrections et dans le Carnet
 - [x] Validation par audit d'intégrité normatif et technique automatique (`outils/audit.mjs`), contenu revu en entier
 - [x] Audit pédagogique, P1 : 12 cas de panne (VAT, isolement, schéma IT, sélectivité, serrures HTA…), 14 questions (CAT III / IV, lecture de schéma, composants d'armoire), 8 calculs de terrain (Iz corrigé, Icc en aval, seuils magnétiques, réglage Ir, isolement attendu, énergie résiduelle, sortie d'automate, glissement)
+- [x] Plan pédagogique, phase 1 : validation durcie (tout voir + 2 séances espacées de 24 h, cas sur 2 jours, 3 pannes au banc), ce qui manque affiché, migration v1 → v2 sans perte
 - [x] Enrichissement terrain : banc étoile-triangle (4 pannes), mégohmmètre à 1 minute avec DAR et indice de polarisation, rappels d'erreurs dans les séances, Bilan · examen blanc
 - [x] Banc pour non-initié : guide « Première intervention » en 4 étapes, volets en accordéon, aides du multimètre, appareil mémorisé
 - [x] Grands débutants : lexique tactile, « Je ne sais pas encore », niveau socle, prédiction au banc, examen calibré, accueil en clair

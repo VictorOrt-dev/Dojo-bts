@@ -1,5 +1,6 @@
 // Test de positionnement : 12 questions, 4 par niveau (2 de reconnaissance, 1 calcul, 1 situation de cas de panne),
-// sans XP. Il valide d'office les niveaux maîtrisés, mode par mode : un calcul ne se valide que par un calcul, un cas
+// sans XP. Il fixe le point de départ du parcours, mode par mode (étapes sautées, conseils levés) sans valider de
+// niveau : la validation se gagne en séance (validation.js) : un calcul ne se valide que par un calcul, un cas
 // de panne par une situation de panne. Les mentions « Conseillé après… » disparaissent et le parcours
 // « Ta prochaine séance » saute les étapes correspondantes.
 
@@ -120,10 +121,10 @@ export async function renderPositionnement({ vue, definirTitre }) {
   const finir = () => {
     const r = resultatPositionnement(partie.resultats);
     stockage.modifier(e => { e.positionnement = { niveau: r.niveau, score: r.score, date: Date.now(), niveaux: r.niveaux }; });
-    const message = r.niveau === 3 && Object.values(r.niveaux).every(v => v === 3) ? 'Tout est validé.'
+    const message = r.niveau === 3 && Object.values(r.niveaux).every(v => v === 3) ? 'Point de départ : niveau III partout.'
       : r.niveau === 0 ? 'On part des fondations.' : `Niveau ${NOMS[r.niveau]} atteint.`;
     const parMode = Object.entries(MODES).map(([m, nom]) =>
-      `<li><span>${nom}</span><span class="mono">${r.niveaux[m] ? `niveau ${NOMS[r.niveaux[m]]} validé` : 'rien de validé d\'office'}</span></li>`).join('');
+      `<li><span>${nom}</span><span class="mono">${r.niveaux[m] ? `départ au-delà du niveau ${NOMS[r.niveaux[m]]}` : 'départ au niveau I'}</span></li>`).join('');
     vue.innerHTML = `
       <section class="bilan">
         <p class="surtitre">Test de positionnement</p>
@@ -133,11 +134,11 @@ export async function renderPositionnement({ vue, definirTitre }) {
       <ul class="stats">
         ${[1, 2, 3].map(n => `<li><span>Niveau ${NOMS[n]}</span><span class="mono">${r.scores[n]}/${PAR_NIVEAU} ${n <= r.niveau ? '· atteint' : `· ${REQUIS[n]} requis`}</span></li>`).join('')}
       </ul>
-      <p class="surtitre espace">Validé d'office, mode par mode</p>
+      <p class="surtitre espace">Ton point de départ, mode par mode</p>
       <ul class="stats positionnement-modes">${parMode}</ul>
-      <p class="discret espace">Chaque mode n'est validé que par ses propres questions : réussir les symboles ne valide pas les calculs. ${r.niveau
-        ? 'Les niveaux validés ne portent plus la mention « Conseillé après… », et ton parcours saute ces étapes.'
-        : 'Ton parcours commence par les fondations.'} Ce test ne rapporte pas d'XP : l'XP se gagne en séance.</p>
+      <p class="discret espace">Chaque mode n'est placé que par ses propres questions : réussir les symboles ne place pas les calculs. ${r.niveau
+        ? 'Ton parcours saute les niveaux franchis et ils ne portent plus la mention « Conseillé après… ». Pour les valider, il faudra tout de même les pratiquer en séance.'
+        : 'Ton parcours commence par les fondations.'} Ce test ne rapporte pas d'XP et ne valide aucun niveau : cela se gagne en séance.</p>
       <div class="actions pousse-bas">
         <a class="btn principal" href="#/entrainement">Voir ma prochaine séance</a>
         <a class="btn" href="#/entrainement/positionnement?r=${Date.now()}">Refaire le test</a>

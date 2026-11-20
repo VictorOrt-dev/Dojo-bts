@@ -6,7 +6,9 @@ import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annonce
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
-import { conseilNiveau, SEUIL } from './parcours.js';
+import { conseilNiveau, niveauValide, progressionNiveau } from './parcours.js';
+import { definirCatalogue } from './catalogue.js';
+import { tirerPriorites } from './validation.js';
 import * as stockage from './storage.js';
 import { deuxChiffres, typo } from './mise-en-page.js';
 import { melanger } from './hasard.js';
@@ -30,6 +32,7 @@ export function chargerQuestions() {
       if (!rep.ok) throw new Error(`data/reconnaissance.json introuvable (HTTP ${rep.status})`);
       return rep.json();
     })
+    .then(questions => { definirCatalogue('reco', questions); return questions; })
     .catch(err => {
       promesseQuestions = null;
       throw err;
@@ -57,18 +60,20 @@ export async function renderReco({ vue, definirTitre, params }) {
       nombre: (n, d) => filtrerParDomaine(toutes, d).filter(q => q.niveau === n).length,
       unite: 'planches',
       domaine: dom,
-      conseil: (n, d) => conseilNiveau(stockage.lire(), 'reco', n, { domaine: d })
+      conseil: (n, d) => conseilNiveau(stockage.lire(), 'reco', n, { domaine: d }),
+      progression: n => progressionNiveau(stockage.lire(), 'reco', n)
     });
     return;
   }
 
-  // Séance ordinaire : les erreurs d'il y a quelques jours (même niveau ou plus bas, même domaine) y reviennent.
+  // Séance ordinaire : d'abord les questions jamais vues, puis les erreurs du niveau à réviser (validation.js) ; les
+  // erreurs d'il y a quelques jours (même niveau ou plus bas, même domaine) y sont glissées en rappel.
   let rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'reco', {
     admis: id => toutes.some(q => q.id === id && q.niveau <= niveau && filtrerParDomaine([q], dom).length)
   });
   const session = {
     questions: intercaler(
-      melanger(disponibles.filter(q => !rappels.includes(q.id))),
+      revision ? melanger(disponibles) : tirerPriorites(disponibles.filter(q => !rappels.includes(q.id)), stockage.lire().stats?.reco?.elements, TAILLE_SESSION - Math.min(rappels.length, TAILLE_SESSION), melanger),
       rappels.map(id => ({ ...toutes.find(q => q.id === id), rappel: true })),
       TAILLE_SESSION),
     index: 0,
@@ -207,7 +212,11 @@ export async function renderReco({ vue, definirTitre, params }) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('reco', session.score, dom || revision ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
+    // Records par niveau : séances « tous domaines » seulement. Une séance complète entre dans le journal de validation.
+    const complete = !dom && !revision && total >= TAILLE_SESSION;
+    const dejaValide = !dom && !revision && niveauValide(stockage.lire(), 'reco', niveau);
+    noterSession('reco', session.score, dom || revision ? undefined : niveau, complete ? total : undefined);
+    const progression = !dom && !revision ? progressionNiveau(stockage.lire(), 'reco', niveau) : null;
     const suivantNiveau = revision ? null : DIFFICULTES.find(d => d.n === niveau + 1 && filtrerParDomaine(toutes, dom).some(q => q.niveau === d.n));
     afficherBilan(vue, {
       score: session.score,
@@ -215,7 +224,8 @@ export async function renderReco({ vue, definirTitre, params }) {
       xpGagne: session.xp,
       onRejouer: () => renderReco({ vue, definirTitre, params }),
       rappels: rappels.length ? { total: rappels.length, reussis: session.rappelsReussis ?? 0 } : null,
-      valide: !dom && !revision && total >= 10 && session.score >= SEUIL,
+      valide: !!progression?.valide && !dejaValide,
+      progression: progression && !progression.valide ? progression.texte : null,
       suite: revision ? { href: '#/entrainement/revision', libelle: 'Retour à « À réviser »' } : session.score >= Math.ceil(total * 0.8) && suivantNiveau ? { href: lienSeance('#/entrainement/reco', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };

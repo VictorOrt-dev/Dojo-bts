@@ -36,11 +36,12 @@ export const QUOTAS = {
   3: { 1: 5, 2: 5, 3: 5 }
 };
 
-// Niveau atteint : le plus haut niveau validé à la fois en reconnaissance et en calculs (séance ou positionnement).
-// Un profil « confirmé » commence au moins au niveau II.
-export function compositionExamen(etat, { complet = false } = {}) {
+// Niveau atteint : le plus haut niveau franchi à la fois en reconnaissance et en calculs (validé en séance, ou
+// dépassé au positionnement). Un profil « confirmé » commence au moins au niveau II.
+// contenu : { reco, calcul } (tests) ; à défaut, le contenu chargé (catalogue.js).
+export function compositionExamen(etat, { complet = false, contenu } = {}) {
   let niveau = 0;
-  for (const n of [1, 2, 3]) { if (['reco', 'calcul'].every(m => niveauAcquis(etat, m, n))) niveau = n; else break; }
+  for (const n of [1, 2, 3]) { if (['reco', 'calcul'].every(m => niveauAcquis(etat, m, n, contenu))) niveau = n; else break; }
   niveau = Math.max(niveau, etat.positionnement?.niveau ?? 0, etat.profil === 'confirme' ? 2 : 0);
   return { niveau, complet, quotas: QUOTAS[complet ? 3 : niveau] };
 }
@@ -130,7 +131,7 @@ export async function renderExamen({ vue, definirTitre, params, auNettoyage }) {
     ${frontispice({ surtitre: 'Bilan', titre: 'Examen', italique: 'blanc', chapo: 'Quinze questions et calculs tirés au sort dans les cinq domaines. Comme le jour J : pas de fiche mémo, pas de correction avant la fin.' })}
     <div class="composition-examen">
       <p><strong>${compo.complet ? 'Examen complet, tous niveaux' : 'Calibré sur ton niveau'}</strong> : ${repartition}.</p>
-      <p class="discret">${compo.complet ? 'Le niveau III compte pour un tiers : c\'est l\'épreuve des confirmés.' : compo.niveau === 0 ? 'Rien de validé pour l\'instant : surtout des bases, un peu de pratique courante, aucun cas complexe.' : `Niveau ${DIFFICULTES.find(d => d.n === compo.niveau).romain} validé : la difficulté monte d'un cran.`}</p>
+      <p class="discret">${compo.complet ? 'Le niveau III compte pour un tiers : c\'est l\'épreuve des confirmés.' : compo.niveau === 0 ? 'Rien de validé pour l\'instant : surtout des bases, un peu de pratique courante, aucun cas complexe.' : `Niveau ${DIFFICULTES.find(d => d.n === compo.niveau).romain} franchi : la difficulté monte d'un cran.`}</p>
       <a class="lien-composition" href="#/entrainement/examen${compo.complet ? '' : '?complet=1'}">${compo.complet ? 'Revenir à l\'examen calibré' : 'Passer à l\'examen complet (tous niveaux)'}</a>
     </div>
     <ul class="stats regles-examen">

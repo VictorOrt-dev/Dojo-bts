@@ -13,12 +13,15 @@ import { auditer } from '../outils/audit.mjs';
 import * as G from '../js/guidage.js';
 import { markdown, memoPour } from '../js/memos.js';
 import * as B from '../js/badges.js';
+import * as V from '../js/validation.js';
+import { SEUILS } from '../js/seuils.js';
+import { definirCatalogue } from '../js/catalogue.js';
 
 export default async function ({ t }) {
   await auditIntegrite(t);
   physiqueDuBanc(t);
   controleDesSauvegardes(t);
-  parcoursGuide(t);
+  await parcoursGuide(t);
   correctionEnDeuxTemps(t);
   revisionEspacee(t);
   bancEclairage(t);
@@ -34,6 +37,7 @@ export default async function ({ t }) {
   await auditReproductible(t);
   await socleDesPiliers(t);
   await repriseDesSeries(t);
+  await validationDurcie(t);
 }
 
 // ---------- Solveur électrique : lectures attendues pour chaque panne ----------
@@ -94,10 +98,10 @@ function physiqueDuBanc(t) {
 function controleDesSauvegardes(t) {
   t.section('U2. Contrôle des sauvegardes (sauvegarde.js)');
   const valide = {
-    version: 1, xp: 1234,
+    version: 2, xp: 1234,
     stats: {
-      reco: { sessions: 3, meilleurScore: 10, derniereSession: 1761900000000, niveaux: { '1': 10, '2': 7 }, elements: { 'sym-contact-no': { essais: 3, reussites: 2 } } },
-      banc: { sessions: 1, meilleurScore: 1, derniereSession: null, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } }
+      reco: { sessions: 3, meilleurScore: 10, derniereSession: 1761900000000, niveaux: { '1': 10, '2': 7 }, seances: [{ n: 1, t: 1761900000000, score: 10, total: 10 }], elements: { 'sym-contact-no': { essais: 3, reussites: 2 } } },
+      banc: { sessions: 1, meilleurScore: 1, derniereSession: null, elements: { 'fu1-fondu': { essais: 1, reussites: 1, joursReussis: ['2026-10-31'] } } }
     },
     derniereSauvegarde: 1761900000000,
     preferences: { matiere: 'porcelaine', visiteBanc: true, tutoBanc: true, consoleBanc: false },
@@ -106,7 +110,8 @@ function controleDesSauvegardes(t) {
     socle: { fait: true, score: 3, date: 1761900000000 },
     activite: { jours: ['2026-10-30', '2026-10-31', '2026-11-01'] },
     jalons: { memosApresErreur: 4, isolementPropre: ['iso-prises-neuves'] },
-    badges: { 'habilite-banc': 1761900000000 }
+    badges: { 'habilite-banc': 1761900000000 },
+    acquisAncienneRegle: { reco: [1], calcul: [], casNiveaux: [], cas: ['vat-avant-intervention'], banc: true }
   };
   const r = controler(valide);
   t.ok(r.anomalies.length === 0 && isDeepStrictEqual(r.etat, valide), 'sauvegarde conforme : acceptée telle quelle');
@@ -167,11 +172,44 @@ function controleDesSauvegardes(t) {
 
 // ---------- Parcours guidé (parcours.js, logique pure) ----------
 
-function parcoursGuide(t) {
+// Contenu réel (identifiant, niveau, domaines) : questions, types de calcul, cas de panne. Il alimente aussi le
+// catalogue (catalogue.js) dont se servent les règles quand on ne leur passe pas de contenu.
+async function contenuReel() {
+  globalThis.localStorage ??= { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+  const lire = f => JSON.parse(fs.readFileSync(path.join(RACINE, f), 'utf8'));
+  const { GENERATEURS } = await import('../js/calcul.js');
+  const reduire = l => l.map(e => ({ id: e.id, niveau: e.niveau, domaines: e.domaines }));
+  const contenu = { reco: reduire(lire('data/reconnaissance.json')), calcul: reduire(GENERATEURS), panne: reduire(lire('data/pannes.json')) };
+  for (const [mode, liste] of Object.entries(contenu)) definirCatalogue(mode, liste);
+  return contenu;
+}
+
+const HEURE = 3_600_000;
+const T0 = Date.UTC(2026, 9, 1, 8);
+const statsVides = () => ({ sessions: 0, meilleurScore: 0, derniereSession: null, elements: {} });
+
+// Stats où le niveau n d'un mode est validé selon la nouvelle règle : tout vu + 2 séances à 80 % espacées de 25 h
+// (reconnaissance, calculs) ; la moitié des cas réussie sur 2 jours (cas) ; 3 pannes réparées (banc).
+function valider(stats = {}, mode, n, contenu) {
+  const s = structuredClone(stats);
+  const m = (s[mode] ??= statsVides());
+  if (mode === 'banc') { for (const id of ['fu1-fondu', 'fusible-l2', 'bobine-coupee']) m.elements[id] = { essais: 1, reussites: 1 }; return s; }
+  const items = contenu[mode].filter(e => e.niveau === n);
+  if (mode === 'panne') {
+    for (const c of items.slice(0, Math.ceil(items.length / 2))) m.elements[c.id] = { essais: 1, reussites: 1, joursReussis: ['2026-10-01', '2026-10-02'] };
+    return s;
+  }
+  for (const e of items) m.elements[e.id] ??= { essais: 1, reussites: 1 };
+  m.seances = [...(m.seances ?? []), { n, t: T0, score: 9, total: 10 }, { n, t: T0 + 25 * HEURE, score: 8, total: 10 }];
+  return s;
+}
+
+async function parcoursGuide(t) {
   t.section('U3. Parcours guidé (parcours.js)');
   const cas = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/pannes.json'), 'utf8'));
+  const contenu = await contenuReel();
   const etat = (autres = {}) => ({ ...etatParDefaut(), ...autres });
-  const reco = n => ({ reco: { sessions: 1, meilleurScore: 9, derniereSession: 1, elements: {}, niveaux: { [n]: 9 } } });
+  const reco = n => valider({}, 'reco', n, contenu);
 
   t.ok(P.premierLancement(etat()) && !P.premierLancement(etat({ profil: 'debutant' })) && P.premierLancement(etat({ xp: 40 }))
     && P.premierLancement(etat({ stats: reco(1) })) && !P.premierLancement(etat({ xp: 40, profil: 'confirme' })),
@@ -181,35 +219,33 @@ function parcoursGuide(t) {
   const suite = [];
   let e = d;
   // On acquiert les étapes une à une et on relève la recommandation à chaque fois.
-  const acquerir = (x, code) => {
-    const stats = structuredClone(x.stats);
-    if (code === 'B') stats.banc = { sessions: 1, meilleurScore: 1, derniereSession: 1, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } };
-    else if (code[0] === 'P') { const c = cas.find(k => k.niveau === Number(code[1])); stats.panne ??= { sessions: 0, meilleurScore: 0, derniereSession: null, elements: {} }; stats.panne.elements[c.id] = { essais: 1, reussites: 1 }; }
-    else { const m = code[0] === 'R' ? 'reco' : 'calcul'; stats[m] ??= { sessions: 0, meilleurScore: 0, derniereSession: null, elements: {}, niveaux: {} }; stats[m].niveaux[code[1]] = 8; }
-    return { ...x, stats };
-  };
+  // Chaque étape est acquise selon la nouvelle règle (validation.js), voir valider().
+  const acquerir = (x, code) => ({ ...x, stats: valider(x.stats, code === 'B' ? 'banc' : { R: 'reco', C: 'calcul', P: 'panne' }[code[0]], Number(code[1]), contenu) });
   for (let i = 0; i < 11; i++) { const p = P.prochaineSeance(e, cas); suite.push(p.code); if (p.code === 'libre') break; e = acquerir(e, p.code); }
   t.ok(suite.join(' ') === 'R1 C1 P1 B R2 C2 P2 R3 C3 P3 libre', `parcours Débutant : ${suite.join(' → ')}`);
   t.ok(P.prochaineSeance(d, cas).href === '#/entrainement/reco?n=1' && P.ordreModes('debutant').join() === 'reco,calcul,panne,banc,isolement,examen',
     'débutant : première séance Reconnaissance niveau I ; accueil ordonné Reconnaissance → Calculs → Cas → Banc');
   t.ok(P.ordreModes('confirme')[0] === 'banc' && P.prochaineSeance(etat({ profil: 'confirme' }), cas).code === 'T', 'confirmé : le banc en premier, et la première recommandation est le test de positionnement');
-  t.ok(P.prochaineSeance(etat({ stats: reco(1) }), cas).code === 'C1', 'reconnaissance niveau I à 80 % : la séance suivante passe aux calculs');
+  t.ok(P.prochaineSeance(etat({ stats: reco(1) }), cas).code === 'C1', 'reconnaissance niveau I validée : la séance suivante passe aux calculs');
+  t.ok(/^0\/\d+ questions vues · 0 séance réussie sur 2$/.test(P.prochaineSeance(d, cas).manque), `prochaine séance : ce qui manque pour valider (« ${P.prochaineSeance(d, cas).manque} »)`);
   const p1 = P.prochaineSeance(acquerir(acquerir(d, 'R1'), 'C1'), cas);
   t.ok(p1.code === 'P1' && !cas.find(c => p1.href.endsWith(encodeURIComponent(c.id))).domaines.includes('hta'), 'premier cas de panne proposé : un cas de niveau I hors HTA');
 
-  t.ok(P.conseilNiveau(d, 'reco', 1) === null && /80 % au niveau I/.test(P.conseilNiveau(d, 'reco', 2)) && /niveau II/.test(P.conseilNiveau(d, 'calcul', 3)),
-    'mentions : niveau I libre, niveau II « conseillé après 80 % au niveau I », niveau III après le II');
+  t.ok(P.conseilNiveau(d, 'reco', 1) === null && /validation du niveau I$/.test(P.conseilNiveau(d, 'reco', 2)) && /niveau II/.test(P.conseilNiveau(d, 'calcul', 3)),
+    'mentions : niveau I libre, niveau II « conseillé après la validation du niveau I », niveau III après le II');
   t.ok(P.conseilNiveau(etat({ stats: reco(1) }), 'reco', 2) === null, 'niveau I acquis : plus de mention sur le niveau II');
   t.ok(/expert/.test(P.conseilNiveau(d, 'reco', 1, { domaine: 'hta' })), 'domaine HTA : mention « domaine expert » même au niveau I tant que le II n\'est pas acquis');
   const hta = cas.find(c => c.domaines.includes('hta') && c.niveau === 1);
   t.ok(/HTA/.test(P.conseilCas(d, hta, cas)) && P.conseilCas(d, cas.find(c => c.niveau === 1 && !c.domaines.includes('hta')), cas) === null, 'cas de panne : HTA mentionné, niveau I hors HTA libre');
   t.ok(P.conseilBanc(d, cas) && P.conseilBanc(etat({ profil: 'confirme' }), cas) === null, 'banc : conseillé après un premier cas réussi (sauf profil confirmé)');
 
-  t.ok(P.niveauValide({ 1: 4, 2: 3, 3: 3 }) === 3 && P.niveauValide({ 1: 3, 2: 3, 3: 0 }) === 2 && P.niveauValide({ 1: 2, 2: 4, 3: 4 }) === 0 && P.niveauValide({ 1: 3, 2: 2, 3: 4 }) === 1,
+  t.ok(P.niveauTest({ 1: 4, 2: 3, 3: 3 }) === 3 && P.niveauTest({ 1: 3, 2: 3, 3: 0 }) === 2 && P.niveauTest({ 1: 2, 2: 4, 3: 4 }) === 0 && P.niveauTest({ 1: 3, 2: 2, 3: 4 }) === 1,
     'positionnement : 3 bonnes réponses sur 4 par niveau, et un niveau n\'est validé que si les précédents le sont');
   const pos = etat({ profil: 'confirme', positionnement: { niveau: 2, score: 8, date: 1, niveaux: { reco: 2, calcul: 2, panne: 2 } } });
   t.ok(P.conseilNiveau(pos, 'reco', 3) === null && P.conseilCas(pos, hta, cas) === null && P.prochaineSeance(pos, cas).code === 'B',
     'positionnement niveau II dans les trois modes : mentions levées jusqu\'au niveau III et HTA, parcours repris au banc');
+  t.ok(P.niveauAcquis(pos, 'reco', 2) && !P.niveauValide(pos, 'reco', 2) && !P.niveauValide(pos, 'calcul', 1),
+    'le positionnement fixe le point de départ (niveau franchi) mais ne valide aucun niveau');
   t.ok(P.TOTAL_POSITIONNEMENT === 12 && P.PAR_NIVEAU === 4 && P.COMPOSITION.reco === 2 && P.COMPOSITION.calcul === 1 && P.COMPOSITION.panne === 1,
     'test de positionnement : 12 questions, 4 par niveau (2 reconnaissances, 1 calcul, 1 cas de panne)');
 
@@ -222,7 +258,7 @@ function parcoursGuide(t) {
     'calcul raté au niveau II, cas raté au niveau I : reconnaissance III, calculs I seulement, cas de panne rien');
   const ancien = etat({ positionnement: { niveau: 3, score: 10, date: 1 } });
   t.ok(P.niveauAcquis(ancien, 'reco', 3) && !P.niveauAcquis(ancien, 'calcul', 1) && !P.niveauAcquis(ancien, 'panne', 1),
-    'ancien test (reconnaissance seule) : ne valide plus que la reconnaissance, ni les calculs ni les cas');
+    'ancien test (reconnaissance seule) : ne place que la reconnaissance, ni les calculs ni les cas');
 
   // Banc : pannes graduées et étape validée avec indices.
   const banc = JSON.parse(fs.readFileSync(path.join(RACINE, 'data/banc-depart-moteur.json'), 'utf8')).pannes;
@@ -340,10 +376,11 @@ function guidageEtMemos(t) {
   t.ok(r2.type === 'lacune' && r2.domaine === 'securite' && r2.href === '#/entrainement/panne?c=p1', 'lacune portée par un cas de panne : le cas le plus raté est rouvert directement');
   const e3 = st({ r1: { essais: 3, reussites: 0 } }, {});
   t.ok(G.recommandation(e3, catalogue, prochaine).type === 'parcours', `moins de ${G.ESSAIS_MIN} réponses dans un domaine : pas de conclusion hâtive, suite du parcours`);
-  const e4 = { ...st({ r1: { essais: 10, reussites: 8 } }, { c1: { essais: 10, reussites: 7 } }), profil: 'formation' };
-  e4.stats.reco.niveaux = { 1: 9 }; e4.stats.calcul.niveaux = { 1: 8 };
+  const e4 = { ...st({ r1: { essais: 5, reussites: 4 }, r2: { essais: 5, reussites: 4 } }, { c2: { essais: 5, reussites: 4 }, c3: { essais: 5, reussites: 4 } }), profil: 'formation' };
+  const deuxSeances = [{ n: 1, t: T0, score: 9, total: 10 }, { n: 1, t: T0 + 25 * HEURE, score: 8, total: 10 }];
+  e4.stats.reco.seances = deuxSeances; e4.stats.calcul.seances = deuxSeances;
   const r4 = G.recommandation(e4, catalogue, { code: 'R2', href: '#/entrainement/reco?n=2', titre: '', desc: '' });
-  t.ok(r4.type === 'niveau' && r4.titre === 'Fondations acquises — Passe au niveau II' && r4.href === '#/entrainement/reco?n=2', 'niveau I acquis en reconnaissance et en calculs : « Fondations acquises — Passe au niveau II »');
+  t.ok(r4.type === 'niveau' && r4.titre === 'Fondations acquises — Passe au niveau II' && r4.href === '#/entrainement/reco?n=2', 'niveau I validé en reconnaissance et en calculs (tout vu, 2 séances espacées) : « Fondations acquises — Passe au niveau II »');
 
   const memos = lire('data/memos.json');
   const contenu = {
@@ -636,8 +673,9 @@ async function ouvertureAuxDebutants(t) {
   // Examen calibré
   const E = await import('../js/examen.js');
   t.ok(isDeepStrictEqual(E.compositionExamen({ profil: 'debutant' }).quotas, { 1: 10, 2: 5 }) && E.compositionExamen({ profil: 'confirme' }).niveau === 2
-    && E.compositionExamen({ stats: { reco: { niveaux: { 1: 9 } }, calcul: { niveaux: { 1: 8 } } } }).niveau === 1 && E.compositionExamen({}, { complet: true }).quotas[3] === 5,
-    'composition : débutant 10 de niveau I et 5 de niveau II ; niveau I validé → un cran au-dessus ; confirmé ≥ II ; examen complet au choix');
+    && E.compositionExamen({ acquisAncienneRegle: { reco: [1], calcul: [1] } }).niveau === 1 && E.compositionExamen({}, { complet: true }).quotas[3] === 5
+    && E.compositionExamen({ stats: { reco: { niveaux: { 1: 9 } }, calcul: { niveaux: { 1: 8 } } } }).niveau === 0,
+    'composition : débutant 10 de niveau I et 5 de niveau II ; niveau I validé → un cran au-dessus (un seul 9/10 ne suffit plus) ; confirmé ≥ II ; examen complet au choix');
   let ok = true;
   for (let i = 0; i < 60; i++) {
     const l = E.composerExamen(reco, GENERATEURS, { quotas: E.QUOTAS[0] });
@@ -754,4 +792,114 @@ async function repriseDesSeries(t) {
   ]);
   t.ok(b.score === 1 && b.total === 7 && b.passees === 1 && b.nonTraitees === 4 && b.parDomaine.tri.total === 3 && !b.parDomaine.hta && !b.parDomaine.securite,
     'examen : la note compte les 7 questions, mais seules les questions vues (répondues ou passées) jugent une compétence ; les non traitées n\'en jugent aucune');
+}
+
+// ---------- Validation durcie (validation.js, seuils.js) et migration v1 → v2 (storage.migrer) ----------
+
+async function validationDurcie(t) {
+  t.section('U19. Validation durcie : tout voir, 2 séances à 80 % espacées de 24 h, cas sur 2 jours, 3 pannes au banc');
+  const contenu = await contenuReel();
+  const { migrer } = await import('../js/storage.js');
+  const etat = (stats = {}, autres = {}) => ({ ...etatParDefaut(), stats, ...autres });
+  const r1 = contenu.reco.filter(q => q.niveau === 1);
+  const vus = k => Object.fromEntries(r1.slice(0, k).map(q => [q.id, { essais: 1, reussites: 0 }]));
+  const seance = (h, score = 8, n = 1) => ({ n, t: T0 + h * HEURE, score, total: 10 });
+  const reco = (k, seances) => etat({ reco: { ...statsVides(), elements: vus(k), seances } });
+  const N = r1.length;
+
+  t.ok(SEUILS.niveau.taux === 0.8 && SEUILS.niveau.seances === 2 && SEUILS.niveau.ecartHeures === 24 && SEUILS.niveau.toutVoir && SEUILS.panne.part === 0.5 && SEUILS.panne.jours === 2 && SEUILS.banc.pannes === 3,
+    'seuils.js : 80 %, 2 séances, 24 h, tout voir ; cas : la moitié sur 2 jours ; banc : 3 pannes');
+
+  // Reconnaissance et calculs
+  let e = V.etatNiveau(reco(18, [seance(0), seance(30)]), 'reco', 1);
+  t.ok(!e.valide && e.vues === 18 && e.total === N && V.texteManque(e) === `18/${N} questions vues · 2 séances réussies sur 2`, `pas tout vu : non validé (« ${V.texteManque(e)} »)`);
+  e = V.etatNiveau(reco(N, [seance(0)]), 'reco', 1);
+  t.ok(!e.valide && V.texteManque(e) === `${N}/${N} questions vues · 1 séance réussie sur 2`, `tout vu, une seule séance réussie : non validé (« ${V.texteManque(e)} »)`);
+  e = V.etatNiveau(reco(N, [seance(0), seance(23)]), 'reco', 1);
+  t.ok(!e.valide && e.seancesReussies === 1 && e.prochaineLe === T0 + 24 * HEURE, 'deux séances réussies à 23 h d\'écart : la seconde ne compte pas encore');
+  t.ok(V.etatNiveau(reco(N, [seance(0), seance(24)]), 'reco', 1).valide, 'deux séances réussies à 24 h d\'écart et tout vu : niveau validé');
+  t.ok(!V.etatNiveau(reco(N, [seance(0, 7), seance(30, 7), seance(60, 8)]), 'reco', 1).valide && V.etatNiveau(reco(N, [seance(0, 7), seance(30, 8), seance(60, 8)]), 'reco', 1).valide,
+    'une séance à 7/10 ne compte pas ; 8/10 (80 %) compte');
+  t.ok(!V.etatNiveau(reco(N, [seance(0, 10, 2), seance(30, 10, 2)]), 'reco', 1).valide, 'les séances d\'un autre niveau ne comptent pas');
+  t.ok(V.seancesEspacees([0, 10, 30, 50].map(h => h * HEURE)).length === 2 && V.seancesEspacees([0, 20, 40, 64].map(h => h * HEURE)).length === 3,
+    'séances espacées : chacune comptée 24 h au moins après la précédente comptée (0, 30 h ; 0, 40 h, 64 h)');
+  const c1 = contenu.calcul.filter(g => g.niveau === 1);
+  const calc = etat({ calcul: { ...statsVides(), elements: Object.fromEntries(c1.map(g => [g.id, { essais: 2, reussites: 1 }])), seances: [seance(0, 9), seance(48, 10)] } });
+  t.ok(V.etatNiveau(calc, 'calcul', 1).valide && P.niveauValide(calc, 'calcul', 1) && !P.niveauValide(calc, 'calcul', 2),
+    `calculs : les ${c1.length} types du niveau I vus et 2 séances espacées → niveau I validé, pas le II`);
+  e = V.etatNiveau(reco(N, [{ n: 1, t: Date.now() - HEURE, score: 9, total: 10 }]), 'reco', 1);
+  t.ok(/la prochaine compte à partir de (aujourd'hui|demain) à \d+ h \d\d\)$/.test(V.texteManque(e)), `séance réussie il y a une heure : « ${V.texteManque(e)} »`);
+
+  // Séances : jamais vu d'abord, puis les erreurs à réviser
+  const liste = Array.from({ length: 8 }, (_, i) => ({ id: `q${i}` }));
+  const el = { q0: { essais: 1, reussites: 1 }, q1: { essais: 1, reussites: 0, boite: 1, revoir: 5 }, q2: { essais: 1, reussites: 0, boite: 1, revoir: 2 },
+    q3: { essais: 2, reussites: 2 }, q4: { essais: 1, reussites: 1 }, q5: { essais: 1, reussites: 1 } };
+  const melange = l => [...l].sort(() => Math.random() - 0.5);
+  const tirages = Array.from({ length: 50 }, () => V.tirerPriorites(liste, el, 3, melange).map(q => q.id).sort().join());
+  t.ok(tirages.every(x => x === 'q2,q6,q7'), 'tirage : les 2 questions jamais vues, puis l\'erreur la plus urgente (50 tirages)');
+  t.ok(['q1', 'q2', 'q6', 'q7'].every(id => V.tirerPriorites(liste, el, 5, melange).some(q => q.id === id)), 'tirage de 5 : jamais vues et erreurs toutes présentes, complétées par le reste');
+
+  // Cas de panne
+  const p1 = contenu.panne.filter(c => c.niveau === 1);
+  const requis = Math.ceil(p1.length / 2);
+  const cas = jours => etat({ panne: { ...statsVides(), elements: Object.fromEntries(jours.map((j, i) => [p1[i].id, { essais: 1, reussites: j ? 1 : 0, ...(j ? { joursReussis: j } : {}) }])) } });
+  const memeJour = Array(requis).fill(['2026-10-01']);
+  e = V.etatCas(cas(memeJour), 1);
+  t.ok(!e.valide && e.reussis === requis && e.requis === requis && V.texteManque(e) === `${requis}/${requis} cas réussis sans faute · 1/2 jours différents`, `cas : la moitié réussie le même jour → non validé (« ${V.texteManque(e)} »)`);
+  t.ok(V.etatCas(cas([...memeJour.slice(1), ['2026-10-02']]), 1).valide, `cas : ${requis} cas sur ${p1.length} réussis sur 2 jours → niveau validé`);
+  t.ok(!V.etatCas(cas([...memeJour.slice(2), ['2026-10-02'], null]), 1).valide, 'cas : un cas raté ne compte pas (moins de la moitié réussie)');
+  t.ok(P.niveauAcquis(cas([...memeJour.slice(1), ['2026-10-02']]), 'panne', 1, contenu.panne) && !P.niveauAcquis(cas(memeJour), 'panne', 1, contenu.panne),
+    'parcours : l\'étape « cas de niveau I » suit la même règle');
+
+  // Banc
+  const banc = ids => etat({ banc: { ...statsVides(), elements: Object.fromEntries(ids.map(([id, r]) => [id, { essais: 1, reussites: r }])) } });
+  e = V.etatBanc(banc([['fu1-fondu', 1], ['lampe-h2', 1]]));
+  t.ok(!e.valide && V.texteManque(e) === '2/3 pannes différentes réparées sans alerte', `banc : 2 pannes → « ${V.texteManque(e)} »`);
+  t.ok(V.etatBanc(banc([['fu1-fondu', 1], ['lampe-h2', 1], ['maintien-coupe', 1]])).valide && !V.etatBanc(banc([['fu1-fondu', 1], ['lampe-h2', 1], ['maintien-coupe', 0]])).valide,
+    'banc : 3 pannes différentes réparées sans alerte → étape validée ; une réparée avec alerte ne compte pas');
+  t.ok(P.prochaineSeance(etat(valider(valider(valider({}, 'reco', 1, contenu), 'calcul', 1, contenu), 'panne', 1, contenu), { profil: 'debutant' }), contenu.panne).code === 'B'
+    && P.prochaineSeance(etat(banc([['fu1-fondu', 1]]).stats, { profil: 'confirme', positionnement: { niveau: 0, score: 0, date: 1, niveaux: { reco: 0, calcul: 0, panne: 0 } } }), contenu.panne).code === 'B',
+    'parcours : l\'étape « Banc » reste proposée tant que 3 pannes ne sont pas réparées');
+
+  // Seuils configurables
+  const avant = SEUILS.niveau.seances;
+  SEUILS.niveau.seances = 1;
+  const un = V.etatNiveau(reco(N, [seance(0)]), 'reco', 1).valide;
+  SEUILS.niveau.seances = avant;
+  t.ok(un && !V.etatNiveau(reco(N, [seance(0)]), 'reco', 1).valide, 'seuils.js : passer à 1 séance suffit à changer la règle partout');
+
+  // Migration v1 → v2
+  const v1 = {
+    version: 1, xp: 420, profil: 'formation',
+    stats: {
+      reco: { sessions: 2, meilleurScore: 9, derniereSession: T0, niveaux: { 1: 9, 2: 6 }, elements: { [r1[0].id]: { essais: 2, reussites: 1, boite: 1, revoir: T0 } } },
+      calcul: { sessions: 1, meilleurScore: 7, derniereSession: T0, niveaux: { 1: 7 }, elements: {} },
+      panne: { sessions: 1, meilleurScore: 3, derniereSession: T0, elements: { [p1[0].id]: { essais: 1, reussites: 1 } } },
+      banc: { sessions: 1, meilleurScore: 1, derniereSession: T0, elements: { 'fu1-fondu': { essais: 1, reussites: 1 } } }
+    },
+    positionnement: { niveau: 2, score: 8, date: T0, niveaux: { reco: 0, calcul: 2, panne: 0 } }
+  };
+  const m = migrer(structuredClone(v1));
+  const a = m.etat.acquisAncienneRegle;
+  t.ok(m.anomalies.length === 0 && m.etat.version === 2 && a.reco.join() === '1' && a.calcul.join() === '1,2' && a.cas.join() === p1[0].id && a.banc === true,
+    'migration v1 → v2 : acquis gardés (reconnaissance I à 9/10, calculs I et II au positionnement, le cas réussi, la panne du banc)');
+  t.ok(m.etat.xp === 420 && isDeepStrictEqual(m.etat.stats.reco.elements, v1.stats.reco.elements) && m.etat.stats.reco.niveaux[2] === 6 && m.etat.profil === 'formation',
+    'migration : XP, réponses, révision, records et profil intacts');
+  const rv = P.progressionNiveau(m.etat, 'reco', 1);
+  t.ok(rv.valide && rv.ancien && rv.texte === `Validé (ancienne règle) · pour la nouvelle : 1/${N} questions vues · 0 séance réussie sur 2`
+    && !P.niveauValide(m.etat, 'reco', 2) && V.etatCas(m.etat, 1).valide && V.etatBanc(m.etat).valide && !V.etatCas(m.etat, 2).valide,
+    `après migration : rien ne recule, et l'écran montre ce qui manque (« ${rv.texte} »)`);
+  t.ok(migrer({ ...v1, version: 2 }).etat.acquisAncienneRegle === null && migrer(m.etat).etat.acquisAncienneRegle.calcul.join() === '1,2',
+    'migration une seule fois : une sauvegarde v2 n\'est pas reconvertie (ses acquis sont relus tels quels)');
+  t.ok(migrer({}).etat.acquisAncienneRegle?.reco.length === 0 && migrer('x').anomalies.length === 1, 'sans version (très ancienne sauvegarde) : traitée comme une v1 ; contenu non JSON : refusé');
+
+  // Contrôle des nouveaux champs
+  const refus = (d, motif) => controler({ version: 2, ...d }).anomalies.some(x => x.includes(motif));
+  t.ok(refus({ stats: { reco: { seances: [{ n: 1, t: T0, score: 11, total: 10 }] } } }, 'journal des séances') && refus({ stats: { reco: { seances: [{ n: 4, t: T0, score: 1, total: 10 }] } } }, 'journal des séances')
+    && refus({ stats: { panne: { elements: { x: { essais: 1, reussites: 1, joursReussis: ['2026-02-30'] } } } } }, 'jours de réussite')
+    && refus({ acquisAncienneRegle: { reco: [4] } }, 'acquisAncienneRegle') && refus({ acquisAncienneRegle: { cas: ['__proto__'] } }, 'acquisAncienneRegle'),
+    'sauvegarde : journal des séances, jours de réussite et acquis de l\'ancienne règle contrôlés (score > total, niveau 4, date impossible, clé interdite)');
+  const long = controler({ version: 2, stats: { reco: { seances: Array.from({ length: 80 }, (_, i) => seance(i * 30)) } } });
+  t.ok(long.anomalies.length === 0 && long.etat.stats.reco.seances.length === SEUILS.journal.seancesMax && long.etat.stats.reco.seances.at(-1).t === T0 + 79 * 30 * HEURE,
+    `journal plafonné aux ${SEUILS.journal.seancesMax} dernières séances`);
 }

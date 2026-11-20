@@ -76,6 +76,7 @@ function carteProchaine(p, r) {
       <span class="prochaine-surtitre">${esc(r.surtitre)}</span>
       <span class="prochaine-titre">${esc(r.titre)}</span>
       <span class="prochaine-desc">${esc(r.desc)}</span>
+      ${r.manque ? `<span class="prochaine-manque">Pour valider : ${esc(r.manque)}</span>` : ''}
       ${diagnostic.length ? `<span class="prochaine-diagnostic" aria-label="Réussite par domaine">${diagnostic.join('')}</span>` : ''}
       <span class="prochaine-etape"><span>${esc(p.etape)}</span><span class="prochaine-jauge" aria-hidden="true"><span style="width: ${progression}%"></span></span></span>
       <span class="prochaine-go" aria-hidden="true">${esc(r.action)} →</span>
@@ -87,13 +88,14 @@ export async function renderEntrainement({ vue, definirTitre }) {
   const { mot, jour } = salutation();
   const n = niveauPour(lireXP());
   const etat = stockage.lire();
-  const cas = await chargerPannes().catch(() => []);
-  const prochaine = prochaineSeance(etat, cas);
-  // Catalogue du contenu (domaine et niveau de chaque élément) pour le diagnostic par domaine.
-  const [questions, generateurs] = await Promise.all([
+  // Catalogue du contenu (domaine et niveau de chaque élément) : diagnostic par domaine, et règles de validation
+  // (« tout le niveau vu ») : il doit être chargé AVANT de calculer la prochaine séance.
+  const [cas, questions, generateurs] = await Promise.all([
+    chargerPannes().catch(() => []),
     import('./quiz.js').then(m => m.chargerQuestions()).catch(() => []),
     import('./calcul.js').then(m => m.GENERATEURS).catch(() => [])
   ]);
+  const prochaine = prochaineSeance(etat, cas);
   const reduire = l => l.map(e => ({ id: e.id, niveau: e.niveau, domaines: e.domaines }));
   verifierBadges();   // un état importé ou ancien peut déjà mériter des insignes
   const reco = recommandation(etat, { reco: reduire(questions), calcul: reduire(generateurs), panne: reduire(cas) }, prochaine, cas);
@@ -170,8 +172,9 @@ export function enteteSession(numero, score, resultats = [], total = TAILLE_SESS
 
 // Rapport de fin de séance.
 // suite (facultatif) : { href, libelle } pour proposer le niveau supérieur après une bonne séance.
-// valide : la séance valide un niveau (8/10 sur une séance de niveau, tous domaines) → tampon « Niveau validé ».
-export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onRejouer, suite = null, valide = false, rappels = null }) {
+// valide : cette séance vient de faire valider le niveau (validation.js) → tampon « Niveau validé ».
+// progression (facultatif) : ce qui manque encore pour valider le niveau (« 18/26 questions vues · 1 séance réussie sur 2 »).
+export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onRejouer, suite = null, valide = false, rappels = null, progression = null }) {
   const parfait = score === total;
   const taux = score / total;
   const message = parfait ? 'Sans faute.' : taux >= 0.7 ? 'Belle séance.' : taux >= 0.4 ? 'Ça vient, continue.' : 'Reprends les explications, puis recommence.';
@@ -181,6 +184,7 @@ export function afficherBilan(vue, { score, total = TAILLE_SESSION, xpGagne, onR
       <p class="bilan-score">${deuxChiffres(score)}<small>/${deuxChiffres(total)}</small></p>
       ${valide ? '<p class="tampon-valide" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Niveau validé</p>' : ''}
       <p class="bilan-message">${message}</p>
+      ${progression && !valide ? `<p class="bilan-progression">Pour valider le niveau : ${esc(progression)}</p>` : ''}
       <p class="bilan-xp">+${xpGagne} XP${parfait && total >= SEANCE_MIN_BONUS ? ' · bonus sans faute' : ''}</p>
       ${rappels ? `<p class="bilan-rappels">Dont ${rappels.total} rappel${rappels.total > 1 ? 's' : ''} d'erreurs passées : ${rappels.reussis} retrouvé${rappels.reussis > 1 ? 's' : ''}${rappels.reussis === rappels.total ? ', bien ancré' + (rappels.total > 1 ? 's' : '') : ''}.</p>` : ''}
     </section>

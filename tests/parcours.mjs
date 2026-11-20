@@ -31,7 +31,11 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(p.url().endsWith('#/entrainement/reco?n=1'), 'la carte ouvre directement la séance, en un toucher');
   await p.goto(U + '#/entrainement/reco'); await p.waitForSelector('.mode');
   const niveaux = await p.$$eval('.modes .mode', l => l.map(m => ({ lien: m.tagName === 'A', conseil: m.querySelector('.conseil')?.textContent ?? '' })));
-  t.ok(!niveaux[0].conseil && niveaux[1].conseil.includes('80 % au niveau I') && niveaux[2].conseil.includes('niveau II') && niveaux.every(n => n.lien),
+  const r1 = qs.filter(q => q.niveau === 1);
+  const progressions = await p.$$eval('.modes .mode .progression-niveau', l => l.map(x => x.textContent.trim()));
+  t.ok(progressions[0] === `0/${r1.length} questions vues · 0 séance réussie sur 2` && progressions.length === 3,
+    `cartes de niveau : ce qui manque pour valider (« ${progressions[0]} »)`);
+  t.ok(!niveaux[0].conseil && niveaux[1].conseil.includes('validation du niveau I') && niveaux[2].conseil.includes('niveau II') && niveaux.every(n => n.lien),
     'reconnaissance : niveaux II et III « Conseillé après… », mais tous ouvrables (aucun verrou)');
   await p.click('.modes a.mode >> nth=2'); await p.waitForSelector('.choix-btn');
   t.ok(p.url().includes('n=3'), 'niveau III ouvert d\'un toucher malgré la mention');
@@ -40,12 +44,38 @@ export default async function ({ t, url: U, navigateur }) {
   t.ok(lignes.filter(l => !l.niv.includes('niv-1')).every(l => l.conseil) && lignes.filter(l => l.hta).every(l => l.conseil.includes('HTA')),
     'cas de panne : niveaux II, III et HTA portent leur mention');
 
-  // Progression : un niveau réussi fait avancer le parcours et lève la mention
-  await p.evaluate(() => { const e = JSON.parse(localStorage.getItem('elec-learning:v1')); e.stats.reco = { sessions: 1, meilleurScore: 9, derniereSession: Date.now(), elements: {}, niveaux: { 1: 9 } }; localStorage.setItem('elec-learning:v1', JSON.stringify(e)); });
+  // Progression : un niveau validé (tout vu + 2 séances réussies espacées de 24 h) fait avancer le parcours.
+  // Une question jamais vue et une séance réussie il y a 30 h : il manque la question et une séance.
+  const jamaisVue = r1.at(-1);
+  await p.evaluate(({ ids, J }) => {
+    const e = JSON.parse(localStorage.getItem('elec-learning:v1'));
+    e.stats.reco = { sessions: 1, meilleurScore: 9, derniereSession: Date.now() - 30 * 3_600_000, niveaux: { 1: 9 },
+      seances: [{ n: 1, t: Date.now() - 30 * 3_600_000, score: 9, total: 10 }], elements: Object.fromEntries(ids.map(id => [id, { essais: 1, reussites: 1 }])) };
+    localStorage.setItem('elec-learning:v1', JSON.stringify(e));
+  }, { ids: r1.slice(0, -1).map(q => q.id) });
   await p.goto(U + '#/x'); await p.reload(); await p.goto(U + '#/entrainement'); await p.waitForSelector('.prochaine');
-  t.ok((await p.getAttribute('.prochaine', 'href')) === '#/entrainement/calcul?n=1' && (await p.textContent('.prochaine')).includes('Étape 2'), 'reconnaissance niveau I réussie (9/10) : la prochaine séance passe aux calculs, étape 2');
+  t.ok((await p.getAttribute('.prochaine', 'href')) === '#/entrainement/reco?n=1' && (await p.textContent('.prochaine-manque')).trim() === `Pour valider : ${r1.length - 1}/${r1.length} questions vues · 1 séance réussie sur 2`,
+    `un 9/10 ne suffit plus : la prochaine séance reste la reconnaissance niveau I (« ${(await p.textContent('.prochaine-manque')).trim()} »)`);
+  await p.goto(U + '#/entrainement/reco?n=1');
+  const vuesSeance = [];
+  for (let i = 0; i < 10; i++) {
+    await p.waitForSelector('.choix-btn:not([disabled])');
+    const src = await p.getAttribute('.reco-visuel img', 'src');
+    const question = (await p.textContent('.question')).replace(/\s/g, '');
+    const q = qs.find(x => x.image === src && x.question.replace(/\s/g, '') === question);
+    vuesSeance.push(q.id);
+    const textes = (await p.locator('.choix-btn').allTextContents()).map(x => x.replace(/\s/g, '').slice(1));
+    await p.locator('.choix-btn').nth(textes.indexOf(q.nom.replace(/\s/g, ''))).click();
+    await p.click('#suivant');
+  }
+  await p.waitForSelector('.bilan');
+  t.ok(vuesSeance.includes(jamaisVue.id), 'la séance tire d\'abord la question jamais vue');
+  t.ok((await p.textContent('.tampon-valide'))?.trim() === 'Niveau validé' && !(await p.locator('.bilan-progression').count()), 'deuxième séance réussie 30 h après la première, tout vu : tampon « Niveau validé »');
+  await p.goto(U + '#/entrainement'); await p.waitForSelector('.prochaine');
+  t.ok((await p.getAttribute('.prochaine', 'href')) === '#/entrainement/calcul?n=1' && (await p.textContent('.prochaine')).includes('Étape 2'), 'reconnaissance niveau I validée : la prochaine séance passe aux calculs, étape 2');
   await p.goto(U + '#/entrainement/reco'); await p.waitForSelector('.mode');
-  t.ok(!(await p.$$eval('.modes .mode', l => l[1].querySelector('.conseil'))), 'niveau I acquis : plus de mention sur le niveau II');
+  t.ok(!(await p.$$eval('.modes .mode', l => l[1].querySelector('.conseil'))) && (await p.textContent('.modes .mode .progression-niveau.valide')).trim() === 'Niveau validé',
+    'niveau I validé : carte « Niveau validé », plus de mention sur le niveau II');
 
   // Profil confirmé : test de positionnement
   await p.goto(U + '#/profil'); await p.waitForSelector('.selecteur-profil');
@@ -70,8 +100,8 @@ export default async function ({ t, url: U, navigateur }) {
   }
   await p.waitForSelector('.bilan');
   const pos = (await etat()).positionnement;
-  t.ok(vues === 12 && modesVus.size === 3 && pos?.score === 12 && pos.niveau === 3 && pos.niveaux.calcul === 3 && pos.niveaux.panne === 3 && (await p.textContent('.bilan')).includes('Tout est validé'),
-    'test de positionnement : 12 questions (reconnaissance, calcul, cas de panne), 12/12 → niveau III validé dans les trois modes');
+  t.ok(vues === 12 && modesVus.size === 3 && pos?.score === 12 && pos.niveau === 3 && pos.niveaux.calcul === 3 && pos.niveaux.panne === 3 && (await p.textContent('.bilan')).includes('Point de départ : niveau III partout') && (await p.textContent('main')).includes('ne valide aucun niveau'),
+    'test de positionnement : 12 questions (reconnaissance, calcul, cas de panne), 12/12 → point de départ au niveau III dans les trois modes (sans rien valider)');
   t.ok(((await etat()).xp ?? 0) === xpAvant, 'le test ne rapporte pas d\'XP (pas de farm d\'XP)');
   await p.goto(U + '#/entrainement/panne'); await p.waitForSelector('.ligne-panne');
   t.ok(await p.locator('.ligne-panne .conseil').count() === 0, 'après positionnement : plus aucune mention « Conseillé après… » sur les cas');

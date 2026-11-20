@@ -90,13 +90,28 @@ export default async function ({ t, url: U, navigateur }) {
   // ---------- Niveau validé : tampon sur le rapport ----------
   {
     const { contexte, page: p } = await nouvellePage(navigateur);
+    // Première séance complète : 10/10, mais un seul passage et pas tout vu → pas encore validé, ce qui manque est affiché.
+    await p.goto(U + '#/entrainement/reco?n=1');
+    for (let i = 0; i < 10; i++) { await repondre(p, true); await p.click('#suivant'); }
+    await p.waitForSelector('.bilan');
+    const n1 = qs.filter(q => q.niveau === 1).length;
+    t.ok(!(await p.locator('.tampon-valide').count()) && net(await p.textContent('.bilan-progression')).startsWith(`Pour valider le niveau : 10/${n1} questions vues · 1 séance réussie sur 2 (la prochaine compte à partir de demain`),
+      `un seul 10/10 ne valide plus le niveau : « ${net(await p.textContent('.bilan-progression'))} »`);
+    await p.waitForSelector('.insigne-obtenu');
+    t.ok(net(await p.textContent('.insigne-obtenu')).includes('Sans faute') && (await etat(p)).badges['sans-faute'] > 0, '10/10 : insigne « Sans faute »');
+    // Tout vu, et la première séance réussie date d'il y a 25 h : la séance suivante valide le niveau.
+    await p.evaluate(ids => {
+      const e = JSON.parse(localStorage.getItem('elec-learning:v1'));
+      for (const id of ids) e.stats.reco.elements[id] ??= { essais: 1, reussites: 1 };
+      e.stats.reco.seances[0].t -= 25 * 3_600_000;
+      localStorage.setItem('elec-learning:v1', JSON.stringify(e));
+    }, qs.filter(q => q.niveau === 1).map(q => q.id));
+    await p.goto(U + '#/x'); await p.reload();
     await p.goto(U + '#/entrainement/reco?n=1');
     for (let i = 0; i < 10; i++) { await repondre(p, true); await p.click('#suivant'); }
     await p.waitForSelector('.bilan');
     const tampon = await p.evaluate(() => { const el = document.querySelector('.tampon-valide'); return el && { texte: el.textContent.trim(), anim: getComputedStyle(el).animationName }; });
-    t.ok(tampon?.texte === 'Niveau validé' && tampon.anim === 'tampon', 'séance de niveau à 10/10 : tampon « Niveau validé » animé sur le rapport');
-    await p.waitForSelector('.insigne-obtenu');
-    t.ok(net(await p.textContent('.insigne-obtenu')).includes('Sans faute') && (await etat(p)).badges['sans-faute'] > 0, '10/10 : insigne « Sans faute »');
+    t.ok(tampon?.texte === 'Niveau validé' && tampon.anim === 'tampon', 'deuxième séance réussie 25 h plus tard, tout vu : tampon « Niveau validé » animé sur le rapport');
     t.ok(p.erreurs.length === 0, 'insignes : aucune erreur dans la console' + (p.erreurs.length ? ' — ' + p.erreurs.join(' | ') : ''));
     await contexte.close();
   }

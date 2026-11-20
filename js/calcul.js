@@ -8,7 +8,9 @@ import { TAILLE_SESSION, SEANCE_MIN_BONUS, enteteSession, afficherBilan, annonce
 import { DIFFICULTES, difficulte, etiquetteNiveau, renderChoixNiveau, lienSeance } from './difficulte.js';
 import { domaine, filtrerParDomaine, pucesDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
-import { conseilNiveau, SEUIL } from './parcours.js';
+import { conseilNiveau, niveauValide, progressionNiveau } from './parcours.js';
+import { definirCatalogue } from './catalogue.js';
+import { tirerPriorites } from './validation.js';
 import { aReviser, rappelsPourSeance, intercaler } from './leitner.js';
 import { zoneMemo, remplirMemo } from './memos.js';
 import * as stockage from './storage.js';
@@ -1394,6 +1396,8 @@ export function diagnostiquer(ex, valeur) {
   return null;
 }
 
+definirCatalogue('calcul', GENERATEURS);   // pour les règles de validation (« tous les types de calcul vus »)
+
 // Générateurs d'un niveau, éventuellement limités à un domaine ('' = tous).
 export function generateursDe(niveau, dom = '') {
   return filtrerParDomaine(GENERATEURS, dom).filter(g => g.niveau === niveau);
@@ -1402,11 +1406,14 @@ export function generateursDe(niveau, dom = '') {
 // Une séance compte toujours 10 calculs : les générateurs disponibles sont repris à tour de rôle.
 // En révision (ids donnés) : chaque type de calcul raté revient une fois, avec de nouvelles valeurs.
 // Rappels (ids de calculs ratés il y a quelques jours) : intercalés dans la séance ordinaire, avec de nouvelles valeurs.
-export function creerSession(niveau, dom = '', ids = null, rappels = []) {
+// elements (stats des calculs, facultatif) : les types jamais vus passent d'abord, puis les erreurs à réviser.
+export function creerSession(niveau, dom = '', ids = null, rappels = [], elements = null) {
   const dispo = ids ? GENERATEURS.filter(g => ids.includes(g.id)) : generateursDe(niveau, dom);
   const aRappeler = ids ? [] : GENERATEURS.filter(g => rappels.includes(g.id));
+  const places = TAILLE_SESSION - aRappeler.length;
+  const choisis = elements ? tirerPriorites(dispo, elements, Math.min(dispo.length, places), melanger) : dispo;
   const generateurs = ids ? melanger(dispo).slice(0, TAILLE_SESSION)
-    : melanger(Array.from({ length: TAILLE_SESSION - aRappeler.length }, (_, i) => dispo[i % dispo.length]));
+    : melanger(Array.from({ length: places }, (_, i) => choisis[i % choisis.length]));
   const suite = intercaler(generateurs.map(g => ({ g })), aRappeler.map(g => ({ g, rappel: true })), TAILLE_SESSION);
   return {
     niveau,
@@ -1444,7 +1451,8 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       nombre: (n, d) => generateursDe(n, d).length,
       unite: 'types de calcul',
       domaine: dom,
-      conseil: (n, d) => conseilNiveau(stockage.lire(), 'calcul', n, { domaine: d })
+      conseil: (n, d) => conseilNiveau(stockage.lire(), 'calcul', n, { domaine: d }),
+      progression: n => progressionNiveau(stockage.lire(), 'calcul', n)
     });
     return;
   }
@@ -1452,7 +1460,7 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
   let rappels = revision ? [] : rappelsPourSeance(stockage.lire(), 'calcul', {
     admis: id => GENERATEURS.some(g => g.id === id && g.niveau <= niveau && filtrerParDomaine([g], dom).length)
   });
-  const session = sessionCourante = creerSession(niveau, dom, revision ? dus : null, rappels);
+  const session = sessionCourante = creerSession(niveau, dom, revision ? dus : null, rappels, revision ? null : stockage.lire().stats?.calcul?.elements ?? {});
   let saisie = '';
   const exerciceCourant = () => session.exercices[session.index];
 
@@ -1632,7 +1640,12 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       session.xp += BAREME.sessionParfaite;
       annoncerMontee(gagnerXP(BAREME.sessionParfaite));
     }
-    noterSession('calcul', session.score, dom || revision ? undefined : niveau); // records par niveau : séances « tous domaines » seulement
+    // Records par niveau : séances « tous domaines » seulement. Une séance complète entre dans le journal de validation.
+    const total = session.exercices.length;
+    const complete = !dom && !revision && total >= TAILLE_SESSION;
+    const dejaValide = !dom && !revision && niveauValide(stockage.lire(), 'calcul', niveau);
+    noterSession('calcul', session.score, dom || revision ? undefined : niveau, complete ? total : undefined);
+    const progression = !dom && !revision ? progressionNiveau(stockage.lire(), 'calcul', niveau) : null;
     const suivantNiveau = revision ? null : DIFFICULTES.find(d => d.n === niveau + 1 && generateursDe(d.n, dom).length);
     afficherBilan(vue, {
       score: session.score,
@@ -1640,7 +1653,8 @@ export function renderCalcul({ vue, definirTitre, auNettoyage, params }) {
       xpGagne: session.xp,
       onRejouer: () => renderCalcul({ vue, definirTitre, auNettoyage, params }),
       rappels: rappels.length ? { total: rappels.length, reussis: session.rappelsReussis ?? 0 } : null,
-      valide: !dom && !revision && session.exercices.length >= 10 && session.score >= SEUIL,
+      valide: !!progression?.valide && !dejaValide,
+      progression: progression && !progression.valide ? progression.texte : null,
       suite: revision ? { href: '#/entrainement/revision', libelle: 'Retour à « À réviser »' } : session.score >= 8 && suivantNiveau ? { href: lienSeance('#/entrainement/calcul', suivantNiveau.n, dom), libelle: `Passer au niveau ${suivantNiveau.romain}` } : null
     });
   };

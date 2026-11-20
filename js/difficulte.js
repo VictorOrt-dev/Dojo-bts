@@ -36,7 +36,8 @@ export function lienSeance(base, n, d = '') {
 }
 
 // conseil(n, d) : mention « Conseillé après… » (déblocage souple), ou null. Le niveau reste toujours ouvrable.
-export function renderChoixNiveau(vue, { mode, base, titre, sousTitre, nombre, unite, domaine: actif = '', conseil = () => null }) {
+// progression(n) : { valide, ancien, texte } (parcours.progressionNiveau) : ce qui manque pour valider le niveau.
+export function renderChoixNiveau(vue, { mode, base, titre, sousTitre, nombre, unite, domaine: actif = '', conseil = () => null, progression = () => null }) {
   const records = statsMode(mode).niveaux ?? {};
   const choisi = domaine(actif) ? actif : '';
   vue.innerHTML = `
@@ -57,6 +58,7 @@ export function renderChoixNiveau(vue, { mode, base, titre, sousTitre, nombre, u
             <span class="mode-desc">${esc(d.desc)}</span>
             <span class="mode-detail">${n ? `${n} ${esc(unite)} · +${d.xp} XP par bonne réponse` : 'Rien dans ce domaine à ce niveau'}</span>
             ${mention ? `<span class="conseil">${esc(mention)}</span>` : ''}
+            ${(p => p && !choisi ? `<span class="progression-niveau${p.valide ? ' valide' : ''}">${esc(p.valide && !p.ancien ? 'Niveau validé' : p.texte)}</span>` : '')(progression(d.n))}
           </span>
           <span class="mode-record">${!choisi && records[d.n] !== undefined ? `${String(records[d.n]).padStart(2, '0')}/10` : ''}</span>`;
         return n ? `<a class="mode" href="${lienSeance(base, d.n, choisi)}">${contenu}</a>` : `<div class="mode inactif" aria-disabled="true">${contenu}</div>`;

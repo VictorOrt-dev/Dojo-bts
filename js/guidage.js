@@ -89,21 +89,22 @@ export function recommandation(etat, catalogue, prochaine, tousLesCas = []) {
       action: 'Lancer la séance ciblée'
     };
   }
-  // Niveau tout juste acquis en reconnaissance et en calculs : on propose le suivant.
+  // Niveau tout juste franchi en reconnaissance et en calculs : on propose le suivant.
+  const contenu = { ...catalogue, panne: tousLesCas.length ? tousLesCas : catalogue.panne };
   for (const n of [1, 2]) {
-    const acquis = ['reco', 'calcul'].every(m => niveauAcquis(etat, m, n, tousLesCas));
-    const suivantAcquis = ['reco', 'calcul'].every(m => niveauAcquis(etat, m, n + 1, tousLesCas));
+    const acquis = ['reco', 'calcul'].every(m => niveauAcquis(etat, m, n, contenu));
+    const suivantAcquis = ['reco', 'calcul'].every(m => niveauAcquis(etat, m, n + 1, contenu));
     if (acquis && !suivantAcquis) {
-      const mode = niveauAcquis(etat, 'reco', n + 1, tousLesCas) ? 'calcul' : 'reco';
+      const mode = niveauAcquis(etat, 'reco', n + 1, contenu) ? 'calcul' : 'reco';
       const versParcours = prochaine?.code === `${mode === 'reco' ? 'R' : 'C'}${n + 1}`;
       return {
         type: 'niveau', bilan, href: versParcours ? prochaine.href : `#/entrainement/${mode}?n=${n + 1}`,
         surtitre: 'Prochaine étape',
         titre: n === 1 ? 'Fondations acquises — Passe au niveau II' : 'Pratique courante acquise — Passe au niveau III',
-        desc: `${NOMS_MODE.reco} et ${NOMS_MODE.calcul.toLowerCase()} du niveau ${ROMAIN[n]} validés. Prochaine séance : ${NOMS_MODE[mode]}, niveau ${ROMAIN[n + 1]}.`,
+        desc: `${NOMS_MODE.reco} et ${NOMS_MODE.calcul.toLowerCase()} du niveau ${ROMAIN[n]} franchis. Prochaine séance : ${NOMS_MODE[mode]}, niveau ${ROMAIN[n + 1]}.`,
         action: 'Commencer'
       };
     }
   }
-  return { type: 'parcours', bilan, href: prochaine.href, surtitre: 'Ta prochaine séance', titre: prochaine.titre, desc: prochaine.desc, action: 'Commencer' };
+  return { type: 'parcours', bilan, href: prochaine.href, surtitre: 'Ta prochaine séance', titre: prochaine.titre, desc: prochaine.desc, manque: prochaine.manque, action: 'Commencer' };
 }

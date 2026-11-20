@@ -8,7 +8,7 @@ import { gagnerXP, noterReponse, noterSession } from './xp.js';
 import { annoncerMontee } from './entrainement.js';
 import { frontispice, typo as typoBase } from './mise-en-page.js';
 import { parmi } from './hasard.js';
-import { pannesCandidates } from './parcours.js';
+import { pannesCandidates, progressionNiveau } from './parcours.js';
 import { CIRCUITS, PROFILS } from './banc-profils.js';
 import { etiquetteNiveau } from './difficulte.js';
 import { esc } from './util.js';
@@ -665,6 +665,7 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false, retour = null
     const reussie = etat.resolu && !etat.dangers.length;
     noterReponse('banc', panne.id, reussie);
     noterSession('banc', etat.resolu ? 1 : 0);
+    const etapeBanc = progressionNiveau(stockage.lire(), 'banc');
     const message = !etat.resolu ? 'Intervention abandonnée.' : parfait ? 'Diagnostic de pro.' : etat.dangers.length ? 'Réparé, mais pas en sécurité.' : 'Panne réparée.';
     vue.innerHTML = `
       <section class="bilan">
@@ -679,9 +680,10 @@ function demarrer(vue, banc, panne, { tuto = false, libre = false, retour = null
         <li><span>Mesures et actions</span><span class="mono">${etat.journal.length}</span></li>
         <li><span>Indices utilisés</span><span class="mono">${etat.indices}</span></li>
       </ul>
+      <p class="bilan-progression">${etapeBanc.valide && !etapeBanc.ancien ? 'Étape « Banc » du parcours validée.' : `Étape « Banc » du parcours : ${esc(etapeBanc.texte)}.`}</p>
       ${reussie && !parfait ? `<div class="lecon objectif-suivant"><p class="lecon-titre">Intervention validée</p><p>${etat.indices
-        ? `Réparée sans alerte de sécurité, avec ${etat.indices} indice${etat.indices > 1 ? 's' : ''} : c'est validé. Objectif suivant : la même panne sans indice, pour le bonus « sans faute » (+20 XP).`
-        : 'Réparée sans alerte de sécurité : c\'est validé. Pour le « sans faute » (+20 XP) : aucune pièce changée pour rien, dans les temps du technicien confirmé.'}</p></div>` : ''}
+        ? `Réparée sans alerte de sécurité, avec ${etat.indices} indice${etat.indices > 1 ? 's' : ''} : l'intervention compte. Objectif suivant : la même panne sans indice, pour le bonus « sans faute » (+20 XP).`
+        : 'Réparée sans alerte de sécurité : l\'intervention compte. Pour le « sans faute » (+20 XP) : aucune pièce changée pour rien, dans les temps du technicien confirmé.'}</p></div>` : ''}
       ${etat.resolu && etat.dangers.length ? `<div class="diagnostic"><p class="lecon-titre">Pas encore validée</p><p>La panne est réparée, mais avec une alerte de sécurité : refais une intervention sans geste dangereux pour la valider.</p></div>` : ''}
       ${etat.dangers.length ? `<div class="alerte-securite"><p class="lecon-titre">Gestes dangereux</p><p>${etat.dangers.map(d => esc(d)).join(' · ')}</p></div>` : ''}
       ${inutiles.length ? `<div class="diagnostic"><p class="lecon-titre">Fausses pistes payées en pièces</p><p>${inutiles.map(r => esc(r.libelle)).join(' · ')}</p></div>` : ''}

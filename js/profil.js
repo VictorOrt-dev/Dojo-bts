@@ -45,7 +45,7 @@ function estInstallee() {
 // « Positionnement : 9/12 · reconnaissance II, calculs I, cas de panne I. » (ancien test : reconnaissance seule, sur 10).
 function resumePositionnement(p) {
   const R = ['', 'I', 'II', 'III'];
-  if (!p.niveaux) return `Positionnement : ${p.score}/10 (ancien test, reconnaissance seule)${p.niveau ? `, reconnaissance niveau ${R[p.niveau]} validée` : ''}. Refais-le pour valider aussi calculs et cas.`;
+  if (!p.niveaux) return `Positionnement : ${p.score}/10 (ancien test, reconnaissance seule)${p.niveau ? `, départ en reconnaissance au-delà du niveau ${R[p.niveau]}` : ''}. Refais-le pour placer aussi calculs et cas.`;
   const modes = [['reco', 'reconnaissance'], ['calcul', 'calculs'], ['panne', 'cas de panne']].map(([m, nom]) => `${nom} ${p.niveaux[m] ? R[p.niveaux[m]] : '—'}`);
   return `Positionnement : ${p.score}/12 · ${modes.join(', ')}.`;
 }

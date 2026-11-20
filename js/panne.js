@@ -13,7 +13,8 @@ import { esc } from './util.js';
 import { domaine, filtrerParDomaine, pucesDomaines, barreDomaines } from './domaines.js';
 import { blocRisque, risqueComplet, ligneNorme, enSavoirPlus, resume, MOTS_POURQUOI } from './tuteur.js';
 import { zoneMemo, remplirMemo } from './memos.js';
-import { conseilCas } from './parcours.js';
+import { conseilCas, progressionNiveau } from './parcours.js';
+import { definirCatalogue } from './catalogue.js';
 import * as stockage from './storage.js';
 
 // suite : le choix permet-il de passer à l'étape suivante ?
@@ -32,6 +33,7 @@ export function chargerPannes() {
       if (!rep.ok) throw new Error(`data/pannes.json introuvable (HTTP ${rep.status})`);
       return rep.json();
     })
+    .then(cas => { definirCatalogue('panne', cas); return cas; })
     .catch(err => {
       promessePannes = null;
       throw err;
@@ -66,6 +68,7 @@ function afficherListe(vue, tousLesCas, dom) {
     ${DIFFICULTES.filter(d => cas.some(c => c.niveau === d.n)).map(d => `
       <section>
         <h3 class="section-titre"><span class="section-num">${d.romain}</span><span>${esc(d.nom)}</span></h3>
+        ${(p => dom ? '' : `<p class="progression-niveau${p.valide ? ' valide' : ''}">${esc(p.valide && !p.ancien ? 'Cas de ce niveau validés' : `Pour valider ce niveau : ${p.texte}`)}</p>`)(progressionNiveau(stockage.lire(), 'panne', d.n, tousLesCas))}
         ${cas.filter(c => c.niveau === d.n).map(c => `
           <a class="ligne ligne-panne" href="#/entrainement/panne?c=${encodeURIComponent(c.id)}">
             <div>
@@ -197,8 +200,10 @@ function jouer(vue, c, tousLesCas) {
     const minutesPerdues = partie.consequences.reduce((t, k) => t + (k.minutes ?? 0), 0);
     const xp = partie.reussies * diff.xp + (parfait ? BAREME.sessionParfaite : 0);
     if (xp) annoncerMontee(gagnerXP(xp));
+    const dejaValide = progressionNiveau(stockage.lire(), 'panne', c.niveau, tousLesCas).valide;
     noterReponse('panne', c.id, parfait);
     noterSession('panne', partie.reussies, c.niveau);
+    const progression = progressionNiveau(stockage.lire(), 'panne', c.niveau, tousLesCas);
 
     const cause = resume(c.conclusion.cause, MOTS_POURQUOI);
     const message = parfait ? 'Intervention exemplaire.' : partie.alertes ? 'Panne trouvée. Attention à la sécurité.' : 'Panne trouvée.';
@@ -209,6 +214,8 @@ function jouer(vue, c, tousLesCas) {
         <p class="bilan-score">${deuxChiffres(partie.reussies)}<small>/${deuxChiffres(partie.numero)}</small></p>
         <p class="bilan-message">${message}</p>
         <p class="bilan-xp">+${xp} XP · étapes réussies du premier coup${partie.alertes ? ` · ${partie.alertes} alerte${partie.alertes > 1 ? 's' : ''} sécurité` : ''}</p>
+        ${progression.valide && !dejaValide ? `<p class="tampon-valide" role="status"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Cas de niveau ${difficulte(c.niveau).romain} validés</p>` : ''}
+        ${progression.valide ? '' : `<p class="bilan-progression">Pour valider les cas de niveau ${difficulte(c.niveau).romain} : ${esc(progression.texte)}</p>`}
       </section>
       <section class="rapport-panne">
         ${partie.consequences.length ? `<div class="consequence bilan-degats"><p class="lecon-titre">Ce que tes choix ont coûté${minutesPerdues ? ` · ${horaire(minutesPerdues)} d'arrêt en plus` : ''}</p><ul>${partie.consequences.map(k => `<li>${esc(typo(k.texte))}</li>`).join('')}</ul></div>` : ''}
